@@ -1,0 +1,6 @@
+github.com/AmyangXYZ/sgo v0.0.0-20211108223708-fe91d7597ce5 h1:jvPfyv/Myr9wpb3Jo4mwgllktxy/gPMosvtVuk6GwwA=
+github.com/AmyangXYZ/sgo v0.0.0-20211108223708-fe91d7597ce5/go.mod h1:G90ZwTJkHDt6zp4HTkKWGZD30MoU1Kl/2tkQFIO1kog=
+github.com/AmyangXYZ/sgo v0.0.0-20211108225222-933455304bc0 h1:co1DSinbhN0Bje2Ts84yCwxl6pmGgd7xpX7pve7oyr4=
+github.com/AmyangXYZ/sgo v0.0.0-20211108225222-933455304bc0/go.mod h1:G90ZwTJkHDt6zp4HTkKWGZD30MoU1Kl/2tkQFIO1kog=
+github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
+github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
