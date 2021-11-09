@@ -3,6 +3,7 @@
     <!-- <div slot="header">
       <h3>Communication Network</h3>
     </div> -->
+    <span> a </span>
     <ECharts
       id="chart"
       ref="topo"
@@ -61,7 +62,7 @@ import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
-import axios from 'axios'
+import axios from "axios";
 
 export default {
   components: {
@@ -380,7 +381,7 @@ export default {
             type: "graph",
             layout: "none",
             symbolSize: 45,
-            center: [500, 120],
+            center: [500, 110],
             label: {
               show: true,
               fontSize: 13,
@@ -409,12 +410,12 @@ export default {
                 y: -455,
               },
               {
-                name: "TX:0\nRX:0\n\ninv",
+                name: "TX:0\nRX:0\n\nstr",
                 x: 750,
                 y: -680,
               },
               {
-                name: "TX:0\nRX:0\n\nstr",
+                name: "TX:0\nRX:0\n\ninv",
                 x: 1300,
                 y: -455,
               },
@@ -440,48 +441,49 @@ export default {
               },
               {
                 name: "TX:0\nRX:0\n\nsw0",
-                x: 300,
+                x: 750,
                 y: 70,
               },
               {
                 name: "TX:0\nRX:0\n\nsw1",
+                x: 300,
+                y: 70,
+              },
+              {
+                name: "TX:0\nRX:0\n\nsw2",
                 x: 425,
                 y: -230,
               },
               {
-                name: "TX:0\nRX:0\n\nsw2",
+                name: "TX:0\nRX:0\n\nsw3",
                 x: 750,
                 y: -380,
               },
               {
-                name: "TX:0\nRX:0\n\nsw3",
-                x: 1200,
-                y: 70,
-              },
-              {
                 name: "TX:0\nRX:0\n\nsw4",
-                x: 1075,
-                y: 370,
-              },
-              {
-                name: "TX:0\nRX:0\n\nsw5",
-                x: 750,
-                y: 520,
-              },
-              {
-                name: "TX:0\nRX:0\n\nsw6",
                 x: 1075,
                 y: -230,
               },
               {
-                name: "TX:0\nRX:0\n\nsw7",
-                x: 425,
+                name: "TX:0\nRX:0\n\nsw5",
+                x: 1200,
+                y: 70,
+              },
+              {
+                name: "TX:0\nRX:0\n\nsw6",
+                x: 1075,
                 y: 370,
               },
               {
-                name: "TX:0\nRX:0\n\nsw8",
+                name: "TX:0\nRX:0\n\nsw7",
+
                 x: 750,
-                y: 70,
+                y: 520,
+              },
+              {
+                name: "TX:0\nRX:0\n\nsw8",
+                x: 425,
+                y: 370,
               },
             ],
           },
@@ -519,12 +521,14 @@ export default {
       this.activePrompt = false;
     },
     acceptPrompt() {
-      window.console.log(this.tmpLatency,this.selectedLink)
+      window.console.log(this.tmpLatency, this.selectedLink);
       this.linkStats[this.selectedLink].PDR = this.tmpPDR;
       this.linkStats[this.selectedLink].Latency = this.tmpLatency;
       this.linkStats[this.selectedLink].Bandwidth = this.tmpBandwidth;
-      axios.get(`http://localhost:8000/api/link/${this.selectedLink}?pdr=${this.tmpPDR}&distance=${this.tmpLatency}&bandwidth=${this.tmpBandwidth}`)
-      
+      axios.get(
+        `http://localhost:8000/api/link/${this.selectedLink}?pdr=${this.tmpPDR}&distance=${this.tmpLatency}&bandwidth=${this.tmpBandwidth}`
+      );
+
       this.activePrompt = false;
     },
   },
@@ -535,8 +539,8 @@ export default {
       GCC: { id: 0, nick: "gcc" },
       HMS: { id: 1, nick: "hms" },
       AGT: { id: 2, nick: "agt" },
-      INV: { id: 3, nick: "inv" },
-      STR: { id: 4, nick: "str" },
+      STR: { id: 3, nick: "str" },
+      INV: { id: 4, nick: "inv" },
       PWR: { id: 5, nick: "pwr" },
       ECLSS: { id: 6, nick: "eclss" },
       INT: { id: 7, nick: "int" },
@@ -553,13 +557,18 @@ export default {
     };
     this.$EventBus.$on("stats_comm", (stats) => {
       for (var i in stats) {
-          this.option.series[1].nodes[nameIdxMap[i].id].name = 
-            "TX:" +
-            stats[i][0] +
-            "\nRX:" +
-            stats[i][1] +
-            "\n\n" +
-            nameIdxMap[i].nick;
+        window.console.log(
+          i,
+          nameIdxMap[i],
+          this.option.series[1].nodes[nameIdxMap[i].id].name
+        );
+        this.option.series[1].nodes[nameIdxMap[i].id].name =
+          "TX:" +
+          stats[i][0] +
+          "\nRX:" +
+          stats[i][1] +
+          "\n\n" +
+          nameIdxMap[i].nick;
       }
     });
   },

@@ -115,7 +115,7 @@ func (s *Subsys) handlePacket() {
 			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
 		}
 		pkt.Path = append(pkt.Path, s.name)
-		fmt.Println("biu")
+
 		// routing
 		foundGate := false
 		for _, g := range s.gateOut {
