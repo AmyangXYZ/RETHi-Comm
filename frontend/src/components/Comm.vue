@@ -1,8 +1,8 @@
 <template>
   <vs-card id="topology">
-    <div slot="header">
+    <!-- <div slot="header">
       <h3>Communication Network</h3>
-    </div>
+    </div> -->
     <ECharts
       id="chart"
       ref="topo"
@@ -51,7 +51,7 @@
         </vs-row>
       </div>
     </vs-prompt>
-    <Console name="comm" height="180px" />
+    <Console name="comm" height="100px" />
   </vs-card>
 </template>
 
@@ -124,7 +124,7 @@ export default {
             nodes: [
               {
                 name: "GCC",
-                x: -500,
+                x: -600,
                 y: 150,
                 // symbolSize: 55,
                 itemStyle: {
@@ -395,7 +395,7 @@ export default {
             nodes: [
               {
                 name: "TX:0\nRX:0\n\ngcc",
-                x: -500,
+                x: -600,
                 y: 70,
               },
               {
@@ -519,15 +519,11 @@ export default {
       this.activePrompt = false;
     },
     acceptPrompt() {
-      window.console.log(this.tmpLatency)
+      window.console.log(this.tmpLatency,this.selectedLink)
       this.linkStats[this.selectedLink].PDR = this.tmpPDR;
       this.linkStats[this.selectedLink].Latency = this.tmpLatency;
       this.linkStats[this.selectedLink].Bandwidth = this.tmpBandwidth;
-      axios.post("http://localhost:8000/api/link/ground", {
-        pdr:this.tmpPDR,
-        latency:this.tmpLatency,
-        bandwidth: this.tmpBandwidth
-      })
+      axios.get(`http://localhost:8000/api/link/${this.selectedLink}?pdr=${this.tmpPDR}&distance=${this.tmpLatency}&bandwidth=${this.tmpBandwidth}`)
       
       this.activePrompt = false;
     },
@@ -577,7 +573,7 @@ export default {
 }
 #chart {
   width: 100%;
-  height: 570px;
+  height: 700px;
 }
 .link-prompt {
   font-size: 1rem;

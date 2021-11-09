@@ -9,12 +9,13 @@ import "fmt"
 
 // Switch simulates MQMO TSN switch
 type Switch struct {
-	Name    string
-	fwdCnt  int
-	recvCnt int
-	GateIn  *Gate
-	GateOut [GATE_NUM_SWITCH]*Gate
-	queue   [QUEUE_NUM_SWITCH]chan *Packet // priority queue
+	name       string
+	fwdCnt     int
+	recvCnt    int
+	gateIn     *Gate
+	gateOut    [GATE_NUM_SWITCH]*Gate
+	gateOutIdx int
+	queue      [QUEUE_NUM_SWITCH]chan *Packet // priority queue
 }
 
 func NewSwitch(name string) *Switch {
@@ -28,12 +29,32 @@ func NewSwitch(name string) *Switch {
 		queue[j] = make(chan *Packet, QUEUE_LEN_SWITCH)
 	}
 
-	return &Switch{
-		Name:    name,
-		GateIn:  NewGate(0, name),
-		GateOut: gateOut,
-		queue:   queue,
+	sw := &Switch{
+		name:       name,
+		gateIn:     NewGate(0, name),
+		gateOut:    gateOut,
+		gateOutIdx: -1,
+		queue:      queue,
 	}
+	go sw.Start()
+	Switches = append(Switches, sw)
+	return sw
+}
+
+// implement Node interface
+func (sw *Switch) Name() string {
+	return sw.name
+}
+
+// implement Node interface
+func (sw *Switch) OutGate() *Gate {
+	sw.gateOutIdx++
+	return sw.gateOut[sw.gateOutIdx]
+}
+
+// implement Node interface
+func (sw *Switch) InGate() *Gate {
+	return sw.gateIn
 }
 
 // starts the switch routine
@@ -43,7 +64,7 @@ func (sw *Switch) Start() {
 	// enqueue
 	go func() {
 		for {
-			pkt := <-sw.GateIn.Channel
+			pkt := <-sw.gateIn.Channel
 			sw.queue[pkt.Priority] <- pkt
 			sw.recvCnt++
 			// fmt.Println("enqueue packet to queue", pkt.Priority)
@@ -140,19 +161,25 @@ func (sw *Switch) Start() {
 // handle incoming packets, schedule based on its priority and forward to the destination switch/subsys
 func (sw *Switch) handle(pkt *Packet) {
 	sent := false
-	if sw.Name != "SW0" {
-		for _, g := range sw.GateOut {
+	if sw.name != "SW0" {
+		for _, g := range sw.gateOut {
 			if g.Neighbor == SUBSYS_LIST[pkt.Dst].Name {
 				sw.send(g, pkt)
 				sent = true
+				break
 			}
 		}
 		if !sent {
 			// to switch 0
-			sw.send(sw.GateOut[0], pkt)
+			for _, g := range sw.gateOut {
+				if g.Neighbor == "SW0" {
+					sw.send(g, pkt)
+					break
+				}
+			}
 		}
 	} else {
-		for _, g := range sw.GateOut {
+		for _, g := range sw.gateOut {
 			if g.Neighbor == ROUTING_TABLE[int(pkt.Dst)] {
 				sw.send(g, pkt)
 			}
@@ -163,9 +190,9 @@ func (sw *Switch) handle(pkt *Packet) {
 
 // send to next hop
 func (sw *Switch) send(gate *Gate, pkt *Packet) {
-	pkt.Path = append(pkt.Path, sw.Name)
+	pkt.Path = append(pkt.Path, sw.name)
 	gate.Channel <- pkt
 	sw.fwdCnt++
 	fmt.Printf("[%s] Forward packet src=%d, dst=%d to gate %s\n",
-		sw.Name, pkt.Src, pkt.Dst, gate.Neighbor)
+		sw.name, pkt.Src, pkt.Dst, gate.Neighbor)
 }

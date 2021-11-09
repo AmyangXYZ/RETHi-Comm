@@ -3,7 +3,7 @@
     <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
     <Navbar/>
     <vs-row vs-w=12>
-      <vs-col vs-offset=0.4 vs-w=11.2>
+      <vs-col vs-offset=0.4 vs-w=6.8>
         <Comm/>
       </vs-col>
     </vs-row>

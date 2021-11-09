@@ -1,13 +1,13 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/AmyangXYZ/sgo"
+	"github.com/AmyangXYZ/sgo/middlewares"
 	"github.com/gorilla/websocket"
 )
 
@@ -35,12 +35,16 @@ func runHTTPSever() {
 
 	app := sgo.New()
 	app.SetTemplates("templates", nil)
+	app.USE(middlewares.CORS(middlewares.CORSOpt{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"*"},
+	}))
 	app.GET("/", index)
 	app.GET("/static/*files", static)
 
 	app.GET("/api/boottime", getBootTime)
 	app.GET("/ws/comm", wsComm)
-	app.POST("/api/link/:name", postLink)
+	app.GET("/api/link/:name", postLink)
 
 	if err := app.Run(addr); err != nil {
 		log.Fatal("Listen error", err)
@@ -88,11 +92,13 @@ func wsComm(ctx *sgo.Context) error {
 		case l := <-LogsComm:
 			ws.WriteJSON(l)
 		case <-breakSig:
-			return errors.New("stop ws")
+			return nil
 		}
 	}
 }
 
+// set link properties
 func postLink(ctx *sgo.Context) error {
+	fmt.Println(ctx.Params())
 	return ctx.Text(200, fmt.Sprintf("%d", boottime))
 }

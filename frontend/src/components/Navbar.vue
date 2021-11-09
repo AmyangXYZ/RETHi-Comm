@@ -4,11 +4,11 @@
       
       <div slot="title" id="title">
         <vs-navbar-title>
-          MCVT - Health Managment System
+          MCVT - Communication Network
         </vs-navbar-title>
       </div>
 
-      <vs-navbar-item id="button">
+      <!-- <vs-navbar-item id="button">
         <vs-button size="small" color="success" icon-pack="fas" :disabled="started" type="relief" icon="fa-play" @click="startAll"></vs-button>
       </vs-navbar-item>
       <vs-navbar-item id="button">
@@ -16,7 +16,7 @@
       </vs-navbar-item>
       <vs-navbar-item id="button">
         <vs-button size="small" color="primary" icon-pack="fas" type="relief" icon="fa-cog" @click="option"></vs-button>
-      </vs-navbar-item>
+      </vs-navbar-item> -->
 
       <vs-navbar-item id="uptime" index="2">
         Uptime: {{d}} day<span v-if="d>1">s</span> {{h.toString().padStart(2,'0')}}:{{m.toString().padStart(2,'0')}}:{{s.toString().padStart(2,'0')}}
@@ -86,7 +86,7 @@ export default {
   },
   
   mounted() {
-    this.getStarted()
+    // this.getStarted()
     this.getUpTime()
   }
 }
