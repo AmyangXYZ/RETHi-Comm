@@ -1,9 +1,5 @@
 package main
 
-import (
-	"fmt"
-)
-
 // default values
 var (
 	SpeedWireless     float64 = 300000000    // m/s
@@ -60,7 +56,7 @@ func Connect(n1, n2 Node) {
 // size in bytes
 func (l *Link) computeDelay(pktSize int) {
 	l.delay = float64(pktSize)*8/l.Bandwidth + l.Distance/l.Speed
-	fmt.Println("delay", l.delay)
+	// fmt.Println("delay", l.delay)
 }
 
 func (l *Link) forward() {
@@ -69,9 +65,11 @@ func (l *Link) forward() {
 		case pkt := <-l.sender1.Channel:
 			l.computeDelay(len(pkt.RawBytes))
 			// time.Sleep(time.Duration(l.delay) * time.Second)
+			pkt.Delay += l.delay
 			l.sink1.Channel <- pkt
 		case pkt := <-l.sender2.Channel:
 			l.computeDelay(len(pkt.RawBytes))
+			pkt.Delay += l.delay
 			// time.Sleep(time.Duration(l.delay) * time.Second)
 			l.sink2.Channel <- pkt
 		}

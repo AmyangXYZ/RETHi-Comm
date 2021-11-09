@@ -101,9 +101,8 @@ func (s *Subsys) handlePacket() {
 		// }
 
 		s.recvCnt++
-		fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
+		// fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
 		pkt := new(Packet)
-
 		err = pkt.FromBuf(buf[0:n])
 		if err != nil {
 			fmt.Println(err)
@@ -120,7 +119,7 @@ func (s *Subsys) handlePacket() {
 		foundGate := false
 		for _, g := range s.gateOut {
 			if g.Neighbor == SUBSYS_LIST[pkt.Dst].Name {
-				fmt.Println("sent to gate", g)
+				// fmt.Println("sent to gate", g)
 				g.Channel <- pkt
 				foundGate = true
 				break
@@ -130,7 +129,7 @@ func (s *Subsys) handlePacket() {
 		if !foundGate { // not hms or gcc
 			for _, g := range s.gateOut {
 				if g.Neighbor[:2] == "SW" {
-					fmt.Println("sent to gate", g)
+					// fmt.Println("sent to gate", g)
 					g.Channel <- pkt
 					break
 				}
@@ -151,21 +150,14 @@ func (s *Subsys) handleMessage() {
 		if err != nil {
 			fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
 		}
-		fwdCntTotal++
-		// fmt.Printf("Forward packet #%d {", fwdCntTotal)
-		// for i, v := range pkt.Path {
+		FwdCntTotal++
+		fmt.Printf("Packet #%d %v, total delay: %v\n", FwdCntTotal, pkt.Path, pkt.Delay)
 
-		// 	fmt.Print(v)
-		// 	if i != len(pkt.Path)-1 {
-		// 		fmt.Print("->")
-		// 	}
-		// }
-
-		// fmt.Printf("}\n")
-		fmt.Printf("[%s] Forwarded packet %v\n", s.name, pkt.Path)
+		fmt.Printf("}\n")
+		// fmt.Printf("[%s] Forwarded packet %v\n", s.name, pkt.Path)
 		LogsComm <- Log{
 			Type: 0,
-			Msg:  fmt.Sprintf("[%s] Forwarded packet %v", s.name, pkt.Path),
+			Msg:  fmt.Sprintf("Packet #%d %v, total delay: %v", FwdCntTotal, pkt.Path, pkt.Delay),
 		}
 	}
 }

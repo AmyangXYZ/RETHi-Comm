@@ -5,6 +5,7 @@ import (
 )
 
 type Packet struct {
+	// protocol use
 	Src          uint8  `json:"src"`
 	Dst          uint8  `json:"dst"`
 	MessageType  uint8  `json:"msg_type"`
@@ -16,8 +17,11 @@ type Packet struct {
 	Col          uint8  `json:"col"`
 	Length       uint16 `json:"len"`
 	Payload      []byte `json:"payload"`
-	RawBytes     []byte `json:"rawbytes"`
-	Path         []string
+
+	// internal use
+	RawBytes []byte
+	Delay    float64
+	Path     []string
 }
 
 func (pkt *Packet) FromBuf(buf []byte) error {

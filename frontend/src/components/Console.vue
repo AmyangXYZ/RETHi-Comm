@@ -1,10 +1,10 @@
 <template>
-  <!-- <vs-card id="console"> -->
-    <!-- <div slot="header"> -->
-      <!-- <h3>Console</h3> -->
-    <!-- </div> -->
+  <vs-card id="console">
+    <div slot="header"  style="text-align:left">
+      <h3>Console</h3>
+    </div>
     <textarea :style="cssVars" autofocus id="logs" ref="logs" :value="log" @change="v => log = v" disabled />
-  <!-- </vs-card> -->
+  </vs-card>
 </template>
 
 <script>
@@ -88,13 +88,13 @@ export default {
 <style scoped>
 
 #logs {
-  margin-top: 12px;
+  margin-top: 1px;
   width: 100%;
   height: var(--height);
   font-size: 0.8rem;
-  line-height: 1.2;
+  line-height: 1.3;
   border-radius: 6px;
-  padding: 12px;
+  padding: 3px;
   box-sizing: border-box;
   resize: none;
   outline: none;
@@ -102,9 +102,9 @@ export default {
   text-decoration: none;
 }
 
-/* textarea {
+textarea {
   border: none
-} */
+}
 textarea:disabled {
   background: white;
 }

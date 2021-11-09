@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/AmyangXYZ/sgo"
@@ -100,5 +102,18 @@ func wsComm(ctx *sgo.Context) error {
 // set link properties
 func postLink(ctx *sgo.Context) error {
 	fmt.Println(ctx.Params())
+	if linkName := ctx.Param("name"); linkName != "" {
+		if nodes := strings.Split(linkName, " > "); len(nodes) == 2 {
+			for _, l := range Links {
+				if (l.sender1.Owner == nodes[0] && l.sink1.Owner == nodes[1]) ||
+					(l.sender2.Owner == nodes[0] && l.sink2.Owner == nodes[1]) {
+					l.Bandwidth, _ = strconv.ParseFloat(ctx.Param("bandwidth"), 64)
+					l.PacketLossRate, _ = strconv.ParseFloat(ctx.Param("loss"), 64)
+					l.Distance, _ = strconv.ParseFloat(ctx.Param("distance"), 64)
+				}
+			}
+		}
+	}
+
 	return ctx.Text(200, fmt.Sprintf("%d", boottime))
 }

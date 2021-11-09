@@ -58,7 +58,7 @@ var (
 		7: "SW7",
 		8: "SW8",
 	}
-	fwdCntTotal = 0
+	FwdCntTotal = 0
 	Subsystems  []*Subsys
 	Switches    []*Switch
 	Links       []*Link
@@ -139,8 +139,7 @@ func main() {
 
 	go collectStatistics()
 
-	go runHTTPSever()
-	select {}
+	runHTTPSever()
 }
 
 func collectStatistics() {

@@ -4,8 +4,7 @@ import time
 import random
 
 IP = "127.0.0.1"
-PORT = 10004
-
+PORT = 10001
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 UNDEFINED = -9999
@@ -15,8 +14,8 @@ while True:
     # if cnt>10:
     #     break
 
-    _src = 4
-    _dst = 1
+    _src = 1
+    _dst = 0
 
     pkt = Packet()
     buf = pkt.pkt2Buf(_src, _dst)

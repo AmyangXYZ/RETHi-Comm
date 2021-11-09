@@ -5,8 +5,6 @@
 // Funding Acknowledgement: Funded by the NASA RETHi Project
 package main
 
-import "fmt"
-
 // Switch simulates MQMO TSN switch
 type Switch struct {
 	name       string
@@ -193,6 +191,6 @@ func (sw *Switch) send(gate *Gate, pkt *Packet) {
 	pkt.Path = append(pkt.Path, sw.name)
 	gate.Channel <- pkt
 	sw.fwdCnt++
-	fmt.Printf("[%s] Forward packet src=%d, dst=%d to gate %s\n",
-		sw.name, pkt.Src, pkt.Dst, gate.Neighbor)
+	// fmt.Printf("[%s] Forward packet src=%d, dst=%d to gate %s\n",
+	// 	sw.name, pkt.Src, pkt.Dst, gate.Neighbor)
 }

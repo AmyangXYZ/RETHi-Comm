@@ -1,9 +1,8 @@
 <template>
   <vs-card id="topology">
-    <!-- <div slot="header">
-      <h3>Communication Network</h3>
-    </div> -->
-    <span> a </span>
+    <div slot="header" style="text-align:left">
+      <h3>Network Topology </h3>
+    </div>
     <ECharts
       id="chart"
       ref="topo"
@@ -22,10 +21,10 @@
       <div class="link-prompt">
         <vs-row vs-align="center" vs-type="flex" vs-justify="center" vs-w="12">
           <vs-col vs-w="1">
-            <span>PDR</span>
+            <span>Loss</span>
           </vs-col>
           <vs-col vs-offset="2" vs-w="5">
-            <vs-input placeholder="100" v-model="tmpPDR" />
+            <vs-input  v-model="tmpLoss" />
           </vs-col>
         </vs-row>
         <vs-row
@@ -36,10 +35,10 @@
           vs-w="12"
         >
           <vs-col vs-w="1">
-            <span>Latency</span>
+            <span>Delay</span>
           </vs-col>
           <vs-col vs-offset="2" vs-w="5">
-            <vs-input placeholder="100" v-model="tmpLatency" />
+            <vs-input placeholder="100" v-model="tmpDelay" />
           </vs-col>
         </vs-row>
         <vs-row vs-align="center" vs-type="flex" vs-justify="center" vs-w="12">
@@ -50,14 +49,20 @@
             <vs-input placeholder="100" v-model="tmpBandwidth" />
           </vs-col>
         </vs-row>
+         <vs-row vs-align="center" vs-type="flex" vs-justify="center" vs-w="12">
+          <vs-col vs-w="1">
+            <span>Distance</span>
+          </vs-col>
+          <vs-col vs-offset="2" vs-w="5">
+            <vs-input placeholder="100" v-model="tmpDistance" />
+          </vs-col>
+        </vs-row>
       </div>
     </vs-prompt>
-    <Console name="comm" height="100px" />
   </vs-card>
 </template>
 
 <script>
-import Console from "./Console.vue";
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/chart/graph";
@@ -67,15 +72,15 @@ import axios from "axios";
 export default {
   components: {
     ECharts,
-    Console,
   },
   data() {
     return {
       activePrompt: false,
       selectedLink: "",
-      tmpPDR: 100,
-      tmpLatency: 10,
-      tmpBandwidth: 10,
+      tmpLoss: 0,
+      tmpDelay: 1,
+      tmpBandwidth: 1,
+      tmpDistance: 1000,
       linkStats: {},
       option: {
         tooltip: {
@@ -84,14 +89,19 @@ export default {
           formatter: (item) => {
             if (item.name.indexOf(">") > 0) {
               // is a link
+              var units = {loss: "%", bandwidth:" Gbps", delay: " us"}
               var link = this.linkStats[item.name];
+              if (item.name.indexOf("GCC") > 0) {
+                units.delay = " s"
+                units.bandwidth = " bps"
+              }
               return (
-                "PDR:" +
-                link.PDR +
-                "<br>Latency: " +
-                link.Latency +
-                "<br>Bandwidth:" +
-                link.Bandwidth
+                "Loss: " +
+                link.Loss + units.loss+
+                "<br>Delay: " +
+                link.Delay + units.delay+
+                "<br>Bandwidth: "+
+                link.Bandwidth +  units.bandwidth
               );
             }
             return item.data.name;
@@ -119,7 +129,7 @@ export default {
             },
             label: {
               show: true,
-              fontSize: 14,
+              fontSize: 15,
             },
             center: [500, 120],
             nodes: [
@@ -499,15 +509,15 @@ export default {
         var name = link.source + " > " + link.target;
 
         this.linkStats[name] = {
-          PDR: 100,
-          Latency: 10,
-          Bandwidth: 10,
+          Loss: 0,
+          Delay: 1,
+          Bandwidth: 1,
         };
         if (name.indexOf("GCC") > 0) {
           this.linkStats[name] = {
-            PDR: 100,
-            Latency: 10000000,
-            Bandwidth: 0.000001,
+            Loss: 0,
+            Delay: 600,
+            Bandwidth: 2000,
           };
         }
       }
@@ -521,12 +531,12 @@ export default {
       this.activePrompt = false;
     },
     acceptPrompt() {
-      window.console.log(this.tmpLatency, this.selectedLink);
-      this.linkStats[this.selectedLink].PDR = this.tmpPDR;
-      this.linkStats[this.selectedLink].Latency = this.tmpLatency;
+      window.console.log(this.tmpDelay, this.selectedLink);
+      this.linkStats[this.selectedLink].Loss = this.tmpLoss;
+      this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Bandwidth = this.tmpBandwidth;
       axios.get(
-        `http://localhost:8000/api/link/${this.selectedLink}?pdr=${this.tmpPDR}&distance=${this.tmpLatency}&bandwidth=${this.tmpBandwidth}`
+        `http://localhost:8000/api/link/${this.selectedLink}?loss=${this.tmpLoss}&distance=${this.tmpDelay}&bandwidth=${this.tmpBandwidth}`
       );
 
       this.activePrompt = false;
