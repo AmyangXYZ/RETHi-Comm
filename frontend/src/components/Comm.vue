@@ -1,8 +1,9 @@
 <template>
   <vs-card id="topology">
-    <div slot="header" style="text-align:left">
-      <h3>Network Topology </h3>
+    <div slot="header" style="text-align: left">
+      <h3>Network Topology</h3>
     </div>
+    <configuration/>
     <ECharts
       id="chart"
       ref="topo"
@@ -24,7 +25,7 @@
             <span>Loss</span>
           </vs-col>
           <vs-col vs-offset="2" vs-w="5">
-            <vs-input  v-model="tmpLoss" />
+            <vs-input v-model="tmpLoss" />
           </vs-col>
         </vs-row>
         <vs-row
@@ -49,7 +50,7 @@
             <vs-input placeholder="100" v-model="tmpBandwidth" />
           </vs-col>
         </vs-row>
-         <vs-row vs-align="center" vs-type="flex" vs-justify="center" vs-w="12">
+        <vs-row vs-align="center" vs-type="flex" vs-justify="center" vs-w="12">
           <vs-col vs-w="1">
             <span>Distance</span>
           </vs-col>
@@ -68,10 +69,12 @@ import "echarts/lib/chart/line";
 import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
 import axios from "axios";
+import Configuration from './Configuration.vue';
 
 export default {
   components: {
     ECharts,
+    Configuration,
   },
   data() {
     return {
@@ -89,19 +92,22 @@ export default {
           formatter: (item) => {
             if (item.name.indexOf(">") > 0) {
               // is a link
-              var units = {loss: "%", bandwidth:" Gbps", delay: " us"}
+              var units = { loss: "%", bandwidth: " Gbps", delay: " us" };
               var link = this.linkStats[item.name];
               if (item.name.indexOf("GCC") > 0) {
-                units.delay = " s"
-                units.bandwidth = " bps"
+                units.delay = " s";
+                units.bandwidth = " bps";
               }
               return (
                 "Loss: " +
-                link.Loss + units.loss+
+                link.Loss +
+                units.loss +
                 "<br>Delay: " +
-                link.Delay + units.delay+
-                "<br>Bandwidth: "+
-                link.Bandwidth +  units.bandwidth
+                link.Delay +
+                units.delay +
+                "<br>Bandwidth: " +
+                link.Bandwidth +
+                units.bandwidth
               );
             }
             return item.data.name;
@@ -131,7 +137,7 @@ export default {
               show: true,
               fontSize: 15,
             },
-            center: [500, 120],
+            center: [500,150],
             nodes: [
               {
                 name: "GCC",
@@ -391,7 +397,7 @@ export default {
             type: "graph",
             layout: "none",
             symbolSize: 45,
-            center: [500, 110],
+            center: [500,150],
             label: {
               show: true,
               fontSize: 13,
@@ -512,12 +518,14 @@ export default {
           Loss: 0,
           Delay: 1,
           Bandwidth: 1,
+          distance: 30,
         };
         if (name.indexOf("GCC") > 0) {
           this.linkStats[name] = {
             Loss: 0,
             Delay: 600,
             Bandwidth: 2000,
+            distance: 200000000000,
           };
         }
       }
@@ -531,12 +539,13 @@ export default {
       this.activePrompt = false;
     },
     acceptPrompt() {
-      window.console.log(this.tmpDelay, this.selectedLink);
+      // window.console.log(this.tmpDelay, this.selectedLink);
       this.linkStats[this.selectedLink].Loss = this.tmpLoss;
+      // this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Bandwidth = this.tmpBandwidth;
       axios.get(
-        `http://localhost:8000/api/link/${this.selectedLink}?loss=${this.tmpLoss}&distance=${this.tmpDelay}&bandwidth=${this.tmpBandwidth}`
+        `http://localhost:8000/api/link/${this.selectedLink}?loss=${this.tmpLoss}&distance=${this.tmpDistance}&bandwidth=${this.tmpBandwidth}`
       );
 
       this.activePrompt = false;
@@ -567,11 +576,11 @@ export default {
     };
     this.$EventBus.$on("stats_comm", (stats) => {
       for (var i in stats) {
-        window.console.log(
-          i,
-          nameIdxMap[i],
-          this.option.series[1].nodes[nameIdxMap[i].id].name
-        );
+        // window.console.log(
+        //   i,
+        //   nameIdxMap[i],
+        //   this.option.series[1].nodes[nameIdxMap[i].id].name
+        // );
         this.option.series[1].nodes[nameIdxMap[i].id].name =
           "TX:" +
           stats[i][0] +

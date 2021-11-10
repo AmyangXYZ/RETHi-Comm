@@ -3,8 +3,8 @@ package main
 // default values
 var (
 	SpeedWireless     float64 = 300000000    // m/s
-	DistanceWireless  float64 = 200000000000 // meter
-	BandwidthWireless float64 = 18000        // bps, 500~32000, ref: https://mars.nasa.gov/msl/mission/communications/
+	DistanceWireless  float64 = 331940000000 // meter
+	BandwidthWireless float64 = 2048         // bps, 500~32000, ref: https://mars.nasa.gov/msl/mission/communications/
 	SpeedWire         float64 = 231000000    // .77c
 	DistanceWire      float64 = 30           // meter
 	BandwidthWire     float64 = 1073741824   // 1Gbps
@@ -64,11 +64,13 @@ func (l *Link) forward() {
 		select {
 		case pkt := <-l.sender1.Channel:
 			l.computeDelay(len(pkt.RawBytes))
+			// fmt.Println(l.delay)
 			// time.Sleep(time.Duration(l.delay) * time.Second)
 			pkt.Delay += l.delay
 			l.sink1.Channel <- pkt
 		case pkt := <-l.sender2.Channel:
 			l.computeDelay(len(pkt.RawBytes))
+			// fmt.Println(l.delay)
 			pkt.Delay += l.delay
 			// time.Sleep(time.Duration(l.delay) * time.Second)
 			l.sink2.Channel <- pkt

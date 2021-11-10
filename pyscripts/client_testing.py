@@ -21,6 +21,14 @@ while True:
     buf = pkt.pkt2Buf(_src, _dst)
     sock.sendto(buf, (IP, PORT))
     print("[{}] sent {} bytes".format(cnt, len(buf)))
-    time.sleep(3)
+
+    _src = 1
+    _dst = 2
+
+    pkt = Packet()
+    buf = pkt.pkt2Buf(_src, _dst)
+    sock.sendto(buf, (IP, PORT))
+    print("[{}] sent {} bytes".format(cnt, len(buf)))
+    time.sleep(5)
     # time.sleep(2)
     cnt += 1

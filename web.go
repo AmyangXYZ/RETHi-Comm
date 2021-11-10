@@ -46,6 +46,7 @@ func runHTTPSever() {
 
 	app.GET("/api/boottime", getBootTime)
 	app.GET("/ws/comm", wsComm)
+	app.GET("/api/links", postDefaultSetting)
 	app.GET("/api/link/:name", postLink)
 
 	if err := app.Run(addr); err != nil {
@@ -101,7 +102,6 @@ func wsComm(ctx *sgo.Context) error {
 
 // set link properties
 func postLink(ctx *sgo.Context) error {
-	fmt.Println(ctx.Params())
 	if linkName := ctx.Param("name"); linkName != "" {
 		if nodes := strings.Split(linkName, " > "); len(nodes) == 2 {
 			for _, l := range Links {
@@ -111,6 +111,34 @@ func postLink(ctx *sgo.Context) error {
 					l.PacketLossRate, _ = strconv.ParseFloat(ctx.Param("loss"), 64)
 					l.Distance, _ = strconv.ParseFloat(ctx.Param("distance"), 64)
 				}
+			}
+		}
+	}
+
+	return ctx.Text(200, fmt.Sprintf("%d", boottime))
+}
+
+// set link properties
+func postDefaultSetting(ctx *sgo.Context) error {
+	fmt.Println(ctx.Params())
+
+	if ctx.Param("type") == "wired" {
+		for _, l := range Links {
+			if l.sender1.Owner != "GCC" && l.sender2.Owner != "GCC" {
+				b, _ := strconv.ParseFloat(ctx.Param("bandwidth"), 64)
+				l.Bandwidth = b * 1024 * 1024 * 1024 // in Gbps
+				d, _ := strconv.ParseFloat(ctx.Param("distance"), 64)
+				l.Distance = d
+			}
+		}
+	}
+	if ctx.Param("type") == "wireless" {
+		for _, l := range Links {
+			if l.sender1.Owner == "GCC" || l.sender2.Owner == "GCC" {
+				b, _ := strconv.ParseFloat(ctx.Param("bandwidth"), 64)
+				l.Bandwidth = b * 1024 // in Kbps
+				d, _ := strconv.ParseFloat(ctx.Param("distance"), 64)
+				l.Distance = d * 1000 // in km
 			}
 		}
 	}

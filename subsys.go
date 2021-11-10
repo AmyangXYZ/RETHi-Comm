@@ -151,13 +151,22 @@ func (s *Subsys) handleMessage() {
 			fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
 		}
 		FwdCntTotal++
-		fmt.Printf("Packet #%d %v, total delay: %v\n", FwdCntTotal, pkt.Path, pkt.Delay)
-
-		fmt.Printf("}\n")
-		// fmt.Printf("[%s] Forwarded packet %v\n", s.name, pkt.Path)
-		LogsComm <- Log{
-			Type: 0,
-			Msg:  fmt.Sprintf("Packet #%d %v, total delay: %v", FwdCntTotal, pkt.Path, pkt.Delay),
+		if pkt.Delay < 1 {
+			pkt.Delay *= 1000000
+			fmt.Printf("Packet #%d: %d bytes, %v, total delay: %.3f us\n", FwdCntTotal, len(pkt.RawBytes)*8, pkt.Path, pkt.Delay)
+			LogsComm <- Log{
+				Type: 0,
+				Msg:  fmt.Sprintf("Packet #%d: %d bytes, %v, total delay: %.3f us", FwdCntTotal, len(pkt.RawBytes)*8, pkt.Path, pkt.Delay),
+			}
+		} else {
+			fmt.Printf("Packet #%d: %d bytes, %v, total delay: %.2f s\n", FwdCntTotal, len(pkt.RawBytes)*8, pkt.Path, pkt.Delay)
+			LogsComm <- Log{
+				Type: 0,
+				Msg:  fmt.Sprintf("Packet #%d: %d bytes, %v, total delay: %.2f s", FwdCntTotal, len(pkt.RawBytes)*8, pkt.Path, pkt.Delay),
+			}
 		}
+
+		// fmt.Printf("[%s] Forwarded packet %v\n", s.name, pkt.Path)
+
 	}
 }
