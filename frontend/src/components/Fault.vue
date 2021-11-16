@@ -6,7 +6,7 @@
           <h3>Fault Injector</h3>
         </vs-col>
         <vs-col vs-w="3" vs-type="flex" vs-justify="flex-end" > 
-          <vs-button id="bt-apply" size="small" color="danger" type="relief"  @click="apply">Apply</vs-button>
+          <vs-button id="bt-apply" size="small" color="danger" type="relief"  @click="inject">Inject</vs-button>
           <vs-button id="bt-reset" size="small" color="primary" type="relief"  @click="reset">Reset</vs-button>
         </vs-col>
       </vs-row>
@@ -60,7 +60,7 @@ export default {
   data() {
     return {
       selectedType: 0,
-      affected: 0,
+      affected: 1,
       duration: 30,
       components: [ // switches only now
         {text:"SW0", value:0},
@@ -81,16 +81,27 @@ export default {
     }
   },
   methods: {
-    apply() {
+    inject() {
       const params = new URLSearchParams()
       params.append('type', this.types[this.selectedType].text)
       params.append('duration', this.duration)
       this.$api.post("/api/fault/switch/"+this.affected, params)
+      this.$vs.notify({
+        title:'Fault Injector',
+        text:"Inject "+this.types[this.selectedType].text+" fault on SW"+this.affected+", duration: "+this.duration+" s",
+        color: "danger"
+      })
     },
     reset() {
       this.selectType = 0
       this.affected = 0
       this.duration = 0
+      this.$api.get("/api/fault/clear")
+      this.$vs.notify({
+        title:'Fault Injector',
+        text:"Reset and clear all faults",
+        color: "primary"
+      })
     }
   }
 }

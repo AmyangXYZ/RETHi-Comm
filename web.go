@@ -63,6 +63,8 @@ func runHTTPSever() {
 	app.POST("/api/fault/switch/:id", postFault)
 	app.OPTIONS("/api/fault/switch/:id", sgo.PreflightHandler)
 
+	app.GET("/api/fault/clear", clearFault)
+
 	if err := app.Run(addr); err != nil {
 		log.Fatal("Listen error", err)
 	}
@@ -221,8 +223,31 @@ func stopFlows(ctx *sgo.Context) error {
 }
 
 func postFault(ctx *sgo.Context) error {
-	fmt.Println(ctx.Params())
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	Switches[id].Failed = true
+	duration, _ := strconv.Atoi(ctx.Param("duration"))
+	go func() {
+		time.Sleep(time.Duration(duration) * time.Second)
+		Switches[id].Failed = false
+	}()
+
+	fmt.Printf("Inject %s fault on SW%d, duration: %d s\n", ctx.Param("type"), id, duration)
+	LogsComm <- Log{
+		Type: 0,
+		Msg:  fmt.Sprintf("Inject %s fault on SW%d, duration: %d s\n", ctx.Param("type"), id, duration),
+	}
+	return ctx.Text(200, "")
+}
+
+func clearFault(ctx *sgo.Context) error {
+	for _, sw := range Switches {
+		sw.Failed = false
+	}
+
+	fmt.Println("Faults cleared")
+	LogsComm <- Log{
+		Type: 0,
+		Msg:  "Faults cleared",
+	}
 	return ctx.Text(200, "")
 }

@@ -5,12 +5,13 @@
       <vs-col vs-offset=0.6 vs-w=5.4>
         <Configuration/>
         <Topology/>
-        <Console name="comm" height="168px"/>
+        <Statistics/>
       </vs-col>
       <vs-col vs-offset=0.4 vs-w=5>
         <Simulation v-if="mode=='Simulation'"/>
         <Fault/>
-        <Statistics/>
+        <Console name="comm" height="300px"/>
+        
       </vs-col>
     </vs-row>
     

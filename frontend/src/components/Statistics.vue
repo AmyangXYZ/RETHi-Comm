@@ -20,19 +20,19 @@ export default {
   data() {
     return {
       option: {
-        xAxis: {
-          type: 'category',
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        },
-        yAxis: {
-          type: 'value'
-        },
-        series: [
-          {
-            type:"line",
-            data:[1,2,3]
-          }
-        ]
+        // xAxis: {
+        //   type: 'category',
+        //   data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        // },
+        // yAxis: {
+        //   type: 'value'
+        // },
+        // series: [
+        //   {
+        //     type:"line",
+        //     data:[1,2,3]
+        //   }
+        // ]
       }
     }
   }

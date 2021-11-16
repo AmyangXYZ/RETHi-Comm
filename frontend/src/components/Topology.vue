@@ -6,7 +6,7 @@
           <h3>Topology</h3>
         </vs-col>
         <vs-col vs-w="4" vs-type="flex" vs-justify="flex-end"> 
-          <vs-button id="viewBt" size="small" :color="viewActiveOnly?'danger':'success'" icon-pack="fas" type="filled" icon="fa-eye" @click="viewActiveOnly=!viewActiveOnly">
+          <vs-button id="viewBt" size="small" :color="viewActiveOnly?'rgb(255, 130, 0)':'success'" icon-pack="fas" type="filled" icon="fa-eye" @click="toggleViewOption">
               {{viewActiveOnly?"Active only":"All paths"}}
             </vs-button>
           
@@ -88,7 +88,8 @@ export default {
   },
   data() {
     return {
-      viewActiveOnly:false,
+      viewActiveOnly: true,
+      activeNodes: [],
       showOption: false,
       activePrompt: false,
       selectedLink: "",
@@ -135,7 +136,7 @@ export default {
             zoom: 1.05,
             symbolSize: 40,
             lineStyle: {
-              width: 2,
+              width: 2.2,
               color: "#555",
             },
             emphasis: {
@@ -166,47 +167,59 @@ export default {
                 name: "HMS",
                 x: 80,
                 y: 450,
+                itemStyle: {}
               },
 
               {
                 name: "STR",
                 x: 200,
                 y: -375,
+                itemStyle: {}
               },
 
               {
                 name: "PWR",
                 x: 750,
                 y: -600,
+                itemStyle: {}
               },
 
               {
                 name: "ECLSS",
                 x: 1300,
                 y: -375,
+                itemStyle: {}
               },
 
               {
                 name: "AGT",
                 x: 1500,
                 y: 150,
+                itemStyle: {}
               },
 
               {
                 name: "INT",
                 x: 1300,
                 y: 675,
+                itemStyle: {}
               },
               {
                 name: "EXT",
                 x: 750,
                 y: 900,
+                itemStyle: {}
               },
-              // {
-              //   name: "EXT",
-              //   x: 200,
-              //   y: 675,
-              // },
+              {
+                name: "SW0",
+                x: 750,
+                y: 150,
+                symbol: "rect",
+                // symbolSize: 50,
+                itemStyle: {
+                  color: "#0079A3",
+                },
+              },
               {
                 name: "SW1",
                 x: 360,
@@ -271,25 +284,6 @@ export default {
                   color: "deepskyblue",
                 },
               },
-              // {
-              //   name: "SW8",
-              //   x: 425,
-              //   y: 450,
-              //   symbol: "rect",
-              //   itemStyle: {
-              //     color: "deepskyblue",
-              //   },
-              // },
-              {
-                name: "SW0",
-                x: 750,
-                y: 150,
-                symbol: "rect",
-                // symbolSize: 50,
-                itemStyle: {
-                  color: "#0079A3",
-                },
-              },
             ],
             links: [
               {
@@ -309,161 +303,187 @@ export default {
               {
                 source: "HMS",
                 target: "SW1",
+                lineStyle: {}
               },
               {
                 source: "HMS",
                 target: "SW2",
+                lineStyle: {}
               },
               {
                 source: "HMS",
                 target: "SW7",
+                lineStyle: {}
               },
 
               {
                 source: "STR",
                 target: "SW2",
+                lineStyle: {}
               },
               {
                 source: "STR",
                 target: "SW1",
+                lineStyle: {}
               },
               {
                 source: "STR",
                 target: "SW3",
+                lineStyle: {}
               },
               
               {
                 source: "PWR",
                 target: "SW3",
+                lineStyle: {}
               },
               {
                 source: "PWR",
                 target: "SW2",
+                lineStyle: {}
               },
               {
                 source: "PWR",
                 target: "SW4",
+                lineStyle: {}
               },
-
-
               {
                 source: "ECLSS",
                 target: "SW4",
+                lineStyle: {}
               },
               {
                 source: "ECLSS",
                 target: "SW3",
+                lineStyle: {}
               },
               {
                 source: "ECLSS",
                 target: "SW5",
+                lineStyle: {}
               },
 
               {
                 source: "AGT",
                 target: "SW5",
+                lineStyle: {}
               },
               {
                 source: "AGT",
                 target: "SW4",
+                lineStyle: {}
               },
               {
                 source: "AGT",
                 target: "SW6",
+                lineStyle: {}
               },
-
               {
                 source: "INT",
                 target: "SW6",
+                lineStyle: {}
               },
               {
                 source: "INT",
                 target: "SW5",
+                lineStyle: {}
               },
               {
                 source: "INT",
                 target: "SW7",
+                lineStyle: {}
               },
 
               {
                 source: "EXT",
                 target: "SW7",
+                lineStyle: {}
               },
               {
                 source: "EXT",
                 target: "SW1",
+                lineStyle: {}
               },
               {
                 source: "EXT",
                 target: "SW6",
+                lineStyle: {}
               },
-              // {
-              //   source: "EXT",
-              //   target: "SW8",
-              // },
+
               {
                 source: "SW1",
                 target: "SW2",
+                lineStyle: {}
               },
               {
                 source: "SW2",
                 target: "SW3",
+                lineStyle: {}
               },
               {
                 source: "SW3",
                 target: "SW4",
+                lineStyle: {}
               },
               {
                 source: "SW4",
                 target: "SW5",
+                lineStyle: {}
               },
               {
                 source: "SW5",
                 target: "SW6",
+                lineStyle: {}
               },
               {
                 source: "SW6",
                 target: "SW7",
+                lineStyle: {}
               },
               {
                 source: "SW7",
                 target: "SW1",
+                lineStyle: {}
               },
-              // {
-              //   source: "SW8",
-              //   target: "SW1",
-              // },
               {
                 source: "SW1",
                 target: "SW0",
+                lineStyle: {}
               },
               {
                 source: "SW2",
                 target: "SW0",
+                lineStyle: {}
               },
               {
                 source: "SW3",
                 target: "SW0",
+                lineStyle: {}
               },
               {
                 source: "SW4",
                 target: "SW0",
+                lineStyle: {}
               },
               {
                 source: "SW5",
                 target: "SW0",
+                lineStyle: {}
               },
               {
                 source: "SW6",
                 target: "SW0",
+                lineStyle: {}
               },
               {
                 source: "SW7",
                 target: "SW0",
+                lineStyle: {}
               },
               {
                 source: "SW8",
                 target: "SW0",
+                lineStyle: {}
               },
             ],
           },
@@ -487,96 +507,101 @@ export default {
             },
             nodes: [
               {
-                name: "TX:0\nRX:0\n\ngcc",
+                name: "TX:0\nRX:0\n\nGCC",
                 x: -350,
                 y: 558,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nhms",
+                name: "TX:0\nRX:0\n\nHMS",
                 x: 80,
                 y: 370,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nstr",
+                name: "TX:0\nRX:0\n\nSTR",
                 x: 200,
                 y: -455,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\npwr",
+                name: "TX:0\nRX:0\n\nPWR",
                 x: 750,
                 y: -680,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\neclss",
+                name: "TX:0\nRX:0\n\nECLSS",
                 x: 1300,
                 y: -455,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nagt",
+                name: "TX:0\nRX:0\n\nAGT",
                 x: 1500,
                 y: 70,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nint",
+                name: "TX:0\nRX:0\n\nINT",
                 x: 1300,
                 y: 595,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\next",
+                name: "TX:0\nRX:0\n\nEXT",
                 x: 750,
                 y: 820,
+                label: {}
               },
-              // {
-              //   name: "TX:0\nRX:0\n\next",
-              //   x: 200,
-              //   y: 595,
-              // },
               {
-                name: "TX:0\nRX:0\n\nsw0",
+                name: "TX:0\nRX:0\n\nSW0",
                 x: 750,
                 y: 70,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nsw1",
+                name: "TX:0\nRX:0\n\nSW1",
                 x: 360,
                 y: 245,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nsw2",
+                name: "TX:0\nRX:0\n\nSW2",
                 x: 425,
                 y: -230,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nsw3",
+                name: "TX:0\nRX:0\n\nSW3",
                 x: 750,
                 y: -380,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nsw4",
+                name: "TX:0\nRX:0\n\nSW4",
                 x: 1075,
                 y: -230,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nsw5",
+                name: "TX:0\nRX:0\n\nSW5",
                 x: 1200,
                 y: 70,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nsw6",
+                name: "TX:0\nRX:0\n\nSW6",
                 x: 1075,
                 y: 370,
+                label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nsw7",
-
+                name: "TX:0\nRX:0\n\nSW7",
                 x: 750,
                 y: 520,
-              },
-              // {
-              //   name: "TX:0\nRX:0\n\nsw8",
-              //   x: 425,
-              //   y: 370,
-              // },
+                label: {}
+              },  
             ],
           },
         ],
@@ -584,8 +609,8 @@ export default {
     };
   },
   methods: {
-    initLinkStat() {
-      this.linkStats = {};
+    initLinkStatus() {
+      this.linkStatus = {};
       for (var i = 0; i < this.option.series[0].links.length; i++) {
         var link = this.option.series[0].links[i];
         var name = link.source + " > " + link.target;
@@ -628,47 +653,93 @@ export default {
 
       this.activePrompt = false;
     },
+    toggleViewOption() {
+      this.viewActiveOnly=!this.viewActiveOnly
+      if (!this.viewActiveOnly) {
+        this.clearHighlights()
+      } else {
+        this.highLightActiveNodes()
+      }
+      
+      
+    },
+    clearHighlights() {
+      for (var ii=0;ii<this.option.series[0].nodes.length;ii++) {
+        this.option.series[0].nodes[ii].itemStyle.opacity = 1
+        this.option.series[1].nodes[ii].label.show = true
+      }
+      for (var j=0;j<this.option.series[0].links.length;j++) {
+        this.option.series[0].links[j].lineStyle.width = 2.2
+      }
+
+      this.option = JSON.parse(JSON.stringify(this.option))
+    },
+    highLightActiveNodes() {
+      if (this.activeNodes.length==0) return
+
+      this.clearHighlights()
+
+      for (var i=0;i<this.option.series[0].nodes.length;i++) {
+        if (this.activeNodes.indexOf(i)<0) {
+          this.option.series[0].nodes[i].itemStyle.opacity = 0.1
+          this.option.series[1].nodes[i].label.show = false
+        }
+      }
+      for (var j=0;j<this.option.series[0].links.length;j++) {
+        var link = this.option.series[0].links[j]
+        if (this.activeNodes.indexOf(link.source)<0 || this.activeNodes.indexOf(link.target)<0) {
+          link.lineStyle.width = 0.1
+        }
+      }
+    }
   },
   mounted() {
     window.topo = this;
-    this.initLinkStat();
+    this.initLinkStatus();
     var nameIdxMap = {
-      GCC: { idx: 0, nick: "gcc" },
-      HMS: { idx: 1, nick: "hms" },
-      STR: { idx: 2, nick: "str" },
-      PWR: { idx: 3, nick: "pwr" },
-      ECLSS: { idx: 4, nick: "eclss" },
-      AGT: { idx: 5, nick: "agt" },
-      INT: { idx: 6, nick: "int" },
-      EXT: { idx: 7, nick: "ext" },
-      // EXT: { id: 8, nick: "ext" },
-      SW0: { idx: 8, nick: "sw0" },
-      SW1: { idx: 9, nick: "sw1" },
-      SW2: { idx: 10, nick: "sw2" },
-      SW3: { idx: 11, nick: "sw3" },
-      SW4: { idx: 12, nick: "sw4" },
-      SW5: { idx: 13, nick: "sw5" },
-      SW6: { idx: 14, nick: "sw6" },
-      SW7: { idx: 15, nick: "sw7" },
-      // SW8: { idx: 17, nick: "sw8" },
+      GCC: { idx: 0, name: "GCC" },
+      HMS: { idx: 1, name: "HMS" },
+      STR: { idx: 2, name: "STR" },
+      PWR: { idx: 3, name: "PWR" },
+      ECLSS: { idx: 4, name: "ECLSS" },
+      AGT: { idx: 5, name: "AGT" },
+      INT: { idx: 6, name: "INT" },
+      EXT: { idx: 7, name: "EXT" },
+      SW0: { idx: 8, name: "SW0" },
+      SW1: { idx: 9, name: "SW1" },
+      SW2: { idx: 10, name: "SW2" },
+      SW3: { idx: 11, name: "SW3" },
+      SW4: { idx: 12, name: "SW4" },
+      SW5: { idx: 13, name: "SW5" },
+      SW6: { idx: 14, name: "SW6" },
+      SW7: { idx: 15, name: "SW7" },
     };
     this.$EventBus.$on("stats_comm", (stats) => {
+      
+      var tmpActiveNodes = []
       for (var i in stats) {
-        // window.console.log(
-        //   i,
-        //   nameIdxMap[i],
-        //   this.option.series[1].nodes[nameIdxMap[i].id].name
-        // );
-        this.option.series[1].nodes[nameIdxMap[i].idx].name =
-          "TX:" +
+        var newStatsString = "TX:" +
           stats[i][0] +
           "\nRX:" +
           stats[i][1] +
           "\n\n" +
-          nameIdxMap[i].nick;
+          nameIdxMap[i].name; 
+        if (this.option.series[1].nodes[nameIdxMap[i].idx].name != newStatsString) {
+          tmpActiveNodes.push(nameIdxMap[i].idx,nameIdxMap[i].name)
+        }
+        if (tmpActiveNodes.length>0) {
+          this.activeNodes = tmpActiveNodes
+        }
+        this.option.series[1].nodes[nameIdxMap[i].idx].name = newStatsString
       }
     });
   },
+  watch: {
+    activeNodes: function() {
+      if (this.viewActiveOnly)
+        this.highLightActiveNodes()
+    }
+  }
 };
 </script>
 
