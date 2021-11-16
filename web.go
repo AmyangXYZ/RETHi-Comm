@@ -25,7 +25,8 @@ var (
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
-	stopFlowSig chan bool
+	simStartedFlag = 0
+	stopFlowSig    chan bool
 )
 
 func runHTTPSever() {
@@ -58,6 +59,7 @@ func runHTTPSever() {
 
 	app.POST("/api/flows", postFlows)
 	app.OPTIONS("/api/flows", sgo.PreflightHandler)
+	app.GET("/api/flows/start_flag", getStartedFlag)
 	app.GET("/api/flows/stop", stopFlows)
 
 	app.POST("/api/fault/switch/:id", postFault)
@@ -184,6 +186,7 @@ func postFlows(ctx *sgo.Context) error {
 		fmt.Println(err)
 		return err
 	}
+	simStartedFlag = 1
 	stopFlowSig = make(chan bool, 56)
 	for _, f := range flows {
 		subsys := Subsystems[f.ID]
@@ -215,7 +218,12 @@ func postFlows(ctx *sgo.Context) error {
 	return ctx.Text(200, "biu")
 }
 
+func getStartedFlag(ctx *sgo.Context) error {
+	return ctx.Text(200, fmt.Sprintf("%d", simStartedFlag))
+}
+
 func stopFlows(ctx *sgo.Context) error {
+	simStartedFlag = 0
 	for i := 0; i < cap(stopFlowSig); i++ {
 		stopFlowSig <- true
 	}
