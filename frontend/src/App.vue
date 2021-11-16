@@ -1,13 +1,16 @@
 <template>
   <div id="app">
-    <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
     <Navbar/>
     <vs-row vs-w=12>
-      <vs-col vs-offset=0.4 vs-w=6>
+      <vs-col vs-offset=0.6 vs-w=5.4>
+        <configuration/>
         <Comm/>
+        <Console name="comm" height="168px"/>
       </vs-col>
-      <vs-col vs-offset=0.2 vs-w=5>
-        <Console name="comm" height="758px"/>
+      <vs-col vs-offset=0.4 vs-w=5>
+        <Simulation v-if="mode=='Simulation'"/>
+        <Fault/>
+        
       </vs-col>
     </vs-row>
     
@@ -16,8 +19,11 @@
 
 <script>
 import Comm from './components/Comm.vue'
+import Configuration from './components/Configuration.vue';
 import Console from "./components/Console.vue";
+import Fault from './components/Fault.vue';
 import Navbar from './components/Navbar.vue'
+import Simulation from './components/Simulation.vue';
 
 export default {
   name: 'App',
@@ -25,6 +31,20 @@ export default {
     Comm,
     Console,
     Navbar,
+    Simulation,
+    Fault,
+    Configuration,
+  },
+  data() {
+    return {
+      mode: "Simulation"
+    }
+  },
+  mounted() {
+    this.$EventBus.$on("mode", (m)=>{
+      window.console.log(m)
+      this.mode = m
+    })
   }
 }
 </script>

@@ -13,44 +13,39 @@
     },
     {
         "id": 2,
-        "name": "AGT",
+        "name": "STR",
         "local_addr": ":10002",
         "remote_addr": "127.0.0.1:20002"
     },
     {
         "id": 3,
-        "name": "STR",
+        "name": "PWR",
         "local_addr": ":10003",
         "remote_addr": "127.0.0.1:10013"
     },
     {
         "id": 4,
-        "name": "INV",
+        "name": "ECLSS",
         "local_addr": ":10004",
         "remote_addr": "127.0.0.1:10014"
     },
     {
         "id": 5,
-        "name": "PWR",
+        "name": "AGT",
         "local_addr": ":10005",
         "remote_addr": "127.0.0.1:10015"
     },
     {
         "id": 6,
-        "name": "ECLSS",
+        "name": "INT",
         "local_addr": ":10006",
         "remote_addr": "127.0.0.1:10016"
     },
     {
         "id": 7,
-        "name": "INT",
+        "name": "EXT",
         "local_addr": ":10007",
         "remote_addr": "127.0.0.1:10017"
-    },
-    {
-        "id": 8,
-        "name": "EXT",
-        "local_addr": ":10008",
-        "remote_addr": "127.0.0.1:10018"
-    }  
+    }
+
 ]

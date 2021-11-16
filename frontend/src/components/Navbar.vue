@@ -1,10 +1,10 @@
 <template>
   <div>
-    <vs-navbar v-model="activeItem" class="nabarx">
+    <vs-navbar v-model="activeItem" class="navbarx" >
       
       <div slot="title" id="title">
         <vs-navbar-title>
-          MCVT - Communication Network
+         <h4> MCVT - Communication Network</h4>
         </vs-navbar-title>
       </div>
 
@@ -17,6 +17,20 @@
       <vs-navbar-item id="button">
         <vs-button size="small" color="primary" icon-pack="fas" type="relief" icon="fa-cog" @click="option"></vs-button>
       </vs-navbar-item> -->
+      <vs-navbar-item>
+ 
+        <vs-row vs-align="center"
+          vs-type="flex" vs-w="12">
+          <vs-col vs-w="1.5">
+            <h4>Mode:</h4>
+          </vs-col>
+          <vs-col vs-offset="2.5" vs-w="4">
+            <vs-select id="mode-select" v-model="mode" >
+              <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in modes" />
+            </vs-select>
+         </vs-col>
+        </vs-row>
+      </vs-navbar-item>
 
       <vs-navbar-item id="uptime" index="2">
         Uptime: {{d}} day<span v-if="d>1">s</span> {{h.toString().padStart(2,'0')}}:{{m.toString().padStart(2,'0')}}:{{s.toString().padStart(2,'0')}}
@@ -25,9 +39,10 @@
   </div>
 </template>
 <script>
-import axios from 'axios'
 export default {
   data:()=>({
+    modes:[{text:"Simulation", value:"Simulation"}, {text:"Deployment", value:"Deployment"}],
+    mode: "Simulation",
     popupActive: false,
     activeItem: 0,
     boottime:0,
@@ -39,7 +54,7 @@ export default {
   }),
   methods: {
     getUpTime() {
-      axios.get("http://localhost:8000/api/boottime")
+      this.$api.get("/api/boottime")
       .then((res)=>{
         this.boottime = parseInt(res.data)
         setInterval(()=>{
@@ -52,34 +67,6 @@ export default {
         },1000)
       })
     },
-    getStarted() {
-      axios.get("http://localhost:8000/api/started")
-      .then((res)=>{
-        var flag = parseInt(res.data)
-        this.started = (flag=="1")?true:false
-      })
-    },
-    startAll() {
-      this.started = true
-      axios.get("http://localhost:8000/api/start")
-      this.$vs.notify({
-        title:'Run',
-        // text:'biubiubiu',
-        color:"primary",
-        time: "4000"
-      })
-    },
-    stopAll() {
-      this.$vs.notify({
-        title:'Stop',
-        // text:'biubiubiu',
-        color:"primary",
-        time: "4000"
-      })
-      this.started = false
-      this.$EventBus.$emit("stopAll", 1)
-      axios.get("http://localhost:8000/api/stop")
-    },
     option() {
 
     }
@@ -88,15 +75,20 @@ export default {
   mounted() {
     // this.getStarted()
     this.getUpTime()
+  },
+  watch: {
+    mode:  function(val) {
+      this.$EventBus.$emit("mode", val)
+    }
   }
 }
 </script>
 
 <style scoped>
-.nabarx {
+.navbarx {
   height: 50px;
   margin-top: -30px;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 #title {
   margin-left: 40px;
@@ -104,10 +96,17 @@ export default {
 #uptime {
   font-size: 1rem;
   font-weight: 600;
-  margin-left: 10px;
-  margin-right: 50px;
+  margin-left: 20px;
+  margin-right: 30px;
 }
 #button {
   margin-right: 15px;
 }
+#mode {
+  font-size: 1.5rem;
+}
+#mode-select {
+  width: 110px;
+}
+
 </style>

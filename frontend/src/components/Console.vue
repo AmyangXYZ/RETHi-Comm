@@ -65,13 +65,15 @@ export default {
           // heartbeat 
         }
         if(entry.type == 0) {
-          this.log+="\n[*] "+entry.msg+""
+          // this.log+="\n[*] "+entry.msg+""
+          var date = new Date()
+          var options = { hour12: false };
+        
+          this.log+="\n["+date.toLocaleString('en-US', options).replace(",","")+"] "+entry.msg
           this.$nextTick(() => {
             this.$refs.logs.scrollTop = this.$refs.logs.scrollHeight
           })
-          // if(this.name == "dr") {
 
-          // }
         }
         if(entry.type == 1) {
           this.$EventBus.$emit("stats_"+this.name, entry["stats_"+this.name])

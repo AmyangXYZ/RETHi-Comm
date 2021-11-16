@@ -19,6 +19,7 @@ type Packet struct {
 	Payload      []byte `json:"payload"`
 
 	// internal use
+	IsSim    bool
 	RawBytes []byte
 	Delay    float64
 	Path     []string

@@ -10,7 +10,11 @@ import '@fortawesome/fontawesome-free/js/all.js'
 Vue.config.productionTip = false
 Vue.prototype.$EventBus = new Vue()
 Vue.use(Vuesax)
-Vue.prototype.axios = axios;
+
+var axiosInstance = axios.create()
+axiosInstance.defaults.baseURL = 'http://localhost:8000/'
+Vue.prototype.$api = axiosInstance;
+
 new Vue({
   render: h => h(App),
 }).$mount('#app')

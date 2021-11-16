@@ -45,7 +45,7 @@ type SubsysConfig struct {
 
 var (
 	boottime      int64
-	LogsComm      = make(chan Log, 10000)
+	LogsComm      = make(chan Log, 65536)
 	SUBSYS_LIST   []SubsysConfig              // access by id
 	SUBSYS_TABLE  = map[string]SubsysConfig{} // access by name
 	ROUTING_TABLE = map[int]string{           // subsys: switch
@@ -56,12 +56,12 @@ var (
 		5: "SW5",
 		6: "SW6",
 		7: "SW7",
-		8: "SW8",
 	}
-	FwdCntTotal = 0
-	Subsystems  []*Subsys
-	Switches    []*Switch
-	Links       []*Link
+	INTERACTION_MATRIX = map[int]int{}
+	FwdCntTotal        = 0
+	Subsystems         []*Subsys
+	Switches           []*Switch
+	Links              []*Link
 )
 
 func main() {
@@ -85,11 +85,11 @@ func main() {
 
 	gcc := NewSubsys("GCC")
 	hms := NewSubsys("HMS")
-	agt := NewSubsys("AGT")
 	str := NewSubsys("STR")
-	inv := NewSubsys("INV")
+	// inv := NewSubsys("INV")
 	pwr := NewSubsys("PWR")
 	eclss := NewSubsys("ECLSS")
+	agt := NewSubsys("AGT")
 	it := NewSubsys("INT")
 	ext := NewSubsys("EXT")
 
@@ -101,17 +101,17 @@ func main() {
 	SW5 := NewSwitch("SW5")
 	SW6 := NewSwitch("SW6")
 	SW7 := NewSwitch("SW7")
-	SW8 := NewSwitch("SW8")
+	// SW8 := NewSwitch("SW8")
 
 	Connect(gcc, hms)
 	Connect(hms, SW1)
-	Connect(agt, SW2)
-	Connect(str, SW3)
-	Connect(inv, SW4)
-	Connect(pwr, SW5)
-	Connect(eclss, SW6)
-	Connect(it, SW7)
-	Connect(ext, SW8)
+	Connect(str, SW2)
+	Connect(pwr, SW3)
+	// Connect(inv, SW4)
+	Connect(eclss, SW4)
+	Connect(agt, SW5)
+	Connect(it, SW6)
+	Connect(ext, SW7)
 
 	Connect(SW1, SW0)
 	Connect(SW1, SW2)
@@ -132,10 +132,10 @@ func main() {
 	Connect(SW6, SW7)
 
 	Connect(SW7, SW0)
-	Connect(SW7, SW8)
+	Connect(SW7, SW1)
 
-	Connect(SW8, SW0)
-	Connect(SW8, SW1)
+	// Connect(SW8, SW0)
+	// Connect(SW8, SW1)
 
 	go collectStatistics()
 

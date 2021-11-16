@@ -14,6 +14,7 @@ import (
 // Subsys listens and forward UDP packets from each subsystem
 type Subsys struct {
 	name string
+	id   int
 	// recv conn from other node
 	inConn *net.UDPConn
 	// send conn to other node
@@ -28,12 +29,15 @@ type Subsys struct {
 
 // returns a Subsys pointer
 func NewSubsys(name string) *Subsys {
+	id := 0
+
 	var gateOut [GATE_NUM_SUBSYS]*Gate
 	for i := 0; i < GATE_NUM_SUBSYS; i++ {
 		gateOut[i] = NewGate(i, name)
 	}
 	s := &Subsys{
 		name:       name,
+		id:         id,
 		gateIn:     NewGate(0, name),
 		gateOut:    gateOut,
 		gateOutIdx: -1,
@@ -100,8 +104,7 @@ func (s *Subsys) handlePacket() {
 		// 	return
 		// }
 
-		s.recvCnt++
-		// fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
+		fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
 		pkt := new(Packet)
 		err = pkt.FromBuf(buf[0:n])
 		if err != nil {
@@ -135,6 +138,8 @@ func (s *Subsys) handlePacket() {
 				}
 			}
 		}
+
+		s.fwdCnt++
 	}
 }
 
@@ -144,29 +149,68 @@ func (s *Subsys) handleMessage() {
 	for {
 		pkt := <-s.gateIn.Channel
 		pkt.Path = append(pkt.Path, s.name)
-		s.fwdCnt++
+
+		s.recvCnt++
 		// fmt.Println(pkt.RawBytes)
-		_, err := s.outConn.Write(pkt.RawBytes)
-		if err != nil {
-			fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
+		if !pkt.IsSim {
+			_, err := s.outConn.Write(pkt.RawBytes)
+			if err != nil {
+				fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
+			}
 		}
+
 		FwdCntTotal++
 		if pkt.Delay < 1 {
 			pkt.Delay *= 1000000
-			fmt.Printf("Packet #%d: %d bytes, %v, total delay: %.3f us\n", FwdCntTotal, len(pkt.RawBytes)*8, pkt.Path, pkt.Delay)
+			fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
 			LogsComm <- Log{
 				Type: 0,
-				Msg:  fmt.Sprintf("Packet #%d: %d bytes, %v, total delay: %.3f us", FwdCntTotal, len(pkt.RawBytes)*8, pkt.Path, pkt.Delay),
+				Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 			}
 		} else {
-			fmt.Printf("Packet #%d: %d bytes, %v, total delay: %.2f s\n", FwdCntTotal, len(pkt.RawBytes)*8, pkt.Path, pkt.Delay)
+			fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.2f s\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
 			LogsComm <- Log{
 				Type: 0,
-				Msg:  fmt.Sprintf("Packet #%d: %d bytes, %v, total delay: %.2f s", FwdCntTotal, len(pkt.RawBytes)*8, pkt.Path, pkt.Delay),
+				Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 			}
 		}
 
 		// fmt.Printf("[%s] Forwarded packet %v\n", s.name, pkt.Path)
 
+	}
+}
+
+func (s *Subsys) CreateFlow(dst int) {
+	pkt := &Packet{
+		Src:   uint8(s.id),
+		Dst:   uint8(dst),
+		IsSim: true,
+	}
+
+	var buf [2]byte
+	buf[0] = pkt.Src
+	buf[1] = pkt.Dst
+	pkt.RawBytes = buf[:]
+	pkt.Path = append(pkt.Path, s.name)
+	s.fwdCnt++
+	// routing
+	foundGate := false
+	for _, g := range s.gateOut {
+		if g.Neighbor == SUBSYS_LIST[pkt.Dst].Name {
+			// fmt.Println("sent to gate", g)
+			g.Channel <- pkt
+			foundGate = true
+			break
+		}
+	}
+
+	if !foundGate { // not hms or gcc
+		for _, g := range s.gateOut {
+			if g.Neighbor[:2] == "SW" {
+				// fmt.Println("sent to gate", g)
+				g.Channel <- pkt
+				break
+			}
+		}
 	}
 }

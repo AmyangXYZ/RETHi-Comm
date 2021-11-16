@@ -1,7 +1,9 @@
 <template>
-  <!-- <vs-card id="config"> -->
-
-  <vs-table :data="settings" style="text-align: left">
+<vs-card>
+  <div slot="header" style="text-align:left">
+      <h3>Link Settings</h3>
+    </div>
+  <vs-table :data="settings"  style="text-align: left">
     <template slot="thead">
       <vs-th> Link Type</vs-th>
       <vs-th> Bandwidth </vs-th>
@@ -55,7 +57,7 @@
               <vs-col vs-w="12" style="text-align: center; font-size: 0.95rem">
               </vs-col>
               <vs-col>
-                <vs-slider text-fixed="m" v-model="tr.distance" />
+                <vs-slider :min=1 text-fixed="m" v-model="tr.distance" />
               </vs-col>
             </vs-row>
           </template>
@@ -69,12 +71,11 @@
       </vs-tr>
     </template>
   </vs-table>
-  <!-- </vs-card> -->
+  </vs-card>
 </template>
 
 <script>
 import { debounce } from "./debounce";
-import axios from "axios";
 
 export default {
   data() {
@@ -117,14 +118,18 @@ export default {
   },
   watch: {
     wiredDelay: debounce(function () {
-      axios.get(
-        `http://localhost:8000/api/links?type=wired&distance=${this.settings[0].distance}&bandwidth=${this.settings[0].bandwidth}`
-      );
+      const params = new URLSearchParams()
+      params.append('type', 'wired')
+      params.append('distance', this.settings[0].distance)
+      params.append('bandwidth', this.settings[0].bandwidth)
+      this.$api.post('/api/links', params);
     }, 200),
     wirelessDelay: debounce(function () {
-      axios.get(
-        `http://localhost:8000/api/links?type=wireless&distance=${this.wirelessDistance}&bandwidth=${this.settings[0].bandwidth}`
-      );
+      const params = new URLSearchParams()
+      params.append('type', 'wireless')
+      params.append('distance', this.settings[1].distance)
+      params.append('bandwidth', this.settings[1].bandwidth)
+      this.$api.post('/api/links', params);
     }, 200),
   },
   methods: {
@@ -136,14 +141,8 @@ export default {
 </script>
 
 <style scoped>
-#config {
-  text-align: left;
-  /* height: 238px; */
+th, td {
+  font-size: 0.85rem;
 }
-th {
-  font-size: 1rem;
-}
-td {
-  font-size: 1rem;
-}
+
 </style>

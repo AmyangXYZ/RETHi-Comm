@@ -1,9 +1,16 @@
 <template>
   <vs-card id="topology">
     <div slot="header" style="text-align: left">
-      <h3>Network Topology</h3>
+       <vs-row vs-type="flex" vs-justify="space-between">
+        <vs-col vs-w="3"> 
+          <h3>Network Topology</h3>
+        </vs-col>
+        <!-- <vs-col vs-w="4" vs-type="flex" vs-justify="flex-end"> 
+          <vs-button size="small" color="success" icon-pack="fas" type="relief" icon="fa-cog" @click="showOption=!showOption"></vs-button>
+        </vs-col> -->
+      </vs-row>
     </div>
-    <configuration/>
+    <!-- <configuration v-show="showOption"/> -->
     <ECharts
       id="chart"
       ref="topo"
@@ -68,16 +75,14 @@ import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
-import axios from "axios";
-import Configuration from './Configuration.vue';
 
 export default {
   components: {
     ECharts,
-    Configuration,
   },
   data() {
     return {
+      showOption: false,
       activePrompt: false,
       selectedLink: "",
       tmpLoss: 0,
@@ -119,7 +124,7 @@ export default {
           {
             type: "graph",
             layout: "none",
-            symbolSize: 45,
+            symbolSize: 40,
             lineStyle: {
               width: 2.5,
               color: "#555",
@@ -135,14 +140,14 @@ export default {
             },
             label: {
               show: true,
-              fontSize: 15,
+              fontSize: 12.5,
             },
-            center: [500,150],
+            center: [600,80],
             nodes: [
               {
                 name: "GCC",
-                x: -600,
-                y: 150,
+                x: -250,
+                y: 595,
                 // symbolSize: 55,
                 itemStyle: {
                   color: "purple",
@@ -150,57 +155,53 @@ export default {
               },
               {
                 name: "HMS",
-                x: 0,
-                y: 150,
-                // symbolSize: 55,
-                itemStyle: {
-                  color: "darkred",
-                },
-              },
-
-              {
-                name: "AGT",
-                x: 200,
-                y: -375,
+                x: 80,
+                y: 450,
               },
 
               {
                 name: "STR",
-                x: 750,
-                y: -600,
-              },
-
-              {
-                name: "INV",
-                x: 1300,
+                x: 200,
                 y: -375,
               },
 
               {
                 name: "PWR",
-                x: 1500,
-                y: 150,
+                x: 750,
+                y: -600,
               },
 
               {
                 name: "ECLSS",
                 x: 1300,
-                y: 675,
+                y: -375,
               },
+
+              {
+                name: "AGT",
+                x: 1500,
+                y: 150,
+              },
+
               {
                 name: "INT",
-                x: 750,
-                y: 900,
+                x: 1300,
+                y: 675,
               },
               {
                 name: "EXT",
-                x: 200,
-                y: 675,
+                x: 750,
+                y: 900,
               },
+              // {
+              //   name: "EXT",
+              //   x: 200,
+              //   y: 675,
+              // },
               {
                 name: "SW1",
-                x: 300,
-                y: 150,
+                x: 360,
+                y: 325,
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
@@ -261,15 +262,15 @@ export default {
                   color: "deepskyblue",
                 },
               },
-              {
-                name: "SW8",
-                x: 425,
-                y: 450,
-                symbol: "rect",
-                itemStyle: {
-                  color: "deepskyblue",
-                },
-              },
+              // {
+              //   name: "SW8",
+              //   x: 425,
+              //   y: 450,
+              //   symbol: "rect",
+              //   itemStyle: {
+              //     color: "deepskyblue",
+              //   },
+              // },
               {
                 name: "SW0",
                 x: 750,
@@ -299,33 +300,33 @@ export default {
                 target: "SW1",
               },
               {
-                source: "AGT",
+                source: "STR",
                 target: "SW2",
               },
               {
-                source: "STR",
+                source: "PWR",
                 target: "SW3",
               },
               {
-                source: "INV",
+                source: "ECLSS",
                 target: "SW4",
               },
               {
-                source: "PWR",
+                source: "AGT",
                 target: "SW5",
               },
               {
-                source: "ECLSS",
+                source: "INT",
                 target: "SW6",
               },
               {
-                source: "INT",
+                source: "EXT",
                 target: "SW7",
               },
-              {
-                source: "EXT",
-                target: "SW8",
-              },
+              // {
+              //   source: "EXT",
+              //   target: "SW8",
+              // },
               {
                 source: "SW1",
                 target: "SW2",
@@ -352,12 +353,12 @@ export default {
               },
               {
                 source: "SW7",
-                target: "SW8",
-              },
-              {
-                source: "SW8",
                 target: "SW1",
               },
+              // {
+              //   source: "SW8",
+              //   target: "SW1",
+              // },
               {
                 source: "SW1",
                 target: "SW0",
@@ -397,10 +398,10 @@ export default {
             type: "graph",
             layout: "none",
             symbolSize: 45,
-            center: [500,150],
+            center: [600,80],
             label: {
               show: true,
-              fontSize: 13,
+              fontSize: 12,
               color: "black",
               // align: "",
               fontFamily: "Menlo",
@@ -412,49 +413,49 @@ export default {
             nodes: [
               {
                 name: "TX:0\nRX:0\n\ngcc",
-                x: -600,
-                y: 70,
+                x: -250,
+                y: 515,
               },
               {
                 name: "TX:0\nRX:0\n\nhms",
-                x: 0,
-                y: 70,
-              },
-              {
-                name: "TX:0\nRX:0\n\nagt",
-                x: 200,
-                y: -455,
+                x: 80,
+                y: 370,
               },
               {
                 name: "TX:0\nRX:0\n\nstr",
-                x: 750,
-                y: -680,
-              },
-              {
-                name: "TX:0\nRX:0\n\ninv",
-                x: 1300,
+                x: 200,
                 y: -455,
               },
               {
                 name: "TX:0\nRX:0\n\npwr",
-                x: 1500,
-                y: 70,
+                x: 750,
+                y: -680,
               },
               {
                 name: "TX:0\nRX:0\n\neclss",
                 x: 1300,
-                y: 595,
+                y: -455,
+              },
+              {
+                name: "TX:0\nRX:0\n\nagt",
+                x: 1500,
+                y: 70,
               },
               {
                 name: "TX:0\nRX:0\n\nint",
-                x: 750,
-                y: 820,
+                x: 1300,
+                y: 595,
               },
               {
                 name: "TX:0\nRX:0\n\next",
-                x: 200,
-                y: 595,
+                x: 750,
+                y: 820,
               },
+              // {
+              //   name: "TX:0\nRX:0\n\next",
+              //   x: 200,
+              //   y: 595,
+              // },
               {
                 name: "TX:0\nRX:0\n\nsw0",
                 x: 750,
@@ -462,8 +463,8 @@ export default {
               },
               {
                 name: "TX:0\nRX:0\n\nsw1",
-                x: 300,
-                y: 70,
+                x: 360,
+                y: 245,
               },
               {
                 name: "TX:0\nRX:0\n\nsw2",
@@ -496,11 +497,11 @@ export default {
                 x: 750,
                 y: 520,
               },
-              {
-                name: "TX:0\nRX:0\n\nsw8",
-                x: 425,
-                y: 370,
-              },
+              // {
+              //   name: "TX:0\nRX:0\n\nsw8",
+              //   x: 425,
+              //   y: 370,
+              // },
             ],
           },
         ],
@@ -544,9 +545,11 @@ export default {
       // this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Bandwidth = this.tmpBandwidth;
-      axios.get(
-        `http://localhost:8000/api/link/${this.selectedLink}?loss=${this.tmpLoss}&distance=${this.tmpDistance}&bandwidth=${this.tmpBandwidth}`
-      );
+      const params = new URLSearchParams()
+      params.append('loss', this.tmpLoss)
+      params.append('distance', this.tmpDistance)
+      params.append('bandwidth', this.tmpBandwidth)
+      this.$api.post(`/api/link/${this.selectedLink}`, params);
 
       this.activePrompt = false;
     },
@@ -555,24 +558,24 @@ export default {
     window.topo = this;
     this.initLinkStat();
     var nameIdxMap = {
-      GCC: { id: 0, nick: "gcc" },
-      HMS: { id: 1, nick: "hms" },
-      AGT: { id: 2, nick: "agt" },
-      STR: { id: 3, nick: "str" },
-      INV: { id: 4, nick: "inv" },
-      PWR: { id: 5, nick: "pwr" },
-      ECLSS: { id: 6, nick: "eclss" },
-      INT: { id: 7, nick: "int" },
-      EXT: { id: 8, nick: "ext" },
-      SW0: { id: 9, nick: "sw0" },
-      SW1: { id: 10, nick: "sw1" },
-      SW2: { id: 11, nick: "sw2" },
-      SW3: { id: 12, nick: "sw3" },
-      SW4: { id: 13, nick: "sw4" },
-      SW5: { id: 14, nick: "sw5" },
-      SW6: { id: 15, nick: "sw6" },
-      SW7: { id: 16, nick: "sw7" },
-      SW8: { id: 17, nick: "sw8" },
+      GCC: { idx: 0, nick: "gcc" },
+      HMS: { idx: 1, nick: "hms" },
+      STR: { idx: 2, nick: "str" },
+      PWR: { idx: 3, nick: "pwr" },
+      ECLSS: { idx: 4, nick: "eclss" },
+      AGT: { idx: 5, nick: "agt" },
+      INT: { idx: 6, nick: "int" },
+      EXT: { idx: 7, nick: "ext" },
+      // EXT: { id: 8, nick: "ext" },
+      SW0: { idx: 8, nick: "sw0" },
+      SW1: { idx: 9, nick: "sw1" },
+      SW2: { idx: 10, nick: "sw2" },
+      SW3: { idx: 11, nick: "sw3" },
+      SW4: { idx: 12, nick: "sw4" },
+      SW5: { idx: 13, nick: "sw5" },
+      SW6: { idx: 14, nick: "sw6" },
+      SW7: { idx: 15, nick: "sw7" },
+      // SW8: { idx: 17, nick: "sw8" },
     };
     this.$EventBus.$on("stats_comm", (stats) => {
       for (var i in stats) {
@@ -581,7 +584,7 @@ export default {
         //   nameIdxMap[i],
         //   this.option.series[1].nodes[nameIdxMap[i].id].name
         // );
-        this.option.series[1].nodes[nameIdxMap[i].id].name =
+        this.option.series[1].nodes[nameIdxMap[i].idx].name =
           "TX:" +
           stats[i][0] +
           "\nRX:" +
@@ -597,11 +600,11 @@ export default {
 <style scoped>
 #topology {
   width: 100%;
-  height: 830px;
+  /* height: 830px; */
 }
 #chart {
   width: 100%;
-  height: 700px;
+  height: 550px;
 }
 .link-prompt {
   font-size: 1rem;
