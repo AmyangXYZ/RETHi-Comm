@@ -5,11 +5,10 @@
         <vs-col vs-w="3"> 
           <h3>Flow Generator</h3>
         </vs-col>
-        <vs-col vs-w="1.2" vs-type="flex" vs-justify="space-between" > 
+        <vs-col vs-w="1.25" vs-type="flex" vs-justify="space-between" > 
           <vs-button size="small" color="primary" icon-pack="fas" type="relief" :disabled="started" icon="fa-play" @click="startSim"></vs-button>
           <vs-button size="small" color="danger" icon-pack="fas" type="relief" :disabled="!started" icon="fa-stop" @click="stopSim"></vs-button>
         </vs-col>
-        
       </vs-row>
     </div>
     
@@ -101,7 +100,7 @@ export default {
         {name:"STR",  id:2,  dst:["-", "X", "-", "X", "-", "X", "X","-"], freq:"10"},
         {name:"PWR",  id:3,  dst:["-", "X", "X", "-", "X", "X", "X","-"], freq:"2"},
         {name:"ECLSS",id:4,  dst:["-", "-", "-", "X", "-", "-", "X","-"], freq:"2"},
-        {name:"AGT",  id:5,  dst:["-", "X", "X", "X", "X", "-", "-","-"], freq:"10"},
+        {name:"AGT",  id:5,  dst:["-", "X", "X", "X", "X", "-", "-","-"], freq:"5"},
         {name:"INT",  id:6,  dst:["-", "-", "X", "X", "X", "-", "-","-"], freq:"1"},
         {name:"EXT",  id:7,  dst:["-", "-", "X", "X", "X", "-", "-","-"], freq:"1"},
       ]

@@ -83,16 +83,17 @@ func main() {
 
 	fmt.Println(`Start Communication Network`)
 
+	// in order
 	gcc := NewSubsys("GCC")
 	hms := NewSubsys("HMS")
 	str := NewSubsys("STR")
-
 	pwr := NewSubsys("PWR")
 	eclss := NewSubsys("ECLSS")
 	agt := NewSubsys("AGT")
 	it := NewSubsys("INT")
 	ext := NewSubsys("EXT")
 
+	// in order
 	SW0 := NewSwitch("SW0")
 	SW1 := NewSwitch("SW1")
 	SW2 := NewSwitch("SW2")

@@ -60,6 +60,9 @@ func runHTTPSever() {
 	app.OPTIONS("/api/flows", sgo.PreflightHandler)
 	app.GET("/api/flows/stop", stopFlows)
 
+	app.POST("/api/fault/switch/:id", postFault)
+	app.OPTIONS("/api/fault/switch/:id", sgo.PreflightHandler)
+
 	if err := app.Run(addr); err != nil {
 		log.Fatal("Listen error", err)
 	}
@@ -215,4 +218,11 @@ func stopFlows(ctx *sgo.Context) error {
 		stopFlowSig <- true
 	}
 	return ctx.Text(200, "stop all flows")
+}
+
+func postFault(ctx *sgo.Context) error {
+	fmt.Println(ctx.Params())
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	Switches[id].Failed = true
+	return ctx.Text(200, "")
 }

@@ -203,7 +203,13 @@ func (s *Subsys) routing(pkt *Packet) (*Gate, error) {
 	for _, g := range s.gatesOut {
 		for _, sw := range ROUTING_TABLE[int(pkt.Dst)] {
 			if g.Neighbor == sw {
-				return g, nil
+				for _, swww := range Switches {
+					if swww.name == sw {
+						if !swww.Failed {
+							return g, nil
+						}
+					}
+				}
 			}
 		}
 	}
@@ -211,9 +217,18 @@ func (s *Subsys) routing(pkt *Packet) (*Gate, error) {
 	// not found, sent to an arbitrary switch to reach sw0
 	// prefer switch with consistent id
 	for _, g := range s.gatesOut {
-		if g.Neighbor == ROUTING_TABLE[s.id][0] {
-			return g, nil
+		for _, sw := range ROUTING_TABLE[s.id] {
+			if g.Neighbor == sw {
+				for _, swww := range Switches {
+					if swww.name == sw {
+						if !swww.Failed {
+							return g, nil
+						}
+					}
+				}
+			}
 		}
+
 	}
 
 	return nil, errors.New("[" + s.name + "] cannot found next hop")

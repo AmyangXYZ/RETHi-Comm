@@ -12,14 +12,16 @@ import (
 
 // Switch simulates MQMO TSN switch
 type Switch struct {
-	name        string
-	fwdCnt      int
-	recvCnt     int
-	gatesIn     [GATE_NUM_SWITCH]*Gate
-	gatesOut    [GATE_NUM_SWITCH]*Gate
-	gatesInIdx  int
-	gatesOutIdx int
-	queue       [QUEUE_NUM_SWITCH]chan *Packet // priority queue
+	name           string
+	fwdCnt         int
+	recvCnt        int
+	gatesIn        [GATE_NUM_SWITCH]*Gate
+	gatesOut       [GATE_NUM_SWITCH]*Gate
+	gatesInIdx     int
+	gatesOutIdx    int
+	queue          [QUEUE_NUM_SWITCH]chan *Packet // priority queue
+	Failed         bool
+	FailedDuration int
 }
 
 func NewSwitch(name string) *Switch {
@@ -187,17 +189,15 @@ func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
 		}
 	}
 
-	if sw.name == "SW0" {
-		for _, g := range sw.gatesOut {
-			if g.Neighbor == ROUTING_TABLE[int(pkt.Dst)][0] {
-				return g, nil
-			}
-		}
-	} else {
-		for _, g := range sw.gatesOut {
-			for _, otherSw := range ROUTING_TABLE[int(pkt.Dst)] {
-				if g.Neighbor == otherSw {
-					return g, nil
+	for _, g := range sw.gatesOut {
+		for _, otherSw := range ROUTING_TABLE[int(pkt.Dst)] {
+			if g.Neighbor == otherSw {
+				for _, swww := range Switches {
+					if swww.name == otherSw {
+						if !swww.Failed {
+							return g, nil
+						}
+					}
 				}
 			}
 		}

@@ -23,6 +23,8 @@ type Link struct {
 	Speed          float64 // m/s
 	Distance       float64 // in meter
 	delay          float64
+
+	Failed bool
 }
 
 func Connect(n1, n2 Node) {
