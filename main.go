@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	GATE_NUM_SUBSYS  = 2 // 0 for in-habitat network, 1 for ground-habitat link
+	GATE_NUM_SUBSYS  = 8 // 0 for in-habitat network, 1 for ground-habitat link
 	GATE_NUM_SWITCH  = 8
 	QUEUE_NUM_SWITCH = 8
 	QUEUE_LEN_SWITCH = 4096
@@ -48,20 +48,20 @@ var (
 	LogsComm      = make(chan Log, 65536)
 	SUBSYS_LIST   []SubsysConfig              // access by id
 	SUBSYS_TABLE  = map[string]SubsysConfig{} // access by name
-	ROUTING_TABLE = map[int]string{           // subsys: switch
-		1: "SW1",
-		2: "SW2",
-		3: "SW3",
-		4: "SW4",
-		5: "SW5",
-		6: "SW6",
-		7: "SW7",
+	ROUTING_TABLE = map[int][]string{         // subsysID: switches
+		1: {"SW1", "SW7", "SW2"},
+		2: {"SW2", "SW1", "SW3"},
+		3: {"SW3", "SW2", "SW4"},
+		4: {"SW4", "SW3", "SW5"},
+		5: {"SW5", "SW4", "SW6"},
+		6: {"SW6", "SW5", "SW7"},
+		7: {"SW7", "SW6", "SW1"},
 	}
-	INTERACTION_MATRIX = map[int]int{}
-	FwdCntTotal        = 0
-	Subsystems         []*Subsys
-	Switches           []*Switch
-	Links              []*Link
+
+	FwdCntTotal = 0
+	Subsystems  []*Subsys
+	Switches    []*Switch
+	Links       []*Link
 )
 
 func main() {
@@ -86,7 +86,7 @@ func main() {
 	gcc := NewSubsys("GCC")
 	hms := NewSubsys("HMS")
 	str := NewSubsys("STR")
-	// inv := NewSubsys("INV")
+
 	pwr := NewSubsys("PWR")
 	eclss := NewSubsys("ECLSS")
 	agt := NewSubsys("AGT")
@@ -101,17 +101,36 @@ func main() {
 	SW5 := NewSwitch("SW5")
 	SW6 := NewSwitch("SW6")
 	SW7 := NewSwitch("SW7")
-	// SW8 := NewSwitch("SW8")
 
 	Connect(gcc, hms)
+
 	Connect(hms, SW1)
+	Connect(hms, SW2)
+	Connect(hms, SW7)
+
+	Connect(str, SW1)
 	Connect(str, SW2)
+	Connect(str, SW3)
+
+	Connect(pwr, SW2)
 	Connect(pwr, SW3)
-	// Connect(inv, SW4)
+	Connect(pwr, SW4)
+
+	Connect(eclss, SW3)
 	Connect(eclss, SW4)
+	Connect(eclss, SW5)
+
+	Connect(agt, SW4)
 	Connect(agt, SW5)
+	Connect(agt, SW6)
+
+	Connect(it, SW5)
 	Connect(it, SW6)
+	Connect(it, SW7)
+
+	Connect(ext, SW6)
 	Connect(ext, SW7)
+	Connect(ext, SW1)
 
 	Connect(SW1, SW0)
 	Connect(SW1, SW2)

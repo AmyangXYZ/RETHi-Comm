@@ -42,7 +42,6 @@ export default {
   },
   mounted() {
     this.$EventBus.$on("mode", (m)=>{
-      window.console.log(m)
       this.mode = m
     })
   }

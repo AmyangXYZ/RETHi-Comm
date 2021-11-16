@@ -7,6 +7,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net"
 )
@@ -22,25 +23,36 @@ type Subsys struct {
 	recvCnt int
 	fwdCnt  int
 
-	gateIn     *Gate
-	gateOut    [GATE_NUM_SUBSYS]*Gate
-	gateOutIdx int
+	gatesIn     [GATE_NUM_SUBSYS]*Gate
+	gatesOut    [GATE_NUM_SUBSYS]*Gate
+	gatesInIdx  int
+	gatesOutIdx int
 }
 
 // returns a Subsys pointer
 func NewSubsys(name string) *Subsys {
 	id := 0
 
-	var gateOut [GATE_NUM_SUBSYS]*Gate
+	var gatesIn [GATE_NUM_SUBSYS]*Gate
+	var gatesOut [GATE_NUM_SUBSYS]*Gate
 	for i := 0; i < GATE_NUM_SUBSYS; i++ {
-		gateOut[i] = NewGate(i, name)
+		gatesIn[i] = NewGate(i, name)
+		gatesOut[i] = NewGate(i, name)
 	}
+	for _, v := range SUBSYS_LIST {
+		if name == v.Name {
+			id = v.ID
+			break
+		}
+	}
+
 	s := &Subsys{
-		name:       name,
-		id:         id,
-		gateIn:     NewGate(0, name),
-		gateOut:    gateOut,
-		gateOutIdx: -1,
+		name:        name,
+		id:          id,
+		gatesIn:     gatesIn,
+		gatesOut:    gatesOut,
+		gatesInIdx:  -1,
+		gatesOutIdx: -1,
 	}
 	go s.Start()
 	Subsystems = append(Subsystems, s)
@@ -54,13 +66,14 @@ func (s *Subsys) Name() string {
 
 // implement Node interface
 func (s *Subsys) OutGate() *Gate {
-	s.gateOutIdx++
-	return s.gateOut[s.gateOutIdx]
+	s.gatesOutIdx++
+	return s.gatesOut[s.gatesOutIdx]
 }
 
 // implement Node interface
 func (s *Subsys) InGate() *Gate {
-	return s.gateIn
+	s.gatesInIdx++
+	return s.gatesIn[s.gatesInIdx]
 }
 
 func (s *Subsys) Start() {
@@ -85,7 +98,10 @@ func (s *Subsys) Start() {
 		fmt.Println(err)
 		return
 	}
-	go s.handleMessage()
+
+	for _, g := range s.gatesIn {
+		go s.handleMessage(g)
+	}
 
 }
 
@@ -99,55 +115,32 @@ func (s *Subsys) handlePacket() {
 			return
 		}
 
-		// if n < 14 {
-		// 	fmt.Printf("[%s] invalid packet\n", s.name)
-		// 	return
-		// }
-
-		fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
+		// fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
 		pkt := new(Packet)
 		err = pkt.FromBuf(buf[0:n])
 		if err != nil {
 			fmt.Println(err)
-			// invalid packet, drop
 			continue
 		}
-
 		if pkt.Src != uint8(SUBSYS_TABLE[s.name].ID) {
 			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
 		}
-		pkt.Path = append(pkt.Path, s.name)
 
-		// routing
-		foundGate := false
-		for _, g := range s.gateOut {
-			if g.Neighbor == SUBSYS_LIST[pkt.Dst].Name {
-				// fmt.Println("sent to gate", g)
-				g.Channel <- pkt
-				foundGate = true
-				break
-			}
+		if g, err := s.routing(pkt); err == nil {
+			// fmt.Println("sent to", g.Neighbor)
+			g.Channel <- pkt
+			s.fwdCnt++
+		} else {
+			fmt.Println(err)
 		}
-
-		if !foundGate { // not hms or gcc
-			for _, g := range s.gateOut {
-				if g.Neighbor[:2] == "SW" {
-					// fmt.Println("sent to gate", g)
-					g.Channel <- pkt
-					break
-				}
-			}
-		}
-
-		s.fwdCnt++
 	}
 }
 
 // send internal messages from switches to outside
-func (s *Subsys) handleMessage() {
+func (s *Subsys) handleMessage(inGate *Gate) {
 	// fmt.Println("waiting msg from switches")
 	for {
-		pkt := <-s.gateIn.Channel
+		pkt := <-inGate.Channel
 		pkt.Path = append(pkt.Path, s.name)
 
 		s.recvCnt++
@@ -174,9 +167,6 @@ func (s *Subsys) handleMessage() {
 				Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 			}
 		}
-
-		// fmt.Printf("[%s] Forwarded packet %v\n", s.name, pkt.Path)
-
 	}
 }
 
@@ -186,31 +176,45 @@ func (s *Subsys) CreateFlow(dst int) {
 		Dst:   uint8(dst),
 		IsSim: true,
 	}
-
 	var buf [2]byte
 	buf[0] = pkt.Src
 	buf[1] = pkt.Dst
 	pkt.RawBytes = buf[:]
-	pkt.Path = append(pkt.Path, s.name)
-	s.fwdCnt++
-	// routing
-	foundGate := false
-	for _, g := range s.gateOut {
-		if g.Neighbor == SUBSYS_LIST[pkt.Dst].Name {
-			// fmt.Println("sent to gate", g)
-			g.Channel <- pkt
-			foundGate = true
-			break
-		}
-	}
 
-	if !foundGate { // not hms or gcc
-		for _, g := range s.gateOut {
-			if g.Neighbor[:2] == "SW" {
-				// fmt.Println("sent to gate", g)
-				g.Channel <- pkt
-				break
+	if g, err := s.routing(pkt); err == nil {
+		// fmt.Println("sent to", g.Neighbor)
+		pkt.Path = append(pkt.Path, s.name)
+		g.Channel <- pkt
+		s.fwdCnt++
+	} else {
+		fmt.Println(err)
+	}
+}
+
+func (s *Subsys) routing(pkt *Packet) (*Gate, error) {
+	if pkt.Dst == 0 || s.name == "GCC" { // to/from GCC
+		for _, g := range s.gatesOut {
+			if g.Neighbor == SUBSYS_LIST[pkt.Dst].Name {
+				return g, nil
 			}
 		}
 	}
+
+	for _, g := range s.gatesOut {
+		for _, sw := range ROUTING_TABLE[int(pkt.Dst)] {
+			if g.Neighbor == sw {
+				return g, nil
+			}
+		}
+	}
+
+	// not found, sent to an arbitrary switch to reach sw0
+	// prefer switch with consistent id
+	for _, g := range s.gatesOut {
+		if g.Neighbor == ROUTING_TABLE[s.id][0] {
+			return g, nil
+		}
+	}
+
+	return nil, errors.New("[" + s.name + "] cannot found next hop")
 }

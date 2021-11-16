@@ -5,9 +5,12 @@
         <vs-col vs-w="3"> 
           <h3>Network Topology</h3>
         </vs-col>
-        <!-- <vs-col vs-w="4" vs-type="flex" vs-justify="flex-end"> 
-          <vs-button size="small" color="success" icon-pack="fas" type="relief" icon="fa-cog" @click="showOption=!showOption"></vs-button>
-        </vs-col> -->
+        <vs-col vs-w="4" vs-type="flex" vs-justify="flex-end"> 
+          <vs-button style="width:95px" size="small" :color="viewActiveOnly?'danger':'success'" icon-pack="fas" type="filled" icon="fa-eye" @click="viewActiveOnly=!viewActiveOnly">
+              {{viewActiveOnly?"Active only":"All paths"}}
+            </vs-button>
+          
+        </vs-col>
       </vs-row>
     </div>
     <!-- <configuration v-show="showOption"/> -->
@@ -57,14 +60,14 @@
             <vs-input placeholder="100" v-model="tmpBandwidth" />
           </vs-col>
         </vs-row>
-        <vs-row vs-align="center" vs-type="flex" vs-justify="center" vs-w="12">
+        <!-- <vs-row vs-align="center" vs-type="flex" vs-justify="center" vs-w="12">
           <vs-col vs-w="1">
             <span>Distance</span>
           </vs-col>
           <vs-col vs-offset="2" vs-w="5">
             <vs-input placeholder="100" v-model="tmpDistance" />
           </vs-col>
-        </vs-row>
+        </vs-row> -->
       </div>
     </vs-prompt>
   </vs-card>
@@ -82,6 +85,7 @@ export default {
   },
   data() {
     return {
+      viewActiveOnly:false,
       showOption: false,
       activePrompt: false,
       selectedLink: "",
@@ -124,9 +128,10 @@ export default {
           {
             type: "graph",
             layout: "none",
+            zoom: 1.05,
             symbolSize: 40,
             lineStyle: {
-              width: 2.5,
+              width: 2,
               color: "#555",
             },
             emphasis: {
@@ -142,12 +147,12 @@ export default {
               show: true,
               fontSize: 12.5,
             },
-            center: [600,80],
+            center: [600,130],
             nodes: [
               {
                 name: "GCC",
-                x: -250,
-                y: 595,
+                x: -350,
+                y: 638,
                 // symbolSize: 55,
                 itemStyle: {
                   color: "purple",
@@ -288,6 +293,7 @@ export default {
                 target: "GCC",
                 lineStyle: {
                   type: "dashed",
+                  width: 2.5
                 },
                 emphasis: {
                   lineStyle: {
@@ -295,33 +301,97 @@ export default {
                   },
                 },
               },
+
               {
                 source: "HMS",
                 target: "SW1",
               },
               {
+                source: "HMS",
+                target: "SW2",
+              },
+              {
+                source: "HMS",
+                target: "SW7",
+              },
+
+              {
                 source: "STR",
                 target: "SW2",
               },
+              {
+                source: "STR",
+                target: "SW1",
+              },
+              {
+                source: "STR",
+                target: "SW3",
+              },
+              
               {
                 source: "PWR",
                 target: "SW3",
               },
               {
+                source: "PWR",
+                target: "SW2",
+              },
+              {
+                source: "PWR",
+                target: "SW4",
+              },
+
+
+              {
                 source: "ECLSS",
                 target: "SW4",
               },
+              {
+                source: "ECLSS",
+                target: "SW3",
+              },
+              {
+                source: "ECLSS",
+                target: "SW5",
+              },
+
               {
                 source: "AGT",
                 target: "SW5",
               },
               {
+                source: "AGT",
+                target: "SW4",
+              },
+              {
+                source: "AGT",
+                target: "SW6",
+              },
+
+              {
                 source: "INT",
                 target: "SW6",
               },
               {
+                source: "INT",
+                target: "SW5",
+              },
+              {
+                source: "INT",
+                target: "SW7",
+              },
+
+              {
                 source: "EXT",
                 target: "SW7",
+              },
+              {
+                source: "EXT",
+                target: "SW1",
+              },
+              {
+                source: "EXT",
+                target: "SW6",
               },
               // {
               //   source: "EXT",
@@ -397,8 +467,9 @@ export default {
             z: -1,
             type: "graph",
             layout: "none",
+            zoom:1.05,
             symbolSize: 45,
-            center: [600,80],
+            center: [600,120],
             label: {
               show: true,
               fontSize: 12,
@@ -413,8 +484,8 @@ export default {
             nodes: [
               {
                 name: "TX:0\nRX:0\n\ngcc",
-                x: -250,
-                y: 515,
+                x: -350,
+                y: 558,
               },
               {
                 name: "TX:0\nRX:0\n\nhms",
@@ -609,4 +680,12 @@ export default {
 .link-prompt {
   font-size: 1rem;
 }
+
+/* .btnx {
+  font-size: 2rem;
+  border-radius: 5px 0px 0px 5px;
+}
+.btn-drop {
+   border-radius: 0px 5px 5px 0px;
+} */
 </style>

@@ -202,7 +202,8 @@ func postFlows(ctx *sgo.Context) error {
 					}
 
 				}(i)
-
+				// delay between different flows
+				time.Sleep(50 * time.Millisecond)
 			}
 		}
 	}
