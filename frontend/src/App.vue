@@ -1,20 +1,20 @@
 <template>
   <div id="app">
     <Navbar/>
+    <Sidebar/>
     <vs-row vs-w=12>
-      <vs-col vs-offset=0.6 vs-w=5.4>
+      <vs-col vs-offset=0.8 vs-w=5.5  style="z-index:99">
         <Configuration/>
         <Topology/>
         <Statistics/>
       </vs-col>
-      <vs-col vs-offset=0.4 vs-w=5>
+      <vs-col vs-offset=0.3 vs-w=5  style="z-index:99">
         <Simulation v-if="mode=='Simulation'"/>
         <Fault/>
         <Console name="comm" height="300px"/>
         
       </vs-col>
     </vs-row>
-    
   </div>
 </template>
 
@@ -26,6 +26,7 @@ import Fault from './components/Fault.vue';
 import Navbar from './components/Navbar.vue'
 import Simulation from './components/Simulation.vue';
 import Statistics from './components/Statistics.vue';
+import Sidebar from './components/Sidebar.vue';
 
 export default {
   name: 'App',
@@ -37,6 +38,7 @@ export default {
     Fault,
     Configuration,
     Statistics,
+    Sidebar,
   },
   data() {
     return {
@@ -52,12 +54,15 @@ export default {
 </script>
 
 <style>
+html, body {
+  background-color: #EBECF1;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 30px;
+  margin-top: 80px;
 }
 </style>

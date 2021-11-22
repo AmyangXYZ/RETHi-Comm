@@ -17,6 +17,7 @@
     "material-icons": "^1.2.0",
     "vue": "^2.6.11",
     "vue-echarts": "^4.1.0",
+    "vue-router": "^3.5.3",
     "vuesax": "^3.12.2"
   },
   "devDependencies": {

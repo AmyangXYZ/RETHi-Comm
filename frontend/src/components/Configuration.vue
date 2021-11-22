@@ -1,6 +1,6 @@
 <template>
 <vs-card>
-  <div slot="header" style="text-align:left">
+  <div slot="header" style="text-align:left;">
       <h3>Link Settings</h3>
     </div>
   <vs-table :data="settings"  style="text-align: left">
@@ -71,7 +71,7 @@
       </vs-tr>
     </template>
   </vs-table>
-  </vs-card>
+</vs-card>  
 </template>
 
 <script>

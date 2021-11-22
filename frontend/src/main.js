@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import axios from 'axios'
+import router from './router'
 import Vuesax from 'vuesax'
 import 'vuesax/dist/vuesax.css'
 import 'material-icons/iconfont/material-icons.css';
@@ -16,5 +17,6 @@ axiosInstance.defaults.baseURL = 'http://localhost:8000/'
 Vue.prototype.$api = axiosInstance;
 
 new Vue({
+  router,
   render: h => h(App),
 }).$mount('#app')

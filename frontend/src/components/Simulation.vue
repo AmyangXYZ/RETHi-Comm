@@ -1,6 +1,6 @@
 <template>
   <vs-card>
-    <div slot="header" style="text-align: left">
+    <div slot="header" style="text-align: left;z-index:20">
        <vs-row vs-type="flex" vs-justify="space-between">
         <vs-col vs-w="3"> 
           <h3>Flow Generator</h3>

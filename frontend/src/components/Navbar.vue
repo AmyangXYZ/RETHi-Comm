@@ -1,27 +1,18 @@
 <template>
   <div>
-    <vs-navbar v-model="activeItem" class="navbarx" >
+    <vs-navbar id="nbar" color="linear-gradient(to right, #0A1E38 , #2A5788)" v-model="activeItem" class="navbarx" >
       
       <div slot="title" id="title">
-        <vs-navbar-title>
-         <h4> MCVT - Communication Network</h4>
+        <vs-navbar-title id="ntitle">
+          <div>MCVT</div><div id="subtitle">- Communication Network</div>
         </vs-navbar-title>
       </div>
 
-      <!-- <vs-navbar-item id="button">
-        <vs-button size="small" color="success" icon-pack="fas" :disabled="started" type="relief" icon="fa-play" @click="startAll"></vs-button>
-      </vs-navbar-item>
-      <vs-navbar-item id="button">
-        <vs-button size="small" color="red" icon-pack="fas" type="relief" :disabled="!started" icon="fa-stop" @click="stopAll"></vs-button>
-      </vs-navbar-item>
-      <vs-navbar-item id="button">
-        <vs-button size="small" color="primary" icon-pack="fas" type="relief" icon="fa-cog" @click="option"></vs-button>
-      </vs-navbar-item> -->
       <vs-navbar-item>
- 
+        
         <vs-row vs-align="center"
-          vs-type="flex" vs-w="12">
-          <vs-col vs-w="1.5">
+          vs-type="flex" vs-w="12" style="margin-bottom:18px"> 
+          <vs-col vs-w="1.5" style="color:white">
             <h4>Mode:</h4>
           </vs-col>
           <vs-col vs-offset="2.5" vs-w="4">
@@ -32,7 +23,7 @@
         </vs-row>
       </vs-navbar-item>
 
-      <vs-navbar-item id="uptime" index="2">
+      <vs-navbar-item id="uptime" style="margin-bottom:18px; color:white">
         Uptime: {{d}} day<span v-if="d>1">s</span> {{h.toString().padStart(2,'0')}}:{{m.toString().padStart(2,'0')}}:{{s.toString().padStart(2,'0')}}
       </vs-navbar-item>
     </vs-navbar>
@@ -87,8 +78,8 @@ export default {
 <style scoped>
 .navbarx {
   height: 50px;
-  margin-top: -30px;
-  margin-bottom: 20px;
+  /* margin-top: -30px; */
+  /* margin-bottom: 20px; */
 }
 #title {
   margin-left: 40px;
@@ -107,6 +98,28 @@ export default {
 }
 #mode-select {
   width: 110px;
+}
+
+#nbar {
+  height: 98px;
+  z-index: 99;
+  position: absolute;
+  margin-top: -80px;
+  color: white;
+}
+#ntitle {
+  font-size: 1.5rem;
+  text-align: left;
+  margin-bottom:18px;
+  margin-left: 60px;
+}
+
+#ntitle > #subtitle {
+  font-size: 1.3rem;
+}
+
+.nbar-items {
+  color: white;
 }
 
 </style>
