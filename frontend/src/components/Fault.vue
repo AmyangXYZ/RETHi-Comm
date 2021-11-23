@@ -20,7 +20,7 @@
           </vs-col>
           <vs-col vs-w="7">
               <vs-select class="selectbox" v-model="selectedType">
-                <vs-select-item :key="item" :value="item.value" :text="item.text" v-for="item in types" />
+                <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in types" />
               </vs-select>
           </vs-col>
         </vs-row>
@@ -33,7 +33,7 @@
           </vs-col>
           <vs-col vs-offset="0.5" vs-w="6">
               <vs-select class="selectbox" v-model="affected">
-                <vs-select-item :key="item" :value="item.value" :text="item.text" v-for="item in components" />
+                <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in components" />
               </vs-select>
           </vs-col>
         </vs-row>

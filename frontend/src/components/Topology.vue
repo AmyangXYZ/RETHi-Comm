@@ -1,20 +1,80 @@
 <template>
   <vs-card id="topology">
     <div slot="header" style="text-align: left">
-       <vs-row vs-type="flex" vs-justify="space-between">
-        <vs-col vs-w="3"> 
+      <vs-row vs-type="flex" vs-justify="space-between">
+        <vs-col vs-w="3">
           <h3>Topology</h3>
         </vs-col>
-        <vs-col vs-w="4" vs-type="flex" vs-justify="flex-end"> 
-          <vs-button id="viewBt" size="small" :color="viewActiveOnly?'rgb(255, 130, 0)':'success'" icon-pack="fas" type="filled" icon="fa-eye" @click="toggleViewOption">
-              {{viewActiveOnly?"Active only":"All paths"}}
+        <vs-col vs-w="4" vs-type="flex" vs-justify="flex-end">
+          <div v-show="!editMode">
+            <vs-button
+              class="buttons"
+              size="small"
+              :color="viewActiveOnly ? 'rgb(255, 130, 0)' : 'success'"
+              icon-pack="fas"
+              type="filled"
+              icon="fa-eye"
+              @click="toggleViewOption"
+            >
+              {{ viewActiveOnly ? "Active only" : "All paths" }}
             </vs-button>
-          
+            <vs-button
+              class="buttons"
+              style="margin-left: 10px"
+              id="edit"
+              size="small"
+              color="primary"
+              icon-pack="fas"
+              type="filled"
+              icon="fa-edit"
+              @click="editEnable"
+            >
+              Edit
+            </vs-button>
+          </div>
+          <div v-show="editMode">
+            <vs-button
+              class="buttons"
+              id="edit"
+              size="small"
+              color="success"
+              icon-pack="fas"
+              type="filled"
+              icon="fa-check"
+              @click="editEnable"
+            >
+              Apply
+            </vs-button>
+            <vs-button
+              class="buttons"
+              style="margin-left: 10px"
+              id="edit"
+              size="small"
+              color="danger"
+              icon-pack="fas"
+              type="filled"
+              icon="fa-undo"
+              @click="editEnable"
+            >
+              Cancel
+            </vs-button>
+          </div>
         </vs-col>
+      </vs-row>
+
+      <vs-row vs-type="flex" vs-justify="center" v-show="editMode">
+        <vs-col vs-w="3"> add </vs-col>
+        <vs-col vs-w="3"> connect </vs-col>
       </vs-row>
     </div>
     <!-- <configuration v-show="showOption"/> -->
-    <ECharts id="chart" ref="topo" :options="option" autoresize @click="handleClick" />
+    <ECharts
+      id="chart"
+      ref="topo"
+      :options="option"
+      autoresize
+      @click="handleClick"
+    />
 
     <vs-prompt
       title="Set link properties"
@@ -34,6 +94,7 @@
         </vs-row>
 
         <vs-row vs-align="center" vs-type="flex" vs-justify="center" vs-w="12">
+          <vs-divider />
           <vs-col vs-w="1">
             <span>Failed</span>
           </vs-col>
@@ -89,6 +150,7 @@ export default {
   },
   data() {
     return {
+      editMode: false,
       viewActiveOnly: true,
       activeNodes: [],
       showOption: false,
@@ -100,97 +162,103 @@ export default {
       tmpBandwidth: 1,
       tmpDistance: 1000,
       linkStats: {},
-      option: {
-        tooltip: {
-          trigger: "item",
-          enterable: true,
-          formatter: (item) => {
-            if (item.name.indexOf(">") > 0) {
-              // is a link
-              var units = { loss: "%", bandwidth: " Gbps", delay: " us" };
-              var link = this.linkStats[item.name];
-              if (item.name.indexOf("GCC") > 0) {
-                units.delay = " s";
-                units.bandwidth = " bps";
-              }
-              return (
-                "Loss: " +
-                link.Loss +
-                units.loss +
-                "<br>Delay: " +
-                link.Delay +
-                units.delay +
-                "<br>Bandwidth: " +
-                link.Bandwidth +
-                units.bandwidth
-              );
+      tooltipDefault: {
+        trigger: "item",
+        enterable: true,
+        formatter: (item) => {
+          if (item.dataType == "edge") {
+            // is a link
+            var units = { loss: "%", bandwidth: " Gbps", delay: " us" };
+            var link = this.linkStats[item.name];
+            if (item.name.indexOf("GCC") > 0) {
+              units.delay = " s";
+              units.bandwidth = " bps";
             }
-            return item.data.name;
-          },
-          // alwaysShowContent: true,
-          // hideDelay:1000
+            return (
+              "Loss: " +
+              link.Loss +
+              units.loss +
+              "<br>Delay: " +
+              link.Delay +
+              units.delay +
+              "<br>Bandwidth: " +
+              link.Bandwidth +
+              units.bandwidth
+            );
+          }
+          return null;
         },
-        grid:{
-          right:"1%",
-          left:"1%",
-          top:"1%",
-          bottom:"1%",
+      },
+      tooltipEdit: {
+        trigger: "item",
+        formatter: (item)=> {
+          if(item.dataType=="node")
+            return "X: " + item.value[0] + "<br>Y: " + item.value[1];
+          else
+            return null
+        },
+      },
+      option: {
+        tooltip: {},
+        grid: {
+          right: "1%",
+          left: "1%",
+          top: "1%",
+          bottom: "1%",
         },
         xAxis: {
-          type:"value",
+          type: "value",
           position: "top",
           // min:-500,
-          max:2050,
-          interval:50,
+          max: 2050,
+          interval: 50,
           axisTick: {
-            show:false
+            show: false,
           },
           axisLabel: {
-            show: false
+            show: false,
           },
           axisLine: {
-            show:false
+            show: false,
           },
           splitLine: {
             lineStyle: {
               width: 1,
-              opacity:0.5
-            }
-          }
+              opacity: 0.5,
+            },
+          },
         },
-        yAxis:{
-          type:"value",
+        yAxis: {
+          type: "value",
           inverse: true,
-          min:-100,
-          max:1700,
-          interval:50,
+          min: -100,
+          max: 1700,
+          interval: 50,
           axisTick: {
-            show:false
+            show: false,
           },
           axisLabel: {
-            show: false
+            show: false,
           },
           axisLine: {
-            show:false
+            show: false,
           },
           splitLine: {
             lineStyle: {
               width: 1,
-              opacity:0.5
-            }
-          }
+              opacity: 0.5,
+            },
+          },
         },
         graphic: {
-
-          elements: []
+          elements: [],
         },
         series: [
           {
             type: "graph",
-            coordinateSystem: 'cartesian2d',
+            coordinateSystem: "cartesian2d",
             layout: "none",
-            animation:false,
-            zoom: 1.05,
+            animation: false,
             symbolSize: 40,
             lineStyle: {
               width: 2.2,
@@ -209,117 +277,134 @@ export default {
               show: true,
               fontSize: 12.5,
             },
-            // center: [600,130],
             data: [
               {
                 name: "GCC",
-                value:[100,1338],
+                value: [150, 1300],
                 itemStyle: {
                   color: "purple",
+                  opacity: 1,
                 },
               },
               {
                 name: "HMS",
-                value: [530, 1150],
-                itemStyle: {}
+                value: [500, 1150],
+                itemStyle: {
+                  opacity: 1,
+                },
               },
-
               {
                 name: "STR",
                 value: [650, 325],
-                itemStyle: {}
+                itemStyle: {
+                  opacity: 1,
+                },
               },
-
               {
                 name: "PWR",
-                value: [1200,100],
-                itemStyle: {}
+                value: [1200, 75],
+                itemStyle: {
+                  opacity: 1,
+                },
               },
-
               {
                 name: "ECLSS",
-                value: [1750,325],
-                itemStyle: {}
+                value: [1725, 325],
+                itemStyle: {
+                  opacity: 1,
+                },
               },
               {
                 name: "AGT",
-                value: [1950,850],
-                itemStyle: {}
+                value: [1950, 850],
+                itemStyle: {
+                  opacity: 1,
+                },
               },
-
               {
                 name: "INT",
-                value: [1750,1375],
-                itemStyle: {}
+                value: [1725, 1400],
+                itemStyle: {
+                  opacity: 1,
+                },
               },
               {
                 name: "EXT",
-                value: [1200,1600],
-                itemStyle: {}
+                value: [1200, 1600],
+                itemStyle: {
+                  opacity: 1,
+                },
               },
               {
                 name: "SW0",
-                value: [1200,850],
+                value: [1200, 850],
                 symbol: "rect",
-                // symbolSize: 50,
                 itemStyle: {
                   color: "#0079A3",
+                  opacity: 1,
                 },
               },
               {
                 name: "SW1",
-                value: [810,1025],
+                value: [850, 1000],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
+                  opacity: 1,
                 },
               },
               {
                 name: "SW2",
-                value: [875,550],
+                value: [900, 525],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
+                  opacity: 1,
                 },
               },
               {
                 name: "SW3",
-                value: [1200,400],
+                value: [1200, 375],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
+                  opacity: 1,
                 },
               },
               {
                 name: "SW4",
-                value: [1525,550],
+                value: [1525, 525],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
+                  opacity: 1,
                 },
               },
               {
                 name: "SW5",
-                value: [1650,850],
+                value: [1650, 850],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
+                  opacity: 1,
                 },
               },
               {
                 name: "SW6",
-                value: [1575,1150],
+                value: [1525, 1200],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
+                  opacity: 1,
                 },
               },
               {
                 name: "SW7",
-                value: [1200,1300],
+                value: [1200, 1300],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
+                  opacity: 1,
                 },
               },
             ],
@@ -329,7 +414,7 @@ export default {
                 target: "GCC",
                 lineStyle: {
                   type: "dashed",
-                  width: 2.5
+                  width: 2.5,
                 },
                 emphasis: {
                   lineStyle: {
@@ -340,346 +425,325 @@ export default {
               {
                 source: "HMS",
                 target: "SW1",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "HMS",
                 target: "SW2",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "HMS",
                 target: "SW7",
-                lineStyle: {}
+                lineStyle: {},
               },
 
               {
                 source: "STR",
                 target: "SW2",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "STR",
                 target: "SW1",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "STR",
                 target: "SW3",
-                lineStyle: {}
+                lineStyle: {},
               },
-              
+
               {
                 source: "PWR",
                 target: "SW3",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "PWR",
                 target: "SW2",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "PWR",
                 target: "SW4",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "ECLSS",
                 target: "SW4",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "ECLSS",
                 target: "SW3",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "ECLSS",
                 target: "SW5",
-                lineStyle: {}
+                lineStyle: {},
               },
 
               {
                 source: "AGT",
                 target: "SW5",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "AGT",
                 target: "SW4",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "AGT",
                 target: "SW6",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "INT",
                 target: "SW6",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "INT",
                 target: "SW5",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "INT",
                 target: "SW7",
-                lineStyle: {}
+                lineStyle: {},
               },
 
               {
                 source: "EXT",
                 target: "SW7",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "EXT",
                 target: "SW1",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "EXT",
                 target: "SW6",
-                lineStyle: {}
+                lineStyle: {},
               },
 
               {
                 source: "SW1",
                 target: "SW2",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW2",
                 target: "SW3",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW3",
                 target: "SW4",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW4",
                 target: "SW5",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW5",
                 target: "SW6",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW6",
                 target: "SW7",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW7",
                 target: "SW1",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW1",
                 target: "SW0",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW2",
                 target: "SW0",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW3",
                 target: "SW0",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW4",
                 target: "SW0",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW5",
                 target: "SW0",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW6",
                 target: "SW0",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW7",
                 target: "SW0",
-                lineStyle: {}
+                lineStyle: {},
               },
               {
                 source: "SW8",
                 target: "SW0",
-                lineStyle: {}
+                lineStyle: {},
               },
             ],
           },
           {
-            z:1,
+            z: 1,
             type: "graph",
-            coordinateSystem: 'cartesian2d',
+            coordinateSystem: "cartesian2d",
             layout: "none",
-            zoom:1.05,
+            zoom: 1.05,
             symbolSize: 45,
-            xAxisIndex:0,
-            yAxisIndex:0,
-            center: [600,120],
             label: {
               show: true,
               fontSize: 12,
               color: "black",
-              // align: "",
               fontFamily: "Menlo",
             },
             itemStyle: {
-              // color:"black"
               color: "transparent",
             },
-            animation:false,
+            animation: false,
             data: [
               {
-                  name: "TX:0\nRX:0\n\nGCC",
-                  value: [
-                      100,
-                      1268
-                  ],
-                  label: {}
+                name: "TX:0\nRX:0\n\nGCC",
+                value: [150, 1225],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nHMS",
-                  value: [
-                      530,
-                      1080
-                  ],
-                  label: {}
+                name: "TX:0\nRX:29\n\nHMS",
+                value: [500, 1075],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSTR",
-                  value: [
-                      650,
-                      255
-                  ],
-                  label: {}
+                name: "TX:0\nRX:0\n\nSTR",
+                value: [650, 250],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nPWR",
-                  value: [
-                      1200,
-                      30
-                  ],
-                  label: {}
+                name: "TX:0\nRX:28\n\nPWR",
+                value: [1200, 0],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nECLSS",
-                  value: [
-                      1750,
-                      255
-                  ],
-                  label: {}
+                name: "TX:0\nRX:28\n\nECLSS",
+                value: [1725, 250],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nAGT",
-                  value: [
-                      1950,
-                      780
-                  ],
-                  label: {}
+                name: "TX:114\nRX:0\n\nAGT",
+                value: [1950, 775],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nINT",
-                  value: [
-                      1750,
-                      1305
-                  ],
-                  label: {}
+                name: "TX:0\nRX:0\n\nINT",
+                value: [1725, 1325],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nEXT",
-                  value: [
-                      1200,
-                      1530
-                  ],
-                  label: {}
+                name: "TX:0\nRX:0\n\nEXT",
+                value: [1200, 1525],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSW0",
-                  value: [
-                      1200,
-                      780
-                  ],
-                  label: {}
+                name: "TX:29\nRX:29\n\nSW0",
+                value: [1200, 780],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSW1",
-                  value: [
-                      810,
-                      955
-                  ],
-                  label: {}
+                name: "TX:29\nRX:29\n\nSW1",
+                value: [850, 925],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSW2",
-                  value: [
-                      875,
-                      480
-                  ],
-                  label: {}
+                name: "TX:0\nRX:0\n\nSW2",
+                value: [900, 450],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSW3",
-                  value: [
-                      1200,
-                      330
-                  ],
-                  label: {}
+                name: "TX:1\nRX:29\n\nSW3",
+                value: [1200, 300],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSW4",
-                  value: [
-                      1525,
-                      480
-                  ],
-                  label: {}
+                name: "TX:114\nRX:114\n\nSW4",
+                value: [1525, 450],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSW5",
-                  value: [
-                      1650,
-                      780
-                  ],
-                  label: {}
+                name: "TX:0\nRX:0\n\nSW5",
+                value: [1650, 775],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSW6",
-                  value: [
-                      1575,
-                      1080
-                  ],
-                  label: {}
+                name: "TX:0\nRX:0\n\nSW6",
+                value: [1525, 1125],
+                label: {
+                  show: true,
+                },
               },
               {
-                  name: "TX:0\nRX:0\n\nSW7",
-                  value: [
-                      1200,
-                      1230
-                  ],
-                  label: {}
-              }
-          ]
+                name: "TX:0\nRX:0\n\nSW7",
+                value: [1200, 1225],
+                label: {
+                  show: true,
+                },
+              },
+            ],
           },
         ],
       },
-    }
+    };
   },
   methods: {
     initLinkStatus() {
@@ -718,90 +782,129 @@ export default {
       // this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Bandwidth = this.tmpBandwidth;
-      const params = new URLSearchParams()
-      params.append('loss', this.tmpLoss)
-      params.append('distance', this.tmpDistance)
-      params.append('bandwidth', this.tmpBandwidth)
+      const params = new URLSearchParams();
+      params.append("loss", this.tmpLoss);
+      params.append("distance", this.tmpDistance);
+      params.append("bandwidth", this.tmpBandwidth);
       this.$api.post(`/api/link/${this.selectedLink}`, params);
 
       this.activePrompt = false;
     },
     toggleViewOption() {
-      this.viewActiveOnly=!this.viewActiveOnly
+      this.viewActiveOnly = !this.viewActiveOnly;
       if (!this.viewActiveOnly) {
-        this.clearHighlights()
+        this.clearHighlights();
       } else {
-        this.highLightActiveNodes()
+        this.highLightActiveNodes();
       }
     },
     clearHighlights() {
-      for (var ii=0;ii<this.option.series[0].data.length;ii++) {
-        this.option.series[0].data[ii].itemStyle.opacity = 1
-        this.option.series[1].data[ii].label.show = true
+      for (var ii = 0; ii < this.option.series[0].data.length; ii++) {
+        this.option.series[0].data[ii].itemStyle.opacity = 1;
+        this.option.series[1].data[ii].label.show = true;
       }
-      for (var j=0;j<this.option.series[0].links.length;j++) {
-        this.option.series[0].links[j].lineStyle.width = 2.2
+      for (var j = 0; j < this.option.series[0].links.length; j++) {
+        this.option.series[0].links[j].lineStyle.width = 2.2;
       }
 
       // this.option = JSON.parse(JSON.stringify(this.option))
     },
     highLightActiveNodes() {
-      if (this.activeNodes.length==0) return
+      if (this.activeNodes.length == 0) return;
 
-      this.clearHighlights()
+      this.clearHighlights();
 
-      for (var i=0;i<this.option.series[0].data.length;i++) {
-        if (this.activeNodes.indexOf(i)<0) {
-          this.option.series[0].data[i].itemStyle.opacity = 0.1
-          this.option.series[1].data[i].label.show = false
+      for (var i = 0; i < this.option.series[0].data.length; i++) {
+        if (this.activeNodes.indexOf(i) < 0) {
+          this.option.series[0].data[i].itemStyle.opacity = 0.1;
+          this.option.series[1].data[i].label.show = false;
         }
       }
-      for (var j=0;j<this.option.series[0].links.length;j++) {
-        var link = this.option.series[0].links[j]
-        if (this.activeNodes.indexOf(link.source)<0 || this.activeNodes.indexOf(link.target)<0) {
-          link.lineStyle.width = 0.1
+      for (var j = 0; j < this.option.series[0].links.length; j++) {
+        var link = this.option.series[0].links[j];
+        if (
+          this.activeNodes.indexOf(link.source) < 0 ||
+          this.activeNodes.indexOf(link.target) < 0
+        ) {
+          link.lineStyle.width = 0.1;
         }
       }
     },
     addDraggableGraphicEle() {
-      const topoChart = this.$refs.topo
-      this.option.graphic.elements = []
+      const topoChart = this.$refs.topo;
+      this.option.graphic.elements = [];
       for (var i in this.option.series[0].data) {
         this.option.graphic.elements.push({
           type: "circle",
-          position:topoChart.convertToPixel('grid',this.option.series[0].data[i].value),
+          position: topoChart.convertToPixel(
+            "grid",
+            this.option.series[0].data[i].value
+          ),
           shape: {
             r: 20,
           },
-          z:200,
-          info:i,
-          invisible:true,
-          draggable:true,
-          ondrag: function(item) {
-            window.topo.onDrag(item)
-          }
-        })
+          z: 200,
+          info: i,
+          invisible: true,
+          draggable: true,
+          ondrag: function (item) {
+            window.topo.onDrag(item);
+          },
+          onmousemove: function (item) {
+            window.topo.onMove(item);
+          },
+          onmouseout: function () {
+            window.topo.onMoveOut();
+          },
+        });
       }
     },
     onDrag(item) {
-      const topoChart = this.$refs.topo
-      var nodeIdx = parseInt(item.target.info)
-      var pos = topoChart.convertFromPixel("grid",[item.offsetX, item.offsetY])
-      this.option.series[0].data[nodeIdx].value = pos
-      this.option.series[1].data[nodeIdx].value = [pos[0], pos[1]-70]
-      this.addDraggableGraphicEle()
+      const topoChart = this.$refs.topo;
+      var nodeIdx = parseInt(item.target.info);
+      var pos = topoChart.convertFromPixel("grid", [
+        item.offsetX,
+        item.offsetY,
+      ]);
+      pos[0] = Math.floor(pos[0]) - (Math.floor(pos[0]) % 25);
+      pos[1] = Math.floor(pos[1]) - (Math.floor(pos[1]) % 25);
+      this.option.series[0].data[nodeIdx].value = pos;
+      this.option.series[1].data[nodeIdx].value = [pos[0], pos[1] - 75];
+      this.addDraggableGraphicEle();
       // window.console.log(this.option.series[0].data[nodeIdx].value, [item.offsetX,item.offsetY])
-    }
+    },
+    onMove(item) {
+      const topoChart = this.$refs.topo;
+      var nodeIdx = parseInt(item.target.info);
+      topoChart.dispatchAction({
+        type: "showTip",
+        seriesIndex: 0,
+        dataIndex: nodeIdx,
+      });
+    },
+    onMoveOut() {
+      const topoChart = this.$refs.topo;
+      topoChart.dispatchAction({
+        type: "hideTip",
+      });
+    },
+    editEnable() {
+      this.editMode = !this.editMode;
+      if (this.editMode) {
+        this.addDraggableGraphicEle();
+        this.option.tooltip = this.tooltipEdit
+      } else {
+        this.option.graphic = { elements: [] };
+        // force update
+        this.option = JSON.parse(JSON.stringify(this.option));
+        this.option.tooltip = this.tooltipDefault
+      }
+    },
   },
   mounted() {
     window.topo = this;
-    this.addDraggableGraphicEle()
-    // var tmp = []
-    // for (var i=0;i<16;i++) {
-    //   tmp.push({name:"TX:0\nRX:0\n\n"+this.option.series[0].data[i].name,value:[this.option.series[0].data[i].value[0],this.option.series[0].data[i].value[1]-70],label:{}})
-    // }
-    // window.console.log(tmp)
     this.initLinkStatus();
+    this.option.tooltip = this.tooltipDefault
     var nameIdxMap = {
       GCC: { idx: 0, name: "GCC" },
       HMS: { idx: 1, name: "HMS" },
@@ -821,30 +924,32 @@ export default {
       SW7: { idx: 15, name: "SW7" },
     };
     this.$EventBus.$on("stats_comm", (stats) => {
-      var tmpActiveNodes = []
+      var tmpActiveNodes = [];
       for (var i in stats) {
-        var newStatsString = "TX:" +
+        var newStatsString =
+          "TX:" +
           stats[i][0] +
           "\nRX:" +
           stats[i][1] +
           "\n\n" +
-          nameIdxMap[i].name; 
-        if (this.option.series[1].data[nameIdxMap[i].idx].name != newStatsString) {
-          tmpActiveNodes.push(nameIdxMap[i].idx,nameIdxMap[i].name)
+          nameIdxMap[i].name;
+        if (
+          this.option.series[1].data[nameIdxMap[i].idx].name != newStatsString
+        ) {
+          tmpActiveNodes.push(nameIdxMap[i].idx, nameIdxMap[i].name);
         }
-        if (tmpActiveNodes.length>0) {
-          this.activeNodes = tmpActiveNodes
+        if (tmpActiveNodes.length > 0) {
+          this.activeNodes = tmpActiveNodes;
         }
-        this.option.series[1].data[nameIdxMap[i].idx].name = newStatsString
+        this.option.series[1].data[nameIdxMap[i].idx].name = newStatsString;
       }
     });
   },
   watch: {
-    activeNodes: function() {
-      if (this.viewActiveOnly)
-        this.highLightActiveNodes()
+    activeNodes: function () {
+      if (this.viewActiveOnly) this.highLightActiveNodes();
     },
-  }
+  },
 };
 </script>
 
@@ -860,9 +965,9 @@ export default {
 .link-prompt {
   font-size: 1rem;
 }
-#viewBt {
-  width:105px;
-  font-size: .75rem; 
+.buttons {
+  /* width:105px; */
+  font-size: 0.75rem;
   font-weight: 600;
 }
 /* .btnx {
