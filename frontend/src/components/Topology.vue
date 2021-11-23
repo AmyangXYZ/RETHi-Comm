@@ -35,7 +35,6 @@
           <div v-show="editMode">
             <vs-button
               class="buttons"
-              id="edit"
               size="small"
               color="success"
               icon-pack="fas"
@@ -48,7 +47,6 @@
             <vs-button
               class="buttons"
               style="margin-left: 10px"
-              id="edit"
               size="small"
               color="danger"
               icon-pack="fas"
@@ -62,12 +60,54 @@
         </vs-col>
       </vs-row>
 
-      <vs-row vs-type="flex" vs-justify="center" v-show="editMode">
-        <vs-col vs-w="3"> add </vs-col>
-        <vs-col vs-w="3"> connect </vs-col>
+      <vs-row  vs-type="flex" vs-justify="center" v-show="editMode" style="margin-top:8px">
+        <vs-col vs-offset="2" vs-w="2" >
+          <vs-button
+            class="buttons"
+            size="small"
+            color="success"
+            icon-pack="fas"
+            type="filled"
+            icon="fa-plus"
+            @click="addSwitch"
+          >
+            Add
+          </vs-button>
+
+          
+        </vs-col>
+        <vs-col vs-offset="1" vs-w="2">
+          <vs-button
+            class="buttons"
+            size="small"
+            color="primary"
+            icon-pack="fas"
+            type="filled"
+            icon="fa-arrows-alt-h"
+            @click="connect"
+          >
+            Connect
+          </vs-button>
+        </vs-col>
+        <vs-col vs-offset="-0.5" vs-w="2">
+          <vs-select
+            class="conenct-select"
+            v-model="connectHost0"
+          >
+            <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in nodes" />
+          </vs-select>
+        </vs-col>
+        <vs-col vs-offset="-0.2" vs-w="2">
+          <vs-select
+            class="conenct-select"
+            v-model="connectHost1"
+          >
+            <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in nodes" />
+          </vs-select>
+        </vs-col>
       </vs-row>
     </div>
-    <!-- <configuration v-show="showOption"/> -->
+    
     <ECharts
       id="chart"
       ref="topo"
@@ -162,6 +202,27 @@ export default {
       tmpBandwidth: 1,
       tmpDistance: 1000,
       linkStats: {},
+      switchCnt: 7,
+      nodes: [
+        {text:"GCC", value:0},
+        {text:"HMS", value:1},
+        {text:"STR", value:2},
+        {text:"PWR", value:3},
+        {text:"ECLSS", value:5},
+        {text:"AGT", value:5},
+        {text:"INT", value:6},
+        {text:"EXT", value:7},
+        {text:"SW0", value:8},
+        {text:"SW1", value:9},
+        {text:"SW2", value:10},
+        {text:"SW3", value:11},
+        {text:"SW4", value:12},
+        {text:"SW5", value:13},
+        {text:"SW6", value:14},
+        {text:"SW7", value:15},
+      ],
+      connectHost0: "",
+      connectHost1: "",
       tooltipDefault: {
         trigger: "item",
         enterable: true,
@@ -190,12 +251,10 @@ export default {
         },
       },
       tooltipEdit: {
-        trigger: "item",
-        formatter: (item)=> {
-          if(item.dataType=="node")
+        formatter: (item) => {
+          if (item.dataType == "node")
             return "X: " + item.value[0] + "<br>Y: " + item.value[1];
-          else
-            return null
+          else return null;
         },
       },
       option: {
@@ -602,11 +661,6 @@ export default {
                 target: "SW0",
                 lineStyle: {},
               },
-              {
-                source: "SW8",
-                target: "SW0",
-                lineStyle: {},
-              },
             ],
           },
           {
@@ -614,7 +668,6 @@ export default {
             type: "graph",
             coordinateSystem: "cartesian2d",
             layout: "none",
-            zoom: 1.05,
             symbolSize: 45,
             label: {
               show: true,
@@ -811,9 +864,7 @@ export default {
     },
     highLightActiveNodes() {
       if (this.activeNodes.length == 0) return;
-
       this.clearHighlights();
-
       for (var i = 0; i < this.option.series[0].data.length; i++) {
         if (this.activeNodes.indexOf(i) < 0) {
           this.option.series[0].data[i].itemStyle.opacity = 0.1;
@@ -833,7 +884,7 @@ export default {
     addDraggableGraphicEle() {
       const topoChart = this.$refs.topo;
       this.option.graphic.elements = [];
-      for (var i in this.option.series[0].data) {
+      for (var i = 0; i < this.option.series[0].data.length; i++) {
         this.option.graphic.elements.push({
           type: "circle",
           position: topoChart.convertToPixel(
@@ -892,19 +943,48 @@ export default {
       this.editMode = !this.editMode;
       if (this.editMode) {
         this.addDraggableGraphicEle();
-        this.option.tooltip = this.tooltipEdit
+        this.option.tooltip = this.tooltipEdit;
       } else {
         this.option.graphic = { elements: [] };
         // force update
         this.option = JSON.parse(JSON.stringify(this.option));
-        this.option.tooltip = this.tooltipDefault
+        this.option.tooltip = this.tooltipDefault;
       }
     },
+    addSwitch() {
+      var name = "SW" + ++this.switchCnt;
+      this.nodes.push(
+        {text:name, value: this.nodes.length}
+      )
+      this.option.series[0].data.push({
+        name: name,
+        value: [150, 100],
+        symbol: "rect",
+        itemStyle: {
+          color: "deepskyblue",
+          opacity: 1,
+        },
+      });
+      this.option.series[1].data.push({
+        name: "TX:0\nRX:0\n\n" + name,
+        value: [150, 25],
+        label: {
+          show: true,
+        },
+      });
+      this.addDraggableGraphicEle();
+    },
+    connect() {
+      this.option.series[0].links.push({
+        source:this.connectHost0,
+        target:this.connectHost1
+      })
+    }
   },
   mounted() {
     window.topo = this;
     this.initLinkStatus();
-    this.option.tooltip = this.tooltipDefault
+    this.option.tooltip = this.tooltipDefault;
     var nameIdxMap = {
       GCC: { idx: 0, name: "GCC" },
       HMS: { idx: 1, name: "HMS" },
@@ -970,11 +1050,7 @@ export default {
   font-size: 0.75rem;
   font-weight: 600;
 }
-/* .btnx {
-  font-size: 2rem;
-  border-radius: 5px 0px 0px 5px;
+.conenct-select {
+  width: 100px;
 }
-.btn-drop {
-   border-radius: 0px 5px 5px 0px;
-} */
 </style>
