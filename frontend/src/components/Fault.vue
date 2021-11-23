@@ -108,9 +108,7 @@ export default {
 </script>
 
 <style scoped>
-#fault {
-  /* height: 300px */
-}
+
 .input-label {
   font-size: 0.95rem;
 }

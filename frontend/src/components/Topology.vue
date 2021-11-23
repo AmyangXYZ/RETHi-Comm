@@ -81,6 +81,7 @@ import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
+import "echarts/lib/component/graphic";
 
 export default {
   components: {
@@ -129,10 +130,66 @@ export default {
           // alwaysShowContent: true,
           // hideDelay:1000
         },
+        grid:{
+          right:"1%",
+          left:"1%",
+          top:"1%",
+          bottom:"1%",
+        },
+        xAxis: {
+          type:"value",
+          position: "top",
+          // min:-500,
+          max:2050,
+          interval:50,
+          axisTick: {
+            show:false
+          },
+          axisLabel: {
+            show: false
+          },
+          axisLine: {
+            show:false
+          },
+          splitLine: {
+            lineStyle: {
+              width: 1,
+              opacity:0.5
+            }
+          }
+        },
+        yAxis:{
+          type:"value",
+          inverse: true,
+          min:-100,
+          max:1700,
+          interval:50,
+          axisTick: {
+            show:false
+          },
+          axisLabel: {
+            show: false
+          },
+          axisLine: {
+            show:false
+          },
+          splitLine: {
+            lineStyle: {
+              width: 1,
+              opacity:0.5
+            }
+          }
+        },
+        graphic: {
+
+          elements: []
+        },
         series: [
           {
             type: "graph",
+            coordinateSystem: 'cartesian2d',
             layout: "none",
+            animation:false,
             zoom: 1.05,
             symbolSize: 40,
             lineStyle: {
@@ -152,68 +209,57 @@ export default {
               show: true,
               fontSize: 12.5,
             },
-            center: [600,130],
-            nodes: [
+            // center: [600,130],
+            data: [
               {
                 name: "GCC",
-                x: -350,
-                y: 638,
-                // symbolSize: 55,
+                value:[100,1338],
                 itemStyle: {
                   color: "purple",
                 },
               },
               {
                 name: "HMS",
-                x: 80,
-                y: 450,
+                value: [530, 1150],
                 itemStyle: {}
               },
 
               {
                 name: "STR",
-                x: 200,
-                y: -375,
+                value: [650, 325],
                 itemStyle: {}
               },
 
               {
                 name: "PWR",
-                x: 750,
-                y: -600,
+                value: [1200,100],
                 itemStyle: {}
               },
 
               {
                 name: "ECLSS",
-                x: 1300,
-                y: -375,
+                value: [1750,325],
                 itemStyle: {}
               },
-
               {
                 name: "AGT",
-                x: 1500,
-                y: 150,
+                value: [1950,850],
                 itemStyle: {}
               },
 
               {
                 name: "INT",
-                x: 1300,
-                y: 675,
+                value: [1750,1375],
                 itemStyle: {}
               },
               {
                 name: "EXT",
-                x: 750,
-                y: 900,
+                value: [1200,1600],
                 itemStyle: {}
               },
               {
                 name: "SW0",
-                x: 750,
-                y: 150,
+                value: [1200,850],
                 symbol: "rect",
                 // symbolSize: 50,
                 itemStyle: {
@@ -222,8 +268,7 @@ export default {
               },
               {
                 name: "SW1",
-                x: 360,
-                y: 325,
+                value: [810,1025],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
@@ -231,9 +276,7 @@ export default {
               },
               {
                 name: "SW2",
-                x: 425,
-                y: -150,
-
+                value: [875,550],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
@@ -241,8 +284,7 @@ export default {
               },
               {
                 name: "SW3",
-                x: 750,
-                y: -300,
+                value: [1200,400],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
@@ -250,8 +292,7 @@ export default {
               },
               {
                 name: "SW4",
-                x: 1075,
-                y: -150,
+                value: [1525,550],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
@@ -259,8 +300,7 @@ export default {
               },
               {
                 name: "SW5",
-                x: 1200,
-                y: 150,
+                value: [1650,850],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
@@ -268,8 +308,7 @@ export default {
               },
               {
                 name: "SW6",
-                x: 1075,
-                y: 450,
+                value: [1575,1150],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
@@ -277,8 +316,7 @@ export default {
               },
               {
                 name: "SW7",
-                x: 750,
-                y: 600,
+                value: [1200,1300],
                 symbol: "rect",
                 itemStyle: {
                   color: "deepskyblue",
@@ -299,7 +337,6 @@ export default {
                   },
                 },
               },
-
               {
                 source: "HMS",
                 target: "SW1",
@@ -488,11 +525,14 @@ export default {
             ],
           },
           {
-            z: -1,
+            z:1,
             type: "graph",
+            coordinateSystem: 'cartesian2d',
             layout: "none",
             zoom:1.05,
             symbolSize: 45,
+            xAxisIndex:0,
+            yAxisIndex:0,
             center: [600,120],
             label: {
               show: true,
@@ -505,108 +545,141 @@ export default {
               // color:"black"
               color: "transparent",
             },
-            nodes: [
+            animation:false,
+            data: [
               {
-                name: "TX:0\nRX:0\n\nGCC",
-                x: -350,
-                y: 558,
-                label: {}
+                  name: "TX:0\nRX:0\n\nGCC",
+                  value: [
+                      100,
+                      1268
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nHMS",
-                x: 80,
-                y: 370,
-                label: {}
+                  name: "TX:0\nRX:0\n\nHMS",
+                  value: [
+                      530,
+                      1080
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSTR",
-                x: 200,
-                y: -455,
-                label: {}
+                  name: "TX:0\nRX:0\n\nSTR",
+                  value: [
+                      650,
+                      255
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nPWR",
-                x: 750,
-                y: -680,
-                label: {}
+                  name: "TX:0\nRX:0\n\nPWR",
+                  value: [
+                      1200,
+                      30
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nECLSS",
-                x: 1300,
-                y: -455,
-                label: {}
+                  name: "TX:0\nRX:0\n\nECLSS",
+                  value: [
+                      1750,
+                      255
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nAGT",
-                x: 1500,
-                y: 70,
-                label: {}
+                  name: "TX:0\nRX:0\n\nAGT",
+                  value: [
+                      1950,
+                      780
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nINT",
-                x: 1300,
-                y: 595,
-                label: {}
+                  name: "TX:0\nRX:0\n\nINT",
+                  value: [
+                      1750,
+                      1305
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nEXT",
-                x: 750,
-                y: 820,
-                label: {}
+                  name: "TX:0\nRX:0\n\nEXT",
+                  value: [
+                      1200,
+                      1530
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSW0",
-                x: 750,
-                y: 70,
-                label: {}
+                  name: "TX:0\nRX:0\n\nSW0",
+                  value: [
+                      1200,
+                      780
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSW1",
-                x: 360,
-                y: 245,
-                label: {}
+                  name: "TX:0\nRX:0\n\nSW1",
+                  value: [
+                      810,
+                      955
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSW2",
-                x: 425,
-                y: -230,
-                label: {}
+                  name: "TX:0\nRX:0\n\nSW2",
+                  value: [
+                      875,
+                      480
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSW3",
-                x: 750,
-                y: -380,
-                label: {}
+                  name: "TX:0\nRX:0\n\nSW3",
+                  value: [
+                      1200,
+                      330
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSW4",
-                x: 1075,
-                y: -230,
-                label: {}
+                  name: "TX:0\nRX:0\n\nSW4",
+                  value: [
+                      1525,
+                      480
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSW5",
-                x: 1200,
-                y: 70,
-                label: {}
+                  name: "TX:0\nRX:0\n\nSW5",
+                  value: [
+                      1650,
+                      780
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSW6",
-                x: 1075,
-                y: 370,
-                label: {}
+                  name: "TX:0\nRX:0\n\nSW6",
+                  value: [
+                      1575,
+                      1080
+                  ],
+                  label: {}
               },
               {
-                name: "TX:0\nRX:0\n\nSW7",
-                x: 750,
-                y: 520,
-                label: {}
-              },  
-            ],
+                  name: "TX:0\nRX:0\n\nSW7",
+                  value: [
+                      1200,
+                      1230
+                  ],
+                  label: {}
+              }
+          ]
           },
         ],
       },
-    };
+    }
   },
   methods: {
     initLinkStatus() {
@@ -660,29 +733,27 @@ export default {
       } else {
         this.highLightActiveNodes()
       }
-      
-      
     },
     clearHighlights() {
-      for (var ii=0;ii<this.option.series[0].nodes.length;ii++) {
-        this.option.series[0].nodes[ii].itemStyle.opacity = 1
-        this.option.series[1].nodes[ii].label.show = true
+      for (var ii=0;ii<this.option.series[0].data.length;ii++) {
+        this.option.series[0].data[ii].itemStyle.opacity = 1
+        this.option.series[1].data[ii].label.show = true
       }
       for (var j=0;j<this.option.series[0].links.length;j++) {
         this.option.series[0].links[j].lineStyle.width = 2.2
       }
 
-      this.option = JSON.parse(JSON.stringify(this.option))
+      // this.option = JSON.parse(JSON.stringify(this.option))
     },
     highLightActiveNodes() {
       if (this.activeNodes.length==0) return
 
       this.clearHighlights()
 
-      for (var i=0;i<this.option.series[0].nodes.length;i++) {
+      for (var i=0;i<this.option.series[0].data.length;i++) {
         if (this.activeNodes.indexOf(i)<0) {
-          this.option.series[0].nodes[i].itemStyle.opacity = 0.1
-          this.option.series[1].nodes[i].label.show = false
+          this.option.series[0].data[i].itemStyle.opacity = 0.1
+          this.option.series[1].data[i].label.show = false
         }
       }
       for (var j=0;j<this.option.series[0].links.length;j++) {
@@ -691,10 +762,45 @@ export default {
           link.lineStyle.width = 0.1
         }
       }
+    },
+    addDraggableGraphicEle() {
+      const topoChart = this.$refs.topo
+      this.option.graphic.elements = []
+      for (var i in this.option.series[0].data) {
+        this.option.graphic.elements.push({
+          type: "circle",
+          position:topoChart.convertToPixel('grid',this.option.series[0].data[i].value),
+          shape: {
+            r: 20,
+          },
+          z:200,
+          info:i,
+          invisible:true,
+          draggable:true,
+          ondrag: function(item) {
+            window.topo.onDrag(item)
+          }
+        })
+      }
+    },
+    onDrag(item) {
+      const topoChart = this.$refs.topo
+      var nodeIdx = parseInt(item.target.info)
+      var pos = topoChart.convertFromPixel("grid",[item.offsetX, item.offsetY])
+      this.option.series[0].data[nodeIdx].value = pos
+      this.option.series[1].data[nodeIdx].value = [pos[0], pos[1]-70]
+      this.addDraggableGraphicEle()
+      // window.console.log(this.option.series[0].data[nodeIdx].value, [item.offsetX,item.offsetY])
     }
   },
   mounted() {
     window.topo = this;
+    this.addDraggableGraphicEle()
+    // var tmp = []
+    // for (var i=0;i<16;i++) {
+    //   tmp.push({name:"TX:0\nRX:0\n\n"+this.option.series[0].data[i].name,value:[this.option.series[0].data[i].value[0],this.option.series[0].data[i].value[1]-70],label:{}})
+    // }
+    // window.console.log(tmp)
     this.initLinkStatus();
     var nameIdxMap = {
       GCC: { idx: 0, name: "GCC" },
@@ -715,7 +821,6 @@ export default {
       SW7: { idx: 15, name: "SW7" },
     };
     this.$EventBus.$on("stats_comm", (stats) => {
-      
       var tmpActiveNodes = []
       for (var i in stats) {
         var newStatsString = "TX:" +
@@ -724,13 +829,13 @@ export default {
           stats[i][1] +
           "\n\n" +
           nameIdxMap[i].name; 
-        if (this.option.series[1].nodes[nameIdxMap[i].idx].name != newStatsString) {
+        if (this.option.series[1].data[nameIdxMap[i].idx].name != newStatsString) {
           tmpActiveNodes.push(nameIdxMap[i].idx,nameIdxMap[i].name)
         }
         if (tmpActiveNodes.length>0) {
           this.activeNodes = tmpActiveNodes
         }
-        this.option.series[1].nodes[nameIdxMap[i].idx].name = newStatsString
+        this.option.series[1].data[nameIdxMap[i].idx].name = newStatsString
       }
     });
   },
@@ -738,7 +843,7 @@ export default {
     activeNodes: function() {
       if (this.viewActiveOnly)
         this.highLightActiveNodes()
-    }
+    },
   }
 };
 </script>

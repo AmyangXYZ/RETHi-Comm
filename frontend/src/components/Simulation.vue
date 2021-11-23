@@ -140,7 +140,7 @@ export default {
   mounted() {
     this.$api.get("/api/flows/start_flag")
     .then((res)=>{
-      window.console.log(res.data)
+      // window.console.log(res.data)
       this.started = res.data=="0"?false:true
     })
   }

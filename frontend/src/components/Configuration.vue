@@ -5,9 +5,30 @@
     </div>
   <vs-tabs :value="1" >
     <vs-tab index="0" label="IP Addr">
+      <vs-table  :data="configAddrs" stripe class="addr">
+        <template slot="thead">
+          <vs-th> Subsys </vs-th>
+          <vs-th> Local </vs-th>
+          <vs-th> Remote </vs-th>
+        </template>
+
+        <template slot-scope="{ data }" >
+          <vs-tr :key="indextr" v-for="(tr, indextr) in data">
+            <vs-td :data="data[indextr].name" >
+              {{ tr.name }}
+            </vs-td>
+            <vs-td :data="data[indextr].local">
+              {{ tr.local }}
+            </vs-td>
+            <vs-td :data="data[indextr].remote">
+              {{ tr.remote }}
+            </vs-td>
+          </vs-tr>
+        </template>
+      </vs-table>
     </vs-tab>
     <vs-tab index="1" label="Links">
-      <vs-table :data="settings"  style="text-align: left">
+      <vs-table :data="configLinks" class="links">
         <template slot="thead">
           <vs-th> Link Type</vs-th>
           <vs-th> Bandwidth </vs-th>
@@ -92,7 +113,17 @@ import { debounce } from "./debounce";
 export default {
   data() {
     return {
-      settings: [
+      configAddrs: [
+        {name:"GCC", local: "0.0.0.0:10000", remote: "127.0.0.1:20000"},
+        {name:"HMS", local: "0.0.0.0:10001", remote: "127.0.0.1:20001"},
+        {name:"STR", local: "0.0.0.0:10002", remote: "127.0.0.1:20002"},
+        {name:"PWR", local: "0.0.0.0:10003", remote: "127.0.0.1:20003"},
+        {name:"ECLSS", local: "0.0.0.0:10004", remote: "127.0.0.1:20004"},
+        {name:"AGT", local: "0.0.0.0:10005", remote: "127.0.0.1:20005"},
+        {name:"INT", local: "0.0.0.0:10006", remote: "127.0.0.1:20006"},
+        {name:"EXT", local: "0.0.0.0:10007", remote: "127.0.0.1:20007"},
+      ],
+      configLinks: [
         {
           link: "In-habitat",
           bandwidth: 1, // Gbps
@@ -111,20 +142,20 @@ export default {
   computed: {
     wirelessDistance: function () {
       return Math.round(
-        54500000 + (this.settings[1].distance / 100) * (401300000 - 54500000)
+        54500000 + (this.configLinks[1].distance / 100) * (401300000 - 54500000)
       );
     },
     wiredDelay: function () {
       return (
-        (this.settings[0].distance / (300000000 * 0.77) +
-         800 / (this.settings[0].bandwidth * 1024 * 1024 * 1024)) *
+        (this.configLinks[0].distance / (300000000 * 0.77) +
+         800 / (this.configLinks[0].bandwidth * 1024 * 1024 * 1024)) *
         1000000000
       );
     },
     wirelessDelay: function () {
       return (
         this.wirelessDistance / 300000 +
-        800 / (this.settings[1].bandwidth * 1024 * 1024)
+        800 / (this.configLinks[1].bandwidth * 1024 * 1024)
       );
     },
   },
@@ -132,15 +163,15 @@ export default {
     wiredDelay: debounce(function () {
       const params = new URLSearchParams()
       params.append('type', 'wired')
-      params.append('distance', this.settings[0].distance)
-      params.append('bandwidth', this.settings[0].bandwidth)
+      params.append('distance', this.configLinks[0].distance)
+      params.append('bandwidth', this.configLinks[0].bandwidth)
       this.$api.post('/api/links', params);
     }, 200),
     wirelessDelay: debounce(function () {
       const params = new URLSearchParams()
       params.append('type', 'wireless')
-      params.append('distance', this.settings[1].distance)
-      params.append('bandwidth', this.settings[1].bandwidth)
+      params.append('distance', this.configLinks[1].distance)
+      params.append('bandwidth', this.configLinks[1].bandwidth)
       this.$api.post('/api/links', params);
     }, 200),
   },
@@ -153,7 +184,22 @@ export default {
 </script>
 
 <style scoped>
-th, td {
+.links {
+  text-align: left;
+}
+.links th, td {
   font-size: 0.85rem;
 }
+
+.addr {
+  text-align: left;
+}
+.addr td {
+  font-size: 0.85rem;
+}
+.addr .vs-table--tbody-table .tr-values td {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
 </style>
