@@ -1,0 +1,179 @@
+[
+    {
+        "name": "GCC",
+        "value": [
+            150,
+            1300
+        ],
+        "itemStyle": {
+            "color": "purple",
+            "opacity": 1
+        }
+    },
+    {
+        "name": "HMS",
+        "value": [
+            500,
+            1150
+        ],
+        "itemStyle": {
+            "opacity": 1
+        }
+    },
+    {
+        "name": "STR",
+        "value": [
+            700,
+            300
+        ],
+        "itemStyle": {
+            "opacity": 1
+        }
+    },
+    {
+        "name": "PWR",
+        "value": [
+            1200,
+            75
+        ],
+        "itemStyle": {
+            "opacity": 1
+        }
+    },
+    {
+        "name": "ECLSS",
+        "value": [
+            1675,
+            300
+        ],
+        "itemStyle": {
+            "opacity": 1
+        }
+    },
+    {
+        "name": "AGT",
+        "value": [
+            1900,
+            850
+        ],
+        "itemStyle": {
+            "opacity": 1
+        }
+    },
+    {
+        "name": "INT",
+        "value": [
+            1775,
+            1450
+        ],
+        "itemStyle": {
+            "opacity": 1
+        }
+    },
+    {
+        "name": "EXT",
+        "value": [
+            1200,
+            1600
+        ],
+        "itemStyle": {
+            "opacity": 1
+        }
+    },
+    {
+        "name": "SW0",
+        "value": [
+            1200,
+            850
+        ],
+        "symbol": "rect",
+        "itemStyle": {
+            "color": "#0079A3",
+            "opacity": 1
+        }
+    },
+    {
+        "name": "SW1",
+        "value": [
+            850,
+            1000
+        ],
+        "symbol": "rect",
+        "itemStyle": {
+            "color": "deepskyblue",
+            "opacity": 1
+        }
+    },
+    {
+        "name": "SW2",
+        "value": [
+            900,
+            525
+        ],
+        "symbol": "rect",
+        "itemStyle": {
+            "color": "deepskyblue",
+            "opacity": 1
+        }
+    },
+    {
+        "name": "SW3",
+        "value": [
+            1200,
+            375
+        ],
+        "symbol": "rect",
+        "itemStyle": {
+            "color": "deepskyblue",
+            "opacity": 1
+        }
+    },
+    {
+        "name": "SW4",
+        "value": [
+            1525,
+            525
+        ],
+        "symbol": "rect",
+        "itemStyle": {
+            "color": "deepskyblue",
+            "opacity": 1
+        }
+    },
+    {
+        "name": "SW5",
+        "value": [
+            1650,
+            850
+        ],
+        "symbol": "rect",
+        "itemStyle": {
+            "color": "deepskyblue",
+            "opacity": 1
+        }
+    },
+    {
+        "name": "SW6",
+        "value": [
+            1525,
+            1200
+        ],
+        "symbol": "rect",
+        "itemStyle": {
+            "color": "deepskyblue",
+            "opacity": 1
+        }
+    },
+    {
+        "name": "SW7",
+        "value": [
+            1200,
+            1300
+        ],
+        "symbol": "rect",
+        "itemStyle": {
+            "color": "deepskyblue",
+            "opacity": 1
+        }
+    }
+]

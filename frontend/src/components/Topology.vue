@@ -184,6 +184,8 @@ import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/graphic";
 
+import nodes from "./nodes"
+
 export default {
   components: {
     ECharts,
@@ -208,7 +210,7 @@ export default {
         {text:"HMS", value:1},
         {text:"STR", value:2},
         {text:"PWR", value:3},
-        {text:"ECLSS", value:5},
+        {text:"ECLSS", value:4},
         {text:"AGT", value:5},
         {text:"INT", value:6},
         {text:"EXT", value:7},
@@ -221,8 +223,8 @@ export default {
         {text:"SW6", value:14},
         {text:"SW7", value:15},
       ],
-      connectHost0: "",
-      connectHost1: "",
+      connectHost0: 0,
+      connectHost1: 0,
       tooltipDefault: {
         trigger: "item",
         enterable: true,
@@ -336,137 +338,7 @@ export default {
               show: true,
               fontSize: 12.5,
             },
-            data: [
-              {
-                name: "GCC",
-                value: [150, 1300],
-                itemStyle: {
-                  color: "purple",
-                  opacity: 1,
-                },
-              },
-              {
-                name: "HMS",
-                value: [500, 1150],
-                itemStyle: {
-                  opacity: 1,
-                },
-              },
-              {
-                name: "STR",
-                value: [650, 325],
-                itemStyle: {
-                  opacity: 1,
-                },
-              },
-              {
-                name: "PWR",
-                value: [1200, 75],
-                itemStyle: {
-                  opacity: 1,
-                },
-              },
-              {
-                name: "ECLSS",
-                value: [1725, 325],
-                itemStyle: {
-                  opacity: 1,
-                },
-              },
-              {
-                name: "AGT",
-                value: [1950, 850],
-                itemStyle: {
-                  opacity: 1,
-                },
-              },
-              {
-                name: "INT",
-                value: [1725, 1400],
-                itemStyle: {
-                  opacity: 1,
-                },
-              },
-              {
-                name: "EXT",
-                value: [1200, 1600],
-                itemStyle: {
-                  opacity: 1,
-                },
-              },
-              {
-                name: "SW0",
-                value: [1200, 850],
-                symbol: "rect",
-                itemStyle: {
-                  color: "#0079A3",
-                  opacity: 1,
-                },
-              },
-              {
-                name: "SW1",
-                value: [850, 1000],
-                symbol: "rect",
-                itemStyle: {
-                  color: "deepskyblue",
-                  opacity: 1,
-                },
-              },
-              {
-                name: "SW2",
-                value: [900, 525],
-                symbol: "rect",
-                itemStyle: {
-                  color: "deepskyblue",
-                  opacity: 1,
-                },
-              },
-              {
-                name: "SW3",
-                value: [1200, 375],
-                symbol: "rect",
-                itemStyle: {
-                  color: "deepskyblue",
-                  opacity: 1,
-                },
-              },
-              {
-                name: "SW4",
-                value: [1525, 525],
-                symbol: "rect",
-                itemStyle: {
-                  color: "deepskyblue",
-                  opacity: 1,
-                },
-              },
-              {
-                name: "SW5",
-                value: [1650, 850],
-                symbol: "rect",
-                itemStyle: {
-                  color: "deepskyblue",
-                  opacity: 1,
-                },
-              },
-              {
-                name: "SW6",
-                value: [1525, 1200],
-                symbol: "rect",
-                itemStyle: {
-                  color: "deepskyblue",
-                  opacity: 1,
-                },
-              },
-              {
-                name: "SW7",
-                value: [1200, 1300],
-                symbol: "rect",
-                itemStyle: {
-                  color: "deepskyblue",
-                  opacity: 1,
-                },
-              },
-            ],
+            data: nodes,
             links: [
               {
                 source: "HMS",
@@ -679,120 +551,7 @@ export default {
               color: "transparent",
             },
             animation: false,
-            data: [
-              {
-                name: "TX:0\nRX:0\n\nGCC",
-                value: [150, 1225],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:29\n\nHMS",
-                value: [500, 1075],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:0\n\nSTR",
-                value: [650, 250],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:28\n\nPWR",
-                value: [1200, 0],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:28\n\nECLSS",
-                value: [1725, 250],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:114\nRX:0\n\nAGT",
-                value: [1950, 775],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:0\n\nINT",
-                value: [1725, 1325],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:0\n\nEXT",
-                value: [1200, 1525],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:29\nRX:29\n\nSW0",
-                value: [1200, 780],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:29\nRX:29\n\nSW1",
-                value: [850, 925],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:0\n\nSW2",
-                value: [900, 450],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:1\nRX:29\n\nSW3",
-                value: [1200, 300],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:114\nRX:114\n\nSW4",
-                value: [1525, 450],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:0\n\nSW5",
-                value: [1650, 775],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:0\n\nSW6",
-                value: [1525, 1125],
-                label: {
-                  show: true,
-                },
-              },
-              {
-                name: "TX:0\nRX:0\n\nSW7",
-                value: [1200, 1225],
-                label: {
-                  show: true,
-                },
-              },
-            ],
+            data: [],
           },
         ],
       },
@@ -819,6 +578,18 @@ export default {
             distance: 200000000000,
           };
         }
+      }
+    },
+    initNodesStatistics() {
+      this.option.series[1].data = []
+      for (var i=0;i<nodes.length;i++) {
+        this.option.series[1].data.push({
+          name: "TX:0\nRX:0\n\n" + nodes[i].name,
+          value: [nodes[i].value[0], nodes[i].value[1]-75],
+          label: {
+            show: true,
+          },
+        })
       }
     },
     handleClick(item) {
@@ -979,12 +750,15 @@ export default {
         source:this.connectHost0,
         target:this.connectHost1
       })
+      window.console.log(this.connectHost0, this.connectHost1)
     }
   },
   mounted() {
     window.topo = this;
     this.initLinkStatus();
+    this.initNodesStatistics()
     this.option.tooltip = this.tooltipDefault;
+
     var nameIdxMap = {
       GCC: { idx: 0, name: "GCC" },
       HMS: { idx: 1, name: "HMS" },
