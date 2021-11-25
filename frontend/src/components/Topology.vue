@@ -10,6 +10,7 @@
             <vs-button
               class="buttons"
               size="small"
+              key="view"
               :color="viewActiveOnly ? 'rgb(255, 130, 0)' : 'success'"
               icon-pack="fas"
               type="filled"
@@ -18,10 +19,10 @@
             >
               {{ viewActiveOnly ? "Active only" : "All paths" }}
             </vs-button>
+            
             <vs-button
               class="buttons"
               style="margin-left: 10px"
-              id="edit"
               size="small"
               color="primary"
               icon-pack="fas"
@@ -32,6 +33,7 @@
               Edit
             </vs-button>
           </div>
+          
           <div v-show="editMode">
             <vs-button
               class="buttons"
@@ -40,7 +42,7 @@
               icon-pack="fas"
               type="filled"
               icon="fa-check"
-              @click="editEnable"
+              @click="editApply"
             >
               Apply
             </vs-button>
@@ -52,60 +54,62 @@
               icon-pack="fas"
               type="filled"
               icon="fa-undo"
-              @click="editEnable"
+              @click="editReset"
             >
-              Cancel
+              Reset
             </vs-button>
           </div>
         </vs-col>
       </vs-row>
 
-      <vs-row  vs-type="flex" vs-justify="center" v-show="editMode" style="margin-top:8px">
-        <vs-col vs-offset="2" vs-w="2" >
-          <vs-button
-            class="buttons"
-            size="small"
-            color="success"
-            icon-pack="fas"
-            type="filled"
-            icon="fa-plus"
-            @click="addSwitch"
-          >
-            Add
-          </vs-button>
+      <div v-show="editMode"> 
+        <vs-row vs-type="flex" vs-justify="center"  style="margin-top:8px">
+          <vs-col vs-offset="2" vs-w="2" >
+            <vs-button
+              class="buttons"
+              size="small"
+              color="success"
+              icon-pack="fas"
+              type="filled"
+              icon="fa-plus"
+              @click="addSwitch"
+            >
+              Add
+            </vs-button>
 
-          
-        </vs-col>
-        <vs-col vs-offset="1" vs-w="2">
-          <vs-button
-            class="buttons"
-            size="small"
-            color="primary"
-            icon-pack="fas"
-            type="filled"
-            icon="fa-arrows-alt-h"
-            @click="connect"
-          >
-            Connect
-          </vs-button>
-        </vs-col>
-        <vs-col vs-offset="-0.5" vs-w="2">
-          <vs-select
-            class="conenct-select"
-            v-model="connectHost0"
-          >
-            <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in nodes" />
-          </vs-select>
-        </vs-col>
-        <vs-col vs-offset="-0.2" vs-w="2">
-          <vs-select
-            class="conenct-select"
-            v-model="connectHost1"
-          >
-            <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in nodes" />
-          </vs-select>
-        </vs-col>
-      </vs-row>
+            
+          </vs-col>
+          <vs-col vs-offset="1" vs-w="2">
+            <vs-button
+              class="buttons"
+              size="small"
+              color="primary"
+              icon-pack="fas"
+              type="filled"
+              icon="fa-arrows-alt-h"
+              @click="connect"
+            >
+              Connect
+            </vs-button>
+          </vs-col>
+          <vs-col vs-offset="-0.5" vs-w="2">
+            <vs-select
+              class="conenct-select"
+              v-model="connectHost0"
+            >
+              <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in nodes" />
+            </vs-select>
+          </vs-col>
+          <vs-col vs-offset="-0.2" vs-w="2">
+            <vs-select
+              class="conenct-select"
+              v-model="connectHost1"
+            >
+              <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in nodes" />
+            </vs-select>
+          </vs-col>
+        </vs-row>
+      </div>
     </div>
     
     <ECharts
@@ -184,7 +188,7 @@ import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/graphic";
 
-import nodes from "./nodes"
+import nodes_position from "./nodes_position"
 
 export default {
   components: {
@@ -193,7 +197,7 @@ export default {
   data() {
     return {
       editMode: false,
-      viewActiveOnly: true,
+      viewActiveOnly: false,
       activeNodes: [],
       showOption: false,
       activePrompt: false,
@@ -205,24 +209,7 @@ export default {
       tmpDistance: 1000,
       linkStats: {},
       switchCnt: 7,
-      nodes: [
-        {text:"GCC", value:0},
-        {text:"HMS", value:1},
-        {text:"STR", value:2},
-        {text:"PWR", value:3},
-        {text:"ECLSS", value:4},
-        {text:"AGT", value:5},
-        {text:"INT", value:6},
-        {text:"EXT", value:7},
-        {text:"SW0", value:8},
-        {text:"SW1", value:9},
-        {text:"SW2", value:10},
-        {text:"SW3", value:11},
-        {text:"SW4", value:12},
-        {text:"SW5", value:13},
-        {text:"SW6", value:14},
-        {text:"SW7", value:15},
-      ],
+      nodes: [], // load from nodes_position.json
       connectHost0: 0,
       connectHost1: 0,
       tooltipDefault: {
@@ -338,7 +325,7 @@ export default {
               show: true,
               fontSize: 12.5,
             },
-            data: nodes,
+            data: nodes_position,
             links: [
               {
                 source: "HMS",
@@ -555,6 +542,7 @@ export default {
           },
         ],
       },
+      option_backup: {},
     };
   },
   methods: {
@@ -582,10 +570,10 @@ export default {
     },
     initNodesStatistics() {
       this.option.series[1].data = []
-      for (var i=0;i<nodes.length;i++) {
+      for (var i=0;i<nodes_position.length;i++) {
         this.option.series[1].data.push({
-          name: "TX:0\nRX:0\n\n" + nodes[i].name,
-          value: [nodes[i].value[0], nodes[i].value[1]-75],
+          name: "TX:0\nRX:0\n\n" + nodes_position[i].name,
+          value: [nodes_position[i].value[0], nodes_position[i].value[1]-75],
           label: {
             show: true,
           },
@@ -711,19 +699,30 @@ export default {
       });
     },
     editEnable() {
-      this.editMode = !this.editMode;
+      this.editMode = true;
       if (this.editMode) {
+        this.option_backup = JSON.stringify(this.option)
         this.addDraggableGraphicEle();
         this.option.tooltip = this.tooltipEdit;
-      } else {
-        this.option.graphic = { elements: [] };
-        // force update
-        this.option = JSON.parse(JSON.stringify(this.option));
-        this.option.tooltip = this.tooltipDefault;
       }
     },
+    editApply() {
+      this.editMode = false;
+      this.option.graphic = { elements: [] };
+      // force update
+      this.option = JSON.parse(JSON.stringify(this.option));
+      this.option.tooltip = this.tooltipDefault;
+    },
+    editReset() {
+      this.editMode = false;
+      this.option.graphic = { elements: [] };
+      // force update
+      this.option = JSON.parse(this.option_backup);
+      this.option.tooltip = this.tooltipDefault;
+    },
     addSwitch() {
-      var name = "SW" + ++this.switchCnt;
+      var name = "SW" + this.switchCnt;
+      this.switchCnt++;
       this.nodes.push(
         {text:name, value: this.nodes.length}
       )
@@ -746,11 +745,12 @@ export default {
       this.addDraggableGraphicEle();
     },
     connect() {
-      this.option.series[0].links.push({
-        source:this.connectHost0,
-        target:this.connectHost1
-      })
-      window.console.log(this.connectHost0, this.connectHost1)
+      if (this.connectHost0!=this.connectHost1) {
+        this.option.series[0].links.push({
+          source: this.nodes[this.connectHost0].text,
+          target: this.nodes[this.connectHost1].text
+        })
+      }
     }
   },
   mounted() {
@@ -799,11 +799,20 @@ export default {
       }
     });
   },
-  watch: {
-    activeNodes: function () {
-      if (this.viewActiveOnly) this.highLightActiveNodes();
-    },
+  created() {
+    this.nodes = []
+    this.switchCnt = 0
+    for (var i=0;i<nodes_position.length;i++) {
+      if (nodes_position[i].name.indexOf("SW")!=-1) {
+        this.switchCnt++
+      }
+      this.nodes.push({
+        text:nodes_position[i].name,
+        value: i,
+      })
+    }
   },
+ 
 };
 </script>
 

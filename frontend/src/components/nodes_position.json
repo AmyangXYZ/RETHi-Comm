@@ -23,7 +23,7 @@
     {
         "name": "STR",
         "value": [
-            700,
+            650,
             300
         ],
         "itemStyle": {
@@ -43,7 +43,7 @@
     {
         "name": "ECLSS",
         "value": [
-            1675,
+            1750,
             300
         ],
         "itemStyle": {
@@ -63,8 +63,8 @@
     {
         "name": "INT",
         "value": [
-            1775,
-            1450
+            1750,
+            1425
         ],
         "itemStyle": {
             "opacity": 1
@@ -107,7 +107,7 @@
     {
         "name": "SW2",
         "value": [
-            900,
+            875,
             525
         ],
         "symbol": "rect",
@@ -156,7 +156,7 @@
         "name": "SW6",
         "value": [
             1525,
-            1200
+            1175
         ],
         "symbol": "rect",
         "itemStyle": {
