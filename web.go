@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -53,9 +52,9 @@ func runHTTPSever() {
 	app.GET("/api/boottime", getBootTime)
 	app.GET("/ws/comm", wsComm)
 
+	app.GET("/api/topologies", getTopoTags)
 	app.GET("/api/topology", getTopo)
 	app.POST("/api/topology", postTopo)
-	app.PUT("/api/topology", putTopo)
 	app.OPTIONS("/api/topology", sgo.PreflightHandler)
 
 	app.POST("/api/links", postDefaultSetting)
@@ -125,6 +124,17 @@ func wsComm(ctx *sgo.Context) error {
 	}
 }
 
+func getTopoTags(ctx *sgo.Context) error {
+	tags, err := queryTopoTags()
+	if err != nil {
+		return ctx.JSON(500, 0, err.Error(), nil)
+	}
+	if len(tags) == 0 {
+		return ctx.JSON(200, 0, "no result found", nil)
+	}
+	return ctx.JSON(200, 1, "success", tags)
+}
+
 type TopologyData struct {
 	Tag   string         `json:"tag"`
 	Nodes []TopologyNode `json:"nodes"`
@@ -144,11 +154,16 @@ func getTopo(ctx *sgo.Context) error {
 	if len(topo.Nodes) == 0 || len(topo.Edges) == 0 {
 		return ctx.JSON(200, 0, "no result found", nil)
 	}
+
+	if ctx.Param("tag") != ActiveTopoTag {
+		ActiveTopoTag = ctx.Param("tag")
+		loadTopo(topo)
+	}
+
 	return ctx.JSON(200, 1, "success", topo)
 }
 
 func postTopo(ctx *sgo.Context) error {
-	fmt.Println("post topology")
 	body, err := ioutil.ReadAll(ctx.Req.Body)
 	if err != nil {
 		fmt.Println(err)
@@ -159,60 +174,8 @@ func postTopo(ctx *sgo.Context) error {
 		fmt.Println(err)
 		return err
 	}
-	if len(Switches) > 0 || len(Subsystems) > 0 {
-		return ctx.Text(200, "topology has already been initialized")
-	}
-	for _, n := range topo.Nodes {
-		if n.Name[:2] == "SW" {
-			NewSwitch(n.Name)
-		} else {
-			NewSubsys(n.Name)
-		}
-	}
-	for _, e := range topo.Edges {
-		n0 := findNodeByName(e[0])
-		n1 := findNodeByName(e[1])
-		if n0.Name() != "" && n1.Name() != "" {
-			Connect(n0, n1)
-		}
-	}
+	loadTopo(topo)
 	insertTopo(topo)
-	return ctx.Text(200, "")
-}
-
-func putTopo(ctx *sgo.Context) error {
-	fmt.Println("put topology")
-	body, err := ioutil.ReadAll(ctx.Req.Body)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	var topo TopologyData
-	if err = json.Unmarshal(body, &topo); err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	for _, n := range topo.Nodes {
-		if tmp := findNodeByName(n.Name); tmp.Name() != "" {
-			return errors.New("node has already been initialized")
-		}
-	}
-
-	for _, n := range topo.Nodes {
-		if n.Name[:2] == "SW" {
-			NewSwitch(n.Name)
-		} else {
-			NewSubsys(n.Name)
-		}
-	}
-	for _, e := range topo.Edges {
-		n0 := findNodeByName(e[0])
-		n1 := findNodeByName(e[1])
-		if n0.Name() != "" && n1.Name() != "" {
-			Connect(n0, n1)
-		}
-	}
 	return ctx.Text(200, "")
 }
 

@@ -5,59 +5,93 @@
         <vs-col vs-w="3">
           <h3>Topology</h3>
         </vs-col>
-        <vs-col vs-w="4" vs-type="flex" vs-justify="flex-end">
+        <vs-col vs-w="8" vs-type="flex" vs-justify="flex-end">
           <div v-show="!editMode">
-            <vs-button
-              class="buttons"
-              size="small"
-              key="view"
-              :color="viewActiveOnly ? 'rgb(255, 130, 0)' : 'success'"
-              icon-pack="fas"
-              type="filled"
-              icon="fa-eye"
-              @click="toggleViewOption"
-            >
-              {{ viewActiveOnly ? "Active only" : "All paths" }}
-            </vs-button>
+            <vs-row vs-w="12">
+              <vs-col vs-offset="-0.5" vs-w="5">
+                <vs-button
+                  class="buttons"
+                  style="width: 100px"
+                  size="small"
+                  key="view"
+                  :color="viewActiveOnly ? 'rgb(255, 130, 0)' : 'success'"
+                  icon-pack="fas"
+                  type="filled"
+                  icon="fa-eye"
+                  @click="toggleViewOption"
+                >
+                  {{ viewActiveOnly ? "Active only" : "All paths" }}
+                </vs-button>
+              </vs-col>
 
-            <vs-button
-              class="buttons"
-              style="margin-left: 10px"
-              size="small"
-              color="primary"
-              icon-pack="fas"
-              type="filled"
-              icon="fa-edit"
-              @click="editEnable"
-            >
-              Edit
-            </vs-button>
+              <vs-col vs-offset="0.2" vs-w="3">
+                <vs-select
+                  class="connect-select"
+                  v-model="selectedTopo"
+                  width="80px"
+                >
+                  <vs-select-item
+                    :key="index"
+                    :value="index"
+                    :text="item"
+                    v-for="(item, index) in topoTags"
+                  />
+                </vs-select>
+              </vs-col>
+              <vs-col vs-offset="1" vs-w="2">
+                <vs-button
+                  style="margin-left: 5px"
+                  class="buttons"
+                  size="small"
+                  color="primary"
+                  icon-pack="fas"
+                  type="filled"
+                  icon="fa-plus"
+                  icon-after
+                  @click="editEnable"
+                >
+                  New
+                </vs-button>
+              </vs-col>
+            </vs-row>
           </div>
 
           <div v-show="editMode">
-            <vs-button
-              class="buttons"
-              size="small"
-              color="success"
-              icon-pack="fas"
-              type="filled"
-              icon="fa-check"
-              @click="editApply"
-            >
-              Apply
-            </vs-button>
-            <vs-button
-              class="buttons"
-              style="margin-left: 10px"
-              size="small"
-              color="danger"
-              icon-pack="fas"
-              type="filled"
-              icon="fa-undo"
-              @click="editReset"
-            >
-              Reset
-            </vs-button>
+            <vs-row vs-type="flex" vs-justify="flex-start">
+              <vs-col vs-offset="-1" vs-w="3">
+                <vs-input
+                  style="width: 80px"
+                  placeholder="Tag"
+                  v-model="newTopoTag"
+                />
+              </vs-col>
+              <vs-col vs-offset="1.8" vs-w="3">
+                <vs-button
+                  class="buttons"
+                  size="small"
+                  color="success"
+                  icon-pack="fas"
+                  type="filled"
+                  icon="fa-save"
+                  @click="editApply"
+                >
+                  Save
+                </vs-button>
+              </vs-col>
+              <vs-col vs-offset="1" vs-w="3">
+                <vs-button
+                  class="buttons"
+                  size="small"
+                  color="danger"
+                  icon-pack="fas"
+                  type="filled"
+                  icon="fa-undo"
+                  @click="editReset"
+                >
+                  Reset
+                </vs-button>
+              </vs-col>
+            </vs-row>
           </div>
         </vs-col>
       </vs-row>
@@ -91,7 +125,7 @@
             </vs-button>
           </vs-col>
           <vs-col vs-offset="-0.5" vs-w="2">
-            <vs-select class="conenct-select" v-model="connectHost0">
+            <vs-select class="connect-select" v-model="connectHost0">
               <vs-select-item
                 :key="index"
                 :value="item.value"
@@ -101,7 +135,7 @@
             </vs-select>
           </vs-col>
           <vs-col vs-offset="-0.2" vs-w="2">
-            <vs-select class="conenct-select" v-model="connectHost1">
+            <vs-select class="connect-select" v-model="connectHost1">
               <vs-select-item
                 :key="index"
                 :value="item.value"
@@ -203,6 +237,9 @@ export default {
       viewActiveOnly: false,
       activeNodes: [],
       showOption: false,
+      selectedTopo: 0,
+      topoTags: ["default"],
+      newTopoTag: "",
       activePrompt: false,
       selectedLink: "",
       tmpFailure: 0,
@@ -358,27 +395,56 @@ export default {
     };
   },
   methods: {
-    postTopology() {
+    getTopologyTags() {
+      this.$api.get("/api/topologies").then((res) => {
+        if (res.data.flag == 0) {
+          this.postTopology("default");
+          setTimeout(this.getTopologyTags, 200);
+          return;
+        }
+        this.topoTags = res.data.data;
+        this.getTopology(this.topoTags[0]);
+      });
+    },
+    postTopology(tag) {
       var nodes = [];
       var edges = [];
-      for (var n in topology.nodes) {
-        nodes.push({
-          name: topology.nodes[n].name,
-          value: topology.nodes[n].value,
-        });
-      }
-      for (var e in topology.edges) {
-        edges.push([ topology.edges[e][0], topology.edges[e][1] ]);
+      if (tag == "default") {
+        for (var n in topology.nodes) {
+          nodes.push({
+            name: topology.nodes[n].name,
+            value: topology.nodes[n].value,
+          });
+        }
+        for (var e in topology.edges) {
+          edges.push([topology.edges[e][0], topology.edges[e][1]]);
+        }
+      } else {
+        for (var nn in this.option.series[0].data) {
+          nodes.push({
+            name: this.option.series[0].data[nn].name,
+            value: this.option.series[0].data[nn].value,
+          });
+        }
+        for (var ee in this.option.series[0].links) {
+          edges.push([
+            this.option.series[0].links[ee].source,
+            this.option.series[0].links[ee].target,
+          ]);
+        }
       }
       this.$api.post("/api/topology", {
-        tag: topology.tag,
+        tag: tag,
         nodes: nodes,
         edges: edges,
       });
     },
-    getTopology() {
-      this.$api.get("/api/topology?tag=default").then((res) => {
-        if (res.data.flag == 0) return;
+    getTopology(tag) {
+      this.$api.get("/api/topology?tag=" + tag).then((res) => {
+        if (res.data.flag == 0) {
+          if (tag == "default") setTimeout(this.getTopology, 200, tag);
+          else return;
+        }
 
         this.nodes = [];
         this.switchCnt = 0;
@@ -617,14 +683,14 @@ export default {
     editApply() {
       this.editMode = false;
       this.option.graphic = { elements: [] };
+      this.postTopology(this.newTopoTag);
+      this.topoTags.push(this.newTopoTag);
+      this.selectedTopo = this.topoTags.length-1
+      this.newTopoTag = "";
+
       // force update
       this.option = JSON.parse(JSON.stringify(this.option));
       this.option.tooltip = this.tooltipDefault;
-
-      this.$api.put("/api/topology", {
-        nodes: this.newNodes,
-        edges: this.newLinks,
-      });
     },
     editReset() {
       this.editMode = false;
@@ -676,14 +742,17 @@ export default {
   mounted() {
     window.topo = this;
     this.option.tooltip = this.tooltipDefault;
-    this.getTopology();
+    this.getTopologyTags();
   },
-  created() {
-    // this.postTopology()
-  },
+  // created() {
+
+  // },
   watch: {
     activeNodes: function () {
       if (this.viewActiveOnly) this.highlightActiveNodes();
+    },
+    selectedTopo: function () {
+      this.getTopology(this.topoTags[this.selectedTopo]);
     },
   },
 };
@@ -703,10 +772,10 @@ export default {
 }
 .buttons {
   /* width:105px; */
-  font-size: 0.75rem;
+  font-size: 8rem;
   font-weight: 600;
 }
-.conenct-select {
+.connect-select {
   width: 100px;
 }
 </style>

@@ -58,10 +58,11 @@ var (
 		7: {"SW7", "SW6", "SW1"},
 	}
 
-	FwdCntTotal = 0
-	Subsystems  []*Subsys
-	Switches    []*Switch
-	Links       []*Link
+	FwdCntTotal   = 0
+	Subsystems    []*Subsys
+	Switches      []*Switch
+	Links         []*Link
+	ActiveTopoTag = ""
 )
 
 func main() {
@@ -121,4 +122,40 @@ func collectStatistics() {
 		}
 		time.Sleep(1 * time.Second)
 	}
+}
+
+// load a topo
+func loadTopo(topo TopologyData) error {
+	fmt.Println("load topology-" + topo.Tag)
+	if len(Switches) > 0 || len(Subsystems) > 0 || len(Links) > 0 {
+		// fmt.Println("stop all running nodes and links")
+		for _, l := range Links {
+			l.Stop()
+		}
+		for _, s := range Subsystems {
+			s.Stop()
+		}
+		for _, sw := range Switches {
+			sw.Stop()
+		}
+		Links = []*Link{}
+		Subsystems = []*Subsys{}
+		Switches = []*Switch{}
+	}
+
+	for _, n := range topo.Nodes {
+		if n.Name[:2] == "SW" {
+			NewSwitch(n.Name)
+		} else {
+			NewSubsys(n.Name)
+		}
+	}
+	for _, e := range topo.Edges {
+		n0 := findNodeByName(e[0])
+		n1 := findNodeByName(e[1])
+		if n0.Name() != "" && n1.Name() != "" {
+			Connect(n0, n1)
+		}
+	}
+	return nil
 }

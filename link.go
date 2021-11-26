@@ -24,7 +24,8 @@ type Link struct {
 	Distance       float64 // in meter
 	delay          float64
 
-	Failed bool
+	Failed  bool
+	stopSig chan bool
 }
 
 func Connect(n1, n2 Node) {
@@ -50,6 +51,8 @@ func Connect(n1, n2 Node) {
 	l.sender2.Neighbor = l.sink2.Owner
 	l.sink2.Neighbor = l.sender2.Owner
 
+	l.stopSig = make(chan bool)
+
 	Links = append(Links, l)
 
 	go l.forward()
@@ -61,9 +64,15 @@ func (l *Link) computeDelay(pktSize int) {
 	// fmt.Println("delay", l.delay)
 }
 
+func (l *Link) Stop() {
+	l.stopSig <- true
+}
+
 func (l *Link) forward() {
 	for {
 		select {
+		case <-l.stopSig:
+			return
 		case pkt := <-l.sender1.Channel:
 			l.computeDelay(len(pkt.RawBytes))
 			// fmt.Println(l.delay)

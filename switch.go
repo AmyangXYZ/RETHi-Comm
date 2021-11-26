@@ -22,6 +22,7 @@ type Switch struct {
 	queue          [QUEUE_NUM_SWITCH]chan *Packet // priority queue
 	Failed         bool
 	FailedDuration int
+	stopSig        chan bool
 }
 
 func NewSwitch(name string) *Switch {
@@ -44,6 +45,7 @@ func NewSwitch(name string) *Switch {
 		gatesInIdx:  -1,
 		gatesOutIdx: -1,
 		queue:       queue,
+		stopSig:     make(chan bool),
 	}
 	go sw.Start()
 	Switches = append(Switches, sw)
@@ -75,10 +77,14 @@ func (sw *Switch) Start() {
 	for _, inGate := range sw.gatesIn {
 		go func(g *Gate) {
 			for {
-				pkt := <-g.Channel
-				sw.queue[pkt.Priority] <- pkt
-				sw.recvCnt++
-				// fmt.Println(sw.name, "enqueue packet to queue", pkt.Priority)
+				select {
+				case <-sw.stopSig:
+					return
+				case pkt := <-g.Channel:
+					sw.queue[pkt.Priority] <- pkt
+					sw.recvCnt++
+					// fmt.Println(sw.name, "enqueue packet to queue", pkt.Priority)
+				}
 			}
 		}(inGate)
 	}
@@ -87,6 +93,8 @@ func (sw *Switch) Start() {
 	// "https://medium.com/a-journey-with-go/go-ordering-in-select-statements-fd0ff80fd8d6"
 	for {
 		select {
+		case <-sw.stopSig:
+			return
 		case pkt := <-sw.queue[0]:
 			sw.handle(pkt)
 
@@ -168,6 +176,14 @@ func (sw *Switch) Start() {
 			sw.handle(pkt)
 		}
 	}
+}
+
+func (sw *Switch) Stop() {
+	sw.stopSig <- true // stop queue handler
+	for range sw.gatesIn {
+		sw.stopSig <- true // stop ingates
+	}
+	// fmt.Println(sw.name, "stopped")
 }
 
 // handle incoming packets, schedule based on its priority and forward to the destination switch/subsys

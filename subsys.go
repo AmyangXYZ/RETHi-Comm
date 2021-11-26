@@ -27,6 +27,8 @@ type Subsys struct {
 	gatesOut    [GATE_NUM_SUBSYS]*Gate
 	gatesInIdx  int
 	gatesOutIdx int
+
+	stopSig chan bool
 }
 
 // returns a Subsys pointer
@@ -53,6 +55,7 @@ func NewSubsys(name string) *Subsys {
 		gatesOut:    gatesOut,
 		gatesInIdx:  -1,
 		gatesOutIdx: -1,
+		stopSig:     make(chan bool),
 	}
 	go s.Start()
 	Subsystems = append(Subsystems, s)
@@ -102,7 +105,14 @@ func (s *Subsys) Start() {
 	for _, g := range s.gatesIn {
 		go s.handleMessage(g)
 	}
+}
 
+func (s *Subsys) Stop() {
+	for range s.gatesIn {
+		s.stopSig <- true // stop ingates
+	}
+	s.inConn.Close() // stop udp server
+	// fmt.Println(s.name, "stopped")
 }
 
 // receive external UDP packets
@@ -111,7 +121,7 @@ func (s *Subsys) handlePacket() {
 		var buf [BUF_LEN]byte
 		n, err := s.inConn.Read(buf[0:])
 		if err != nil {
-			fmt.Println(err)
+			// fmt.Println(err)
 			return
 		}
 
@@ -140,31 +150,36 @@ func (s *Subsys) handlePacket() {
 func (s *Subsys) handleMessage(inGate *Gate) {
 	// fmt.Println("waiting msg from switches")
 	for {
-		pkt := <-inGate.Channel
-		pkt.Path = append(pkt.Path, s.name)
+		select {
+		case <-s.stopSig:
+			// fmt.Println(s.name, "terminate an ingate goroutine")
+			return
+		case pkt := <-inGate.Channel:
 
-		s.recvCnt++
-		// fmt.Println(pkt.RawBytes)
-		if !pkt.IsSim {
-			_, err := s.outConn.Write(pkt.RawBytes)
-			if err != nil {
-				fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
+			pkt.Path = append(pkt.Path, s.name)
+			s.recvCnt++
+			// fmt.Println(pkt.RawBytes)
+			if !pkt.IsSim {
+				_, err := s.outConn.Write(pkt.RawBytes)
+				if err != nil {
+					fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
+				}
 			}
-		}
 
-		FwdCntTotal++
-		if pkt.Delay < 1 {
-			pkt.Delay *= 1000000
-			fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
-			LogsComm <- Log{
-				Type: 0,
-				Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
-			}
-		} else {
-			fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.2f s\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
-			LogsComm <- Log{
-				Type: 0,
-				Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+			FwdCntTotal++
+			if pkt.Delay < 1 {
+				pkt.Delay *= 1000000
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+				LogsComm <- Log{
+					Type: 0,
+					Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+				}
+			} else {
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.2f s\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+				LogsComm <- Log{
+					Type: 0,
+					Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+				}
 			}
 		}
 	}

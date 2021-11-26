@@ -104,3 +104,21 @@ func queryTopo(tag string) (TopologyData, error) {
 	}
 	return topo, nil
 }
+
+func queryTopoTags() ([]string, error) {
+	var tags []string
+	var rows *sql.Rows
+
+	rows, err = db.Query(`SELECT TAG FROM TOPOLOGY_NODES GROUP BY TAG`)
+	if err != nil {
+		return tags, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var tag string
+		rows.Scan(&tag)
+		tags = append(tags, tag)
+	}
+	return tags, nil
+}
