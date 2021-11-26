@@ -453,6 +453,9 @@ export default {
           node.itemStyle = {
             opacity: 1,
           };
+          if (node.name.indexOf("GCC") != -1) {
+            node.itemStyle.color = "purple"
+          }
           if (node.name.indexOf("SW") != -1) {
             this.switchCnt++;
             node.symbol = "rect";
@@ -490,12 +493,11 @@ export default {
         this.option.series[0].data = res.data.data.nodes;
         this.option.series[0].links = edges;
 
-        this.monitorNodesStatistics();
+        this.initNodesStatistics();
         this.initLinkStatus();
       });
     },
-    monitorNodesStatistics() {
-      // init
+    initNodesStatistics() {
       this.option.series[1].data = [];
       for (var i = 0; i < this.option.series[0].data.length; i++) {
         this.option.series[1].data.push({
@@ -509,7 +511,8 @@ export default {
           },
         });
       }
-      // listen
+    },
+    monitorNodesStatistics() {
       this.$EventBus.$on("stats_comm", (stats) => {
         this.activeNodes = [];
         var tmpActiveNodes = [];
@@ -743,6 +746,7 @@ export default {
     window.topo = this;
     this.option.tooltip = this.tooltipDefault;
     this.getTopologyTags();
+    this.monitorNodesStatistics()
   },
   // created() {
 
