@@ -19,7 +19,7 @@
             >
               {{ viewActiveOnly ? "Active only" : "All paths" }}
             </vs-button>
-            
+
             <vs-button
               class="buttons"
               style="margin-left: 10px"
@@ -33,7 +33,7 @@
               Edit
             </vs-button>
           </div>
-          
+
           <div v-show="editMode">
             <vs-button
               class="buttons"
@@ -62,9 +62,9 @@
         </vs-col>
       </vs-row>
 
-      <div v-show="editMode"> 
-        <vs-row vs-type="flex" vs-justify="center"  style="margin-top:8px">
-          <vs-col vs-offset="2" vs-w="2" >
+      <div v-show="editMode">
+        <vs-row vs-type="flex" vs-justify="center" style="margin-top: 8px">
+          <vs-col vs-offset="2" vs-w="2">
             <vs-button
               class="buttons"
               size="small"
@@ -72,12 +72,10 @@
               icon-pack="fas"
               type="filled"
               icon="fa-plus"
-              @click="addSwitch"
+              @click="editAddSwitch"
             >
               Add
             </vs-button>
-
-            
           </vs-col>
           <vs-col vs-offset="1" vs-w="2">
             <vs-button
@@ -87,31 +85,35 @@
               icon-pack="fas"
               type="filled"
               icon="fa-arrows-alt-h"
-              @click="connect"
+              @click="editConnect"
             >
               Connect
             </vs-button>
           </vs-col>
           <vs-col vs-offset="-0.5" vs-w="2">
-            <vs-select
-              class="conenct-select"
-              v-model="connectHost0"
-            >
-              <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in nodes" />
+            <vs-select class="conenct-select" v-model="connectHost0">
+              <vs-select-item
+                :key="index"
+                :value="item.value"
+                :text="item.text"
+                v-for="(item, index) in nodes"
+              />
             </vs-select>
           </vs-col>
           <vs-col vs-offset="-0.2" vs-w="2">
-            <vs-select
-              class="conenct-select"
-              v-model="connectHost1"
-            >
-              <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in nodes" />
+            <vs-select class="conenct-select" v-model="connectHost1">
+              <vs-select-item
+                :key="index"
+                :value="item.value"
+                :text="item.text"
+                v-for="(item, index) in nodes"
+              />
             </vs-select>
           </vs-col>
         </vs-row>
       </div>
     </div>
-    
+
     <ECharts
       id="chart"
       ref="topo"
@@ -188,7 +190,7 @@ import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/graphic";
 
-import nodes_position from "./nodes_position"
+import nodes_position from "./nodes_position";
 
 export default {
   components: {
@@ -212,6 +214,8 @@ export default {
       nodes: [], // load from nodes_position.json
       connectHost0: 0,
       connectHost1: 0,
+      newNodes: [], // for edit
+      newLinks: [], // for edit
       tooltipDefault: {
         trigger: "item",
         enterable: true,
@@ -568,17 +572,41 @@ export default {
         }
       }
     },
-    initNodesStatistics() {
-      this.option.series[1].data = []
-      for (var i=0;i<nodes_position.length;i++) {
+    monitorNodesStatistics() {
+      // init
+      this.option.series[1].data = [];
+      for (var i = 0; i < nodes_position.length; i++) {
         this.option.series[1].data.push({
           name: "TX:0\nRX:0\n\n" + nodes_position[i].name,
-          value: [nodes_position[i].value[0], nodes_position[i].value[1]-75],
+          value: [nodes_position[i].value[0], nodes_position[i].value[1] - 75],
           label: {
             show: true,
           },
-        })
+        });
       }
+      // listen
+      this.$EventBus.$on("stats_comm", (stats) => {
+        this.activeNodes = []
+        var tmpActiveNodes = [];
+        for (var name in stats) {
+          var newStatsString =
+            "TX:" + stats[name][0] + "\nRX:" + stats[name][1] + "\n\n" + name;
+          var idx = 0;
+          for (var j=0;j<this.nodes.length;j++) {
+            if (this.nodes[j].text == name) {
+              idx = j;
+              break;
+            }
+          }
+          if (this.option.series[1].data[idx].name != newStatsString) {
+            tmpActiveNodes.push(idx, name);
+          }
+          if (tmpActiveNodes.length > 0) {
+            this.activeNodes = tmpActiveNodes;
+          }
+          this.option.series[1].data[idx].name = newStatsString;
+        }
+      });
     },
     handleClick(item) {
       if (item.name.length <= 5) return;
@@ -607,7 +635,7 @@ export default {
       if (!this.viewActiveOnly) {
         this.clearHighlights();
       } else {
-        this.highLightActiveNodes();
+        this.highlightActiveNodes();
       }
     },
     clearHighlights() {
@@ -618,12 +646,11 @@ export default {
       for (var j = 0; j < this.option.series[0].links.length; j++) {
         this.option.series[0].links[j].lineStyle.width = 2.2;
       }
-
-      // this.option = JSON.parse(JSON.stringify(this.option))
     },
-    highLightActiveNodes() {
+    highlightActiveNodes() {
       if (this.activeNodes.length == 0) return;
       this.clearHighlights();
+      
       for (var i = 0; i < this.option.series[0].data.length; i++) {
         if (this.activeNodes.indexOf(i) < 0) {
           this.option.series[0].data[i].itemStyle.opacity = 0.1;
@@ -700,11 +727,11 @@ export default {
     },
     editEnable() {
       this.editMode = true;
-      if (this.editMode) {
-        this.option_backup = JSON.stringify(this.option)
-        this.addDraggableGraphicEle();
-        this.option.tooltip = this.tooltipEdit;
-      }
+      this.newNodes = []
+      this.newLinks = []
+      this.option_backup = JSON.stringify(this.option);
+      this.addDraggableGraphicEle();
+      this.option.tooltip = this.tooltipEdit;
     },
     editApply() {
       this.editMode = false;
@@ -712,20 +739,23 @@ export default {
       // force update
       this.option = JSON.parse(JSON.stringify(this.option));
       this.option.tooltip = this.tooltipDefault;
+
+      this.$api.put("/api/topology", {nodes: this.newNodes, edges: this.newLinks})
     },
     editReset() {
       this.editMode = false;
       this.option.graphic = { elements: [] };
+      this.newNodes = []
+      this.newLinks = []
       // force update
       this.option = JSON.parse(this.option_backup);
       this.option.tooltip = this.tooltipDefault;
     },
-    addSwitch() {
+    editAddSwitch() {
       var name = "SW" + this.switchCnt;
+      this.newNodes.push(name)
       this.switchCnt++;
-      this.nodes.push(
-        {text:name, value: this.nodes.length}
-      )
+      this.nodes.push({ text: name, value: this.nodes.length });
       this.option.series[0].data.push({
         name: name,
         value: [150, 100],
@@ -735,6 +765,7 @@ export default {
           opacity: 1,
         },
       });
+      
       this.option.series[1].data.push({
         name: "TX:0\nRX:0\n\n" + name,
         value: [150, 25],
@@ -744,75 +775,53 @@ export default {
       });
       this.addDraggableGraphicEle();
     },
-    connect() {
-      if (this.connectHost0!=this.connectHost1) {
+    editConnect() {
+      if (this.connectHost0 != this.connectHost1) {
+        this.newLinks.push([this.nodes[this.connectHost0].text, this.nodes[this.connectHost1].text])
+
         this.option.series[0].links.push({
           source: this.nodes[this.connectHost0].text,
-          target: this.nodes[this.connectHost1].text
-        })
+          target: this.nodes[this.connectHost1].text,
+        });
       }
-    }
+    },
   },
   mounted() {
     window.topo = this;
-    this.initLinkStatus();
-    this.initNodesStatistics()
     this.option.tooltip = this.tooltipDefault;
 
-    var nameIdxMap = {
-      GCC: { idx: 0, name: "GCC" },
-      HMS: { idx: 1, name: "HMS" },
-      STR: { idx: 2, name: "STR" },
-      PWR: { idx: 3, name: "PWR" },
-      ECLSS: { idx: 4, name: "ECLSS" },
-      AGT: { idx: 5, name: "AGT" },
-      INT: { idx: 6, name: "INT" },
-      EXT: { idx: 7, name: "EXT" },
-      SW0: { idx: 8, name: "SW0" },
-      SW1: { idx: 9, name: "SW1" },
-      SW2: { idx: 10, name: "SW2" },
-      SW3: { idx: 11, name: "SW3" },
-      SW4: { idx: 12, name: "SW4" },
-      SW5: { idx: 13, name: "SW5" },
-      SW6: { idx: 14, name: "SW6" },
-      SW7: { idx: 15, name: "SW7" },
-    };
-    this.$EventBus.$on("stats_comm", (stats) => {
-      var tmpActiveNodes = [];
-      for (var i in stats) {
-        var newStatsString =
-          "TX:" +
-          stats[i][0] +
-          "\nRX:" +
-          stats[i][1] +
-          "\n\n" +
-          nameIdxMap[i].name;
-        if (
-          this.option.series[1].data[nameIdxMap[i].idx].name != newStatsString
-        ) {
-          tmpActiveNodes.push(nameIdxMap[i].idx, nameIdxMap[i].name);
-        }
-        if (tmpActiveNodes.length > 0) {
-          this.activeNodes = tmpActiveNodes;
-        }
-        this.option.series[1].data[nameIdxMap[i].idx].name = newStatsString;
-      }
-    });
+    this.initLinkStatus();
+    this.monitorNodesStatistics();
   },
   created() {
-    this.nodes = []
-    this.switchCnt = 0
-    for (var i=0;i<nodes_position.length;i++) {
-      if (nodes_position[i].name.indexOf("SW")!=-1) {
-        this.switchCnt++
+    this.nodes = [];
+    this.switchCnt = 0;
+    for (var i = 0; i < nodes_position.length; i++) {
+      if (nodes_position[i].name.indexOf("SW") != -1) {
+        this.switchCnt++;
       }
       this.nodes.push({
-        text:nodes_position[i].name,
+        text: nodes_position[i].name,
         value: i,
-      })
+      });
     }
+    
+    // post 
+    var nodes = [];
+    var edges = [];
+    for (var n in this.nodes) {
+      nodes.push(this.nodes[n].text);
+    }
+    for (var e in this.option.series[0].links) {
+      edges.push([this.option.series[0].links[e].source,this.option.series[0].links[e].target]);
+    }
+    this.$api.post("/api/topology", {nodes: nodes, edges:edges});
   },
- 
+  watch: {
+    activeNodes: function () {
+      if (this.viewActiveOnly) this.highlightActiveNodes();
+    },
+  },
 };
 </script>
 

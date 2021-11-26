@@ -83,83 +83,23 @@ func main() {
 
 	fmt.Println(`Start Communication Network`)
 
-	// in order
-	gcc := NewSubsys("GCC")
-	hms := NewSubsys("HMS")
-	str := NewSubsys("STR")
-	pwr := NewSubsys("PWR")
-	eclss := NewSubsys("ECLSS")
-	agt := NewSubsys("AGT")
-	it := NewSubsys("INT")
-	ext := NewSubsys("EXT")
-
-	// in order
-	SW0 := NewSwitch("SW0")
-	SW1 := NewSwitch("SW1")
-	SW2 := NewSwitch("SW2")
-	SW3 := NewSwitch("SW3")
-	SW4 := NewSwitch("SW4")
-	SW5 := NewSwitch("SW5")
-	SW6 := NewSwitch("SW6")
-	SW7 := NewSwitch("SW7")
-
-	Connect(gcc, hms)
-
-	Connect(hms, SW1)
-	Connect(hms, SW2)
-	Connect(hms, SW7)
-
-	Connect(str, SW1)
-	Connect(str, SW2)
-	Connect(str, SW3)
-
-	Connect(pwr, SW2)
-	Connect(pwr, SW3)
-	Connect(pwr, SW4)
-
-	Connect(eclss, SW3)
-	Connect(eclss, SW4)
-	Connect(eclss, SW5)
-
-	Connect(agt, SW4)
-	Connect(agt, SW5)
-	Connect(agt, SW6)
-
-	Connect(it, SW5)
-	Connect(it, SW6)
-	Connect(it, SW7)
-
-	Connect(ext, SW6)
-	Connect(ext, SW7)
-	Connect(ext, SW1)
-
-	Connect(SW1, SW0)
-	Connect(SW1, SW2)
-
-	Connect(SW2, SW0)
-	Connect(SW2, SW3)
-
-	Connect(SW3, SW0)
-	Connect(SW3, SW4)
-
-	Connect(SW4, SW0)
-	Connect(SW4, SW5)
-
-	Connect(SW5, SW0)
-	Connect(SW5, SW6)
-
-	Connect(SW6, SW0)
-	Connect(SW6, SW7)
-
-	Connect(SW7, SW0)
-	Connect(SW7, SW1)
-
-	// Connect(SW8, SW0)
-	// Connect(SW8, SW1)
-
 	go collectStatistics()
-
 	runHTTPSever()
+}
+
+func findNodeByName(name string) Node {
+	for _, subsys := range Subsystems {
+		if subsys.Name() == name {
+			return subsys
+		}
+	}
+	for _, sw := range Switches {
+		if sw.Name() == name {
+			return sw
+		}
+	}
+	// nil
+	return &Switch{name: ""}
 }
 
 func collectStatistics() {

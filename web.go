@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -51,9 +52,13 @@ func runHTTPSever() {
 
 	app.GET("/api/boottime", getBootTime)
 	app.GET("/ws/comm", wsComm)
+
+	app.POST("/api/topology", postTopo)
+	app.PUT("/api/topology", putTopo)
+	app.OPTIONS("/api/topology", sgo.PreflightHandler)
+
 	app.POST("/api/links", postDefaultSetting)
 	app.OPTIONS("/api/links", sgo.PreflightHandler)
-
 	app.POST("/api/link/:name", postLink)
 	app.OPTIONS("/api/link/:name", sgo.PreflightHandler)
 
@@ -95,6 +100,7 @@ func wsComm(ctx *sgo.Context) error {
 	if err != nil {
 		return err
 	}
+
 	fmt.Println("ws/comm connected")
 	defer func() {
 		ws.Close()
@@ -116,6 +122,78 @@ func wsComm(ctx *sgo.Context) error {
 			return nil
 		}
 	}
+}
+
+type TopologyJSON struct {
+	Nodes []string    `json:"nodes"`
+	Edges [][2]string `json:"edges"`
+}
+
+func postTopo(ctx *sgo.Context) error {
+	body, err := ioutil.ReadAll(ctx.Req.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	var topo TopologyJSON
+	if err = json.Unmarshal(body, &topo); err != nil {
+		fmt.Println(err)
+		return err
+	}
+	if len(Switches) > 0 || len(Subsystems) > 0 {
+		return errors.New("topology has already been initialized")
+	}
+
+	for _, n := range topo.Nodes {
+		if n[:2] == "SW" {
+			NewSwitch(n)
+		} else {
+			NewSubsys(n)
+		}
+	}
+	for _, e := range topo.Edges {
+		n0 := findNodeByName(e[0])
+		n1 := findNodeByName(e[1])
+		if n0.Name() != "" && n1.Name() != "" {
+			Connect(n0, n1)
+		}
+	}
+	return ctx.Text(200, "")
+}
+
+func putTopo(ctx *sgo.Context) error {
+	body, err := ioutil.ReadAll(ctx.Req.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	var topo TopologyJSON
+	if err = json.Unmarshal(body, &topo); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	for _, n := range topo.Nodes {
+		if tmp := findNodeByName(n); tmp.Name() != "" {
+			return errors.New("node has already been initialized")
+		}
+	}
+
+	for _, n := range topo.Nodes {
+		if n[:2] == "SW" {
+			NewSwitch(n)
+		} else {
+			NewSubsys(n)
+		}
+	}
+	for _, e := range topo.Edges {
+		n0 := findNodeByName(e[0])
+		n1 := findNodeByName(e[1])
+		if n0.Name() != "" && n1.Name() != "" {
+			Connect(n0, n1)
+		}
+	}
+	return ctx.Text(200, "")
 }
 
 // set link properties
