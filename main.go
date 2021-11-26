@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	GATE_NUM_SUBSYS  = 8 // 0 for in-habitat network, 1 for ground-habitat link
+	GATE_NUM_SUBSYS  = 8
 	GATE_NUM_SWITCH  = 8
 	QUEUE_NUM_SWITCH = 8
 	QUEUE_LEN_SWITCH = 4096

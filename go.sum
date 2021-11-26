@@ -1,8 +1,6 @@
-github.com/AmyangXYZ/sgo v0.0.0-20211116042821-dcf960294393 h1:8v/E48wM2hTKpURzIcwVLlfPZr4RQGnScH/ikfHUnDg=
-github.com/AmyangXYZ/sgo v0.0.0-20211116042821-dcf960294393/go.mod h1:G90ZwTJkHDt6zp4HTkKWGZD30MoU1Kl/2tkQFIO1kog=
-github.com/AmyangXYZ/sgo v1.1.0 h1:GFRD16cMm4/GBIjqd7yarCPdN8zbBkEDWhkkXc36xJg=
-github.com/AmyangXYZ/sgo v1.1.0/go.mod h1:G90ZwTJkHDt6zp4HTkKWGZD30MoU1Kl/2tkQFIO1kog=
 github.com/AmyangXYZ/sgo v1.2.0 h1:+qaJB3eJjcmUU0ER6eZeQUvZ4qFTqlJIwWMD4y9FD4E=
 github.com/AmyangXYZ/sgo v1.2.0/go.mod h1:G90ZwTJkHDt6zp4HTkKWGZD30MoU1Kl/2tkQFIO1kog=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
 github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/mattn/go-sqlite3 v1.14.9 h1:10HX2Td0ocZpYEjhilsuo6WWtUqttj2Kb0KtD86/KYA=
+github.com/mattn/go-sqlite3 v1.14.9/go.mod h1:NyWgC/yNuGj7Q9rpYnZvas74GogHl5/Z4A/KQRfk6bU=

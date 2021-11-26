@@ -190,7 +190,7 @@ import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/graphic";
 
-import nodes_position from "./nodes_position";
+import topology from "./topology.json";
 
 export default {
   components: {
@@ -198,6 +198,7 @@ export default {
   },
   data() {
     return {
+      nodes_position: [],
       editMode: false,
       viewActiveOnly: false,
       activeNodes: [],
@@ -329,202 +330,9 @@ export default {
               show: true,
               fontSize: 12.5,
             },
-            data: nodes_position,
-            links: [
-              {
-                source: "HMS",
-                target: "GCC",
-                lineStyle: {
-                  type: "dashed",
-                  width: 2.5,
-                },
-                emphasis: {
-                  lineStyle: {
-                    type: "dashed",
-                  },
-                },
-              },
-              {
-                source: "HMS",
-                target: "SW1",
-                lineStyle: {},
-              },
-              {
-                source: "HMS",
-                target: "SW2",
-                lineStyle: {},
-              },
-              {
-                source: "HMS",
-                target: "SW7",
-                lineStyle: {},
-              },
-
-              {
-                source: "STR",
-                target: "SW2",
-                lineStyle: {},
-              },
-              {
-                source: "STR",
-                target: "SW1",
-                lineStyle: {},
-              },
-              {
-                source: "STR",
-                target: "SW3",
-                lineStyle: {},
-              },
-
-              {
-                source: "PWR",
-                target: "SW3",
-                lineStyle: {},
-              },
-              {
-                source: "PWR",
-                target: "SW2",
-                lineStyle: {},
-              },
-              {
-                source: "PWR",
-                target: "SW4",
-                lineStyle: {},
-              },
-              {
-                source: "ECLSS",
-                target: "SW4",
-                lineStyle: {},
-              },
-              {
-                source: "ECLSS",
-                target: "SW3",
-                lineStyle: {},
-              },
-              {
-                source: "ECLSS",
-                target: "SW5",
-                lineStyle: {},
-              },
-
-              {
-                source: "AGT",
-                target: "SW5",
-                lineStyle: {},
-              },
-              {
-                source: "AGT",
-                target: "SW4",
-                lineStyle: {},
-              },
-              {
-                source: "AGT",
-                target: "SW6",
-                lineStyle: {},
-              },
-              {
-                source: "INT",
-                target: "SW6",
-                lineStyle: {},
-              },
-              {
-                source: "INT",
-                target: "SW5",
-                lineStyle: {},
-              },
-              {
-                source: "INT",
-                target: "SW7",
-                lineStyle: {},
-              },
-
-              {
-                source: "EXT",
-                target: "SW7",
-                lineStyle: {},
-              },
-              {
-                source: "EXT",
-                target: "SW1",
-                lineStyle: {},
-              },
-              {
-                source: "EXT",
-                target: "SW6",
-                lineStyle: {},
-              },
-
-              {
-                source: "SW1",
-                target: "SW2",
-                lineStyle: {},
-              },
-              {
-                source: "SW2",
-                target: "SW3",
-                lineStyle: {},
-              },
-              {
-                source: "SW3",
-                target: "SW4",
-                lineStyle: {},
-              },
-              {
-                source: "SW4",
-                target: "SW5",
-                lineStyle: {},
-              },
-              {
-                source: "SW5",
-                target: "SW6",
-                lineStyle: {},
-              },
-              {
-                source: "SW6",
-                target: "SW7",
-                lineStyle: {},
-              },
-              {
-                source: "SW7",
-                target: "SW1",
-                lineStyle: {},
-              },
-              {
-                source: "SW1",
-                target: "SW0",
-                lineStyle: {},
-              },
-              {
-                source: "SW2",
-                target: "SW0",
-                lineStyle: {},
-              },
-              {
-                source: "SW3",
-                target: "SW0",
-                lineStyle: {},
-              },
-              {
-                source: "SW4",
-                target: "SW0",
-                lineStyle: {},
-              },
-              {
-                source: "SW5",
-                target: "SW0",
-                lineStyle: {},
-              },
-              {
-                source: "SW6",
-                target: "SW0",
-                lineStyle: {},
-              },
-              {
-                source: "SW7",
-                target: "SW0",
-                lineStyle: {},
-              },
-            ],
+            // data: nodes_position,
+            data: [],
+            links: [],
           },
           {
             z: 1,
@@ -550,6 +358,115 @@ export default {
     };
   },
   methods: {
+    postTopology() {
+      var nodes = [];
+      var edges = [];
+      for (var n in topology.nodes) {
+        nodes.push({
+          name: topology.nodes[n].name,
+          value: topology.nodes[n].value,
+        });
+      }
+      for (var e in topology.edges) {
+        edges.push([ topology.edges[e][0], topology.edges[e][1] ]);
+      }
+      this.$api.post("/api/topology", {
+        tag: topology.tag,
+        nodes: nodes,
+        edges: edges,
+      });
+    },
+    getTopology() {
+      this.$api.get("/api/topology?tag=default").then((res) => {
+        if (res.data.flag == 0) return;
+
+        this.nodes = [];
+        this.switchCnt = 0;
+        for (var i = 0; i < res.data.data.nodes.length; i++) {
+          var node = res.data.data.nodes[i];
+          node.itemStyle = {
+            opacity: 1,
+          };
+          if (node.name.indexOf("SW") != -1) {
+            this.switchCnt++;
+            node.symbol = "rect";
+            node.itemStyle.color = "deepskyblue";
+            if (node.name == "SW0") node.itemStyle.color = "#0079A3";
+          }
+          this.nodes.push({
+            text: node.name,
+            value: i,
+          });
+        }
+
+        var edges = [];
+        for (var j = 0; j < res.data.data.edges.length; j++) {
+          var edge = res.data.data.edges[j];
+          var link = {
+            source: edge[0],
+            target: edge[1],
+            lineStyle: {},
+          };
+          if (edge[0] == "GCC" || edge[1] == "GCC") {
+            link.lineStyle = {
+              type: "dashed",
+              width: 2.5,
+            };
+            link.emphasis = {
+              lineStyle: {
+                type: "dashed",
+              },
+            };
+          }
+          edges.push(link);
+        }
+
+        this.option.series[0].data = res.data.data.nodes;
+        this.option.series[0].links = edges;
+
+        this.monitorNodesStatistics();
+        this.initLinkStatus();
+      });
+    },
+    monitorNodesStatistics() {
+      // init
+      this.option.series[1].data = [];
+      for (var i = 0; i < this.option.series[0].data.length; i++) {
+        this.option.series[1].data.push({
+          name: "TX:0\nRX:0\n\n" + this.option.series[0].data[i].name,
+          value: [
+            this.option.series[0].data[i].value[0],
+            this.option.series[0].data[i].value[1] - 75,
+          ],
+          label: {
+            show: true,
+          },
+        });
+      }
+      // listen
+      this.$EventBus.$on("stats_comm", (stats) => {
+        this.activeNodes = [];
+        var tmpActiveNodes = [];
+        for (var name in stats) {
+          var newStatsString =
+            "TX:" + stats[name][0] + "\nRX:" + stats[name][1] + "\n\n" + name;
+          var idx = 0;
+          for (var j = 0; j < this.nodes.length; j++) {
+            if (this.nodes[j].text == name) {
+              idx = j;
+              break;
+            }
+          }
+          if (this.option.series[1].data[idx].name != newStatsString) {
+            tmpActiveNodes.push(idx, name);
+          }
+          if (tmpActiveNodes.length > 0) {
+            this.activeNodes = tmpActiveNodes;
+          }
+          this.option.series[1].data[idx].name = newStatsString;
+        }
+      });
+    },
     initLinkStatus() {
       this.linkStatus = {};
       for (var i = 0; i < this.option.series[0].links.length; i++) {
@@ -571,42 +488,6 @@ export default {
           };
         }
       }
-    },
-    monitorNodesStatistics() {
-      // init
-      this.option.series[1].data = [];
-      for (var i = 0; i < nodes_position.length; i++) {
-        this.option.series[1].data.push({
-          name: "TX:0\nRX:0\n\n" + nodes_position[i].name,
-          value: [nodes_position[i].value[0], nodes_position[i].value[1] - 75],
-          label: {
-            show: true,
-          },
-        });
-      }
-      // listen
-      this.$EventBus.$on("stats_comm", (stats) => {
-        this.activeNodes = []
-        var tmpActiveNodes = [];
-        for (var name in stats) {
-          var newStatsString =
-            "TX:" + stats[name][0] + "\nRX:" + stats[name][1] + "\n\n" + name;
-          var idx = 0;
-          for (var j=0;j<this.nodes.length;j++) {
-            if (this.nodes[j].text == name) {
-              idx = j;
-              break;
-            }
-          }
-          if (this.option.series[1].data[idx].name != newStatsString) {
-            tmpActiveNodes.push(idx, name);
-          }
-          if (tmpActiveNodes.length > 0) {
-            this.activeNodes = tmpActiveNodes;
-          }
-          this.option.series[1].data[idx].name = newStatsString;
-        }
-      });
     },
     handleClick(item) {
       if (item.name.length <= 5) return;
@@ -650,7 +531,7 @@ export default {
     highlightActiveNodes() {
       if (this.activeNodes.length == 0) return;
       this.clearHighlights();
-      
+
       for (var i = 0; i < this.option.series[0].data.length; i++) {
         if (this.activeNodes.indexOf(i) < 0) {
           this.option.series[0].data[i].itemStyle.opacity = 0.1;
@@ -727,8 +608,8 @@ export default {
     },
     editEnable() {
       this.editMode = true;
-      this.newNodes = []
-      this.newLinks = []
+      this.newNodes = [];
+      this.newLinks = [];
       this.option_backup = JSON.stringify(this.option);
       this.addDraggableGraphicEle();
       this.option.tooltip = this.tooltipEdit;
@@ -740,20 +621,23 @@ export default {
       this.option = JSON.parse(JSON.stringify(this.option));
       this.option.tooltip = this.tooltipDefault;
 
-      this.$api.put("/api/topology", {nodes: this.newNodes, edges: this.newLinks})
+      this.$api.put("/api/topology", {
+        nodes: this.newNodes,
+        edges: this.newLinks,
+      });
     },
     editReset() {
       this.editMode = false;
       this.option.graphic = { elements: [] };
-      this.newNodes = []
-      this.newLinks = []
+      this.newNodes = [];
+      this.newLinks = [];
       // force update
       this.option = JSON.parse(this.option_backup);
       this.option.tooltip = this.tooltipDefault;
     },
     editAddSwitch() {
       var name = "SW" + this.switchCnt;
-      this.newNodes.push(name)
+      this.newNodes.push(name);
       this.switchCnt++;
       this.nodes.push({ text: name, value: this.nodes.length });
       this.option.series[0].data.push({
@@ -765,7 +649,7 @@ export default {
           opacity: 1,
         },
       });
-      
+
       this.option.series[1].data.push({
         name: "TX:0\nRX:0\n\n" + name,
         value: [150, 25],
@@ -777,7 +661,10 @@ export default {
     },
     editConnect() {
       if (this.connectHost0 != this.connectHost1) {
-        this.newLinks.push([this.nodes[this.connectHost0].text, this.nodes[this.connectHost1].text])
+        this.newLinks.push([
+          this.nodes[this.connectHost0].text,
+          this.nodes[this.connectHost1].text,
+        ]);
 
         this.option.series[0].links.push({
           source: this.nodes[this.connectHost0].text,
@@ -789,33 +676,10 @@ export default {
   mounted() {
     window.topo = this;
     this.option.tooltip = this.tooltipDefault;
-
-    this.initLinkStatus();
-    this.monitorNodesStatistics();
+    this.getTopology();
   },
   created() {
-    this.nodes = [];
-    this.switchCnt = 0;
-    for (var i = 0; i < nodes_position.length; i++) {
-      if (nodes_position[i].name.indexOf("SW") != -1) {
-        this.switchCnt++;
-      }
-      this.nodes.push({
-        text: nodes_position[i].name,
-        value: i,
-      });
-    }
-    
-    // post 
-    var nodes = [];
-    var edges = [];
-    for (var n in this.nodes) {
-      nodes.push(this.nodes[n].text);
-    }
-    for (var e in this.option.series[0].links) {
-      edges.push([this.option.series[0].links[e].source,this.option.series[0].links[e].target]);
-    }
-    this.$api.post("/api/topology", {nodes: nodes, edges:edges});
+    // this.postTopology()
   },
   watch: {
     activeNodes: function () {

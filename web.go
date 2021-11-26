@@ -53,6 +53,7 @@ func runHTTPSever() {
 	app.GET("/api/boottime", getBootTime)
 	app.GET("/ws/comm", wsComm)
 
+	app.GET("/api/topology", getTopo)
 	app.POST("/api/topology", postTopo)
 	app.PUT("/api/topology", putTopo)
 	app.OPTIONS("/api/topology", sgo.PreflightHandler)
@@ -124,31 +125,48 @@ func wsComm(ctx *sgo.Context) error {
 	}
 }
 
-type TopologyJSON struct {
-	Nodes []string    `json:"nodes"`
-	Edges [][2]string `json:"edges"`
+type TopologyData struct {
+	Tag   string         `json:"tag"`
+	Nodes []TopologyNode `json:"nodes"`
+	Edges [][2]string    `json:"edges"`
+}
+
+type TopologyNode struct {
+	Name     string `json:"name"`
+	Position [2]int `json:"value"`
+}
+
+func getTopo(ctx *sgo.Context) error {
+	topo, err := queryTopo(ctx.Param("tag"))
+	if err != nil {
+		return ctx.JSON(500, 0, err.Error(), nil)
+	}
+	if len(topo.Nodes) == 0 || len(topo.Edges) == 0 {
+		return ctx.JSON(200, 0, "no result found", nil)
+	}
+	return ctx.JSON(200, 1, "success", topo)
 }
 
 func postTopo(ctx *sgo.Context) error {
+	fmt.Println("post topology")
 	body, err := ioutil.ReadAll(ctx.Req.Body)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	var topo TopologyJSON
+	var topo TopologyData
 	if err = json.Unmarshal(body, &topo); err != nil {
 		fmt.Println(err)
 		return err
 	}
 	if len(Switches) > 0 || len(Subsystems) > 0 {
-		return errors.New("topology has already been initialized")
+		return ctx.Text(200, "topology has already been initialized")
 	}
-
 	for _, n := range topo.Nodes {
-		if n[:2] == "SW" {
-			NewSwitch(n)
+		if n.Name[:2] == "SW" {
+			NewSwitch(n.Name)
 		} else {
-			NewSubsys(n)
+			NewSubsys(n.Name)
 		}
 	}
 	for _, e := range topo.Edges {
@@ -158,32 +176,34 @@ func postTopo(ctx *sgo.Context) error {
 			Connect(n0, n1)
 		}
 	}
+	insertTopo(topo)
 	return ctx.Text(200, "")
 }
 
 func putTopo(ctx *sgo.Context) error {
+	fmt.Println("put topology")
 	body, err := ioutil.ReadAll(ctx.Req.Body)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	var topo TopologyJSON
+	var topo TopologyData
 	if err = json.Unmarshal(body, &topo); err != nil {
 		fmt.Println(err)
 		return err
 	}
 
 	for _, n := range topo.Nodes {
-		if tmp := findNodeByName(n); tmp.Name() != "" {
+		if tmp := findNodeByName(n.Name); tmp.Name() != "" {
 			return errors.New("node has already been initialized")
 		}
 	}
 
 	for _, n := range topo.Nodes {
-		if n[:2] == "SW" {
-			NewSwitch(n)
+		if n.Name[:2] == "SW" {
+			NewSwitch(n.Name)
 		} else {
-			NewSubsys(n)
+			NewSubsys(n.Name)
 		}
 	}
 	for _, e := range topo.Edges {
