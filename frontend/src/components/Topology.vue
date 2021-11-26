@@ -111,7 +111,7 @@
               Add
             </vs-button>
           </vs-col>
-          <vs-col vs-offset="1" vs-w="2">
+          <vs-col vs-offset="1" vs-w="1">
             <vs-button
               class="buttons"
               size="small"
@@ -121,10 +121,9 @@
               icon="fa-arrows-alt-h"
               @click="editConnect"
             >
-              Connect
             </vs-button>
           </vs-col>
-          <vs-col vs-offset="-0.5" vs-w="2">
+          <vs-col vs-offset="-0.5" vs-w="1">
             <vs-select class="connect-select" v-model="connectHost0">
               <vs-select-item
                 :key="index"
@@ -134,7 +133,7 @@
               />
             </vs-select>
           </vs-col>
-          <vs-col vs-offset="-0.2" vs-w="2">
+          <vs-col vs-offset="0.4" vs-w="1">
             <vs-select class="connect-select" v-model="connectHost1">
               <vs-select-item
                 :key="index"
@@ -143,6 +142,18 @@
                 v-for="(item, index) in nodes"
               />
             </vs-select>
+          </vs-col>
+          <vs-col vs-offset="0.35" vs-w="1">
+            <vs-button
+              class="buttons"
+              size="small"
+              color="danger"
+              icon-pack="fas"
+              type="filled"
+              icon="fa-cut"
+              @click="editCut"
+            >
+            </vs-button>
           </vs-col>
         </vs-row>
       </div>
@@ -252,8 +263,6 @@ export default {
       nodes: [], // load from nodes_position.json
       connectHost0: 0,
       connectHost1: 0,
-      newNodes: [], // for edit
-      newLinks: [], // for edit
       tooltipDefault: {
         trigger: "item",
         enterable: true,
@@ -403,6 +412,9 @@ export default {
           return;
         }
         this.topoTags = res.data.data;
+        this.topoTags.sort(function (x, y) {
+          return x == "default" ? -1 : y == "default" ? 1 : 0;
+        });
         this.getTopology(this.topoTags[0]);
       });
     },
@@ -454,7 +466,7 @@ export default {
             opacity: 1,
           };
           if (node.name.indexOf("GCC") != -1) {
-            node.itemStyle.color = "purple"
+            node.itemStyle.color = "purple";
           }
           if (node.name.indexOf("SW") != -1) {
             this.switchCnt++;
@@ -677,8 +689,6 @@ export default {
     },
     editEnable() {
       this.editMode = true;
-      this.newNodes = [];
-      this.newLinks = [];
       this.option_backup = JSON.stringify(this.option);
       this.addDraggableGraphicEle();
       this.option.tooltip = this.tooltipEdit;
@@ -688,7 +698,7 @@ export default {
       this.option.graphic = { elements: [] };
       this.postTopology(this.newTopoTag);
       this.topoTags.push(this.newTopoTag);
-      this.selectedTopo = this.topoTags.length-1
+      this.selectedTopo = this.topoTags.length - 1;
       this.newTopoTag = "";
 
       // force update
@@ -698,15 +708,12 @@ export default {
     editReset() {
       this.editMode = false;
       this.option.graphic = { elements: [] };
-      this.newNodes = [];
-      this.newLinks = [];
       // force update
       this.option = JSON.parse(this.option_backup);
       this.option.tooltip = this.tooltipDefault;
     },
     editAddSwitch() {
       var name = "SW" + this.switchCnt;
-      this.newNodes.push(name);
       this.switchCnt++;
       this.nodes.push({ text: name, value: this.nodes.length });
       this.option.series[0].data.push({
@@ -730,15 +737,23 @@ export default {
     },
     editConnect() {
       if (this.connectHost0 != this.connectHost1) {
-        this.newLinks.push([
-          this.nodes[this.connectHost0].text,
-          this.nodes[this.connectHost1].text,
-        ]);
-
         this.option.series[0].links.push({
           source: this.nodes[this.connectHost0].text,
           target: this.nodes[this.connectHost1].text,
         });
+      }
+    },
+    editCut() {
+      if (this.connectHost0 != this.connectHost1) {
+        for (var i = 0; i < this.option.series[0].links.length; i++) {
+          var l = this.option.series[0].links[i];
+          if (
+            (l.source == this.nodes[this.connectHost0].text && l.target == this.nodes[this.connectHost1].text) ||
+            (l.source == this.nodes[this.connectHost1].text && l.target == this.nodes[this.connectHost0].text)
+          ) {
+            this.option.series[0].links.splice(i,1)
+          }
+        }
       }
     },
   },
@@ -746,7 +761,7 @@ export default {
     window.topo = this;
     this.option.tooltip = this.tooltipDefault;
     this.getTopologyTags();
-    this.monitorNodesStatistics()
+    this.monitorNodesStatistics();
   },
   // created() {
 
@@ -780,6 +795,6 @@ export default {
   font-weight: 600;
 }
 .connect-select {
-  width: 100px;
+  width: 80px;
 }
 </style>
