@@ -247,7 +247,6 @@ func postFlows(ctx *sgo.Context) error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println(flows)
 	simStartedFlag = 1
 	stopFlowSig = make(chan bool, 56)
 	for _, f := range flows {

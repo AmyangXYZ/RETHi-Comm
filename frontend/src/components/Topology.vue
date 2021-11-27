@@ -761,7 +761,7 @@ export default {
     window.topo = this;
     this.option.tooltip = this.tooltipDefault;
     this.getTopologyTags();
-    this.monitorNodesStatistics();
+    setTimeout(this.monitorNodesStatistics, 200);
   },
   // created() {
 

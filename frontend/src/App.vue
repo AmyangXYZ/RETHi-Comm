@@ -6,13 +6,17 @@
       <vs-col vs-offset=0.8 vs-w=5.5  style="z-index:99">
         <Configuration/>
         <Topology/>
-        <Statistics/>
+        
       </vs-col>
-      <vs-col vs-offset=0.3 vs-w=5  style="z-index:99">
+      <vs-col vs-offset=0.2 vs-w=5.1  style="z-index:99">
         <Simulation v-if="mode=='Simulation'"/>
         <Fault/>
         <Console name="comm" height="300px"/>
-        
+      </vs-col>
+    </vs-row>
+    <vs-row vs-w="12">
+      <vs-col vs-offset=0.8 vs-w="10.8">
+        <Statistics/>
       </vs-col>
     </vs-row>
   </div>

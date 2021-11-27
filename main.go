@@ -13,12 +13,13 @@ import (
 )
 
 const (
-	GATE_NUM_SUBSYS  = 8
-	GATE_NUM_SWITCH  = 8
-	QUEUE_NUM_SWITCH = 8
-	QUEUE_LEN_SWITCH = 4096
-	BUF_LEN          = 65536
-	CONFIG_LOC       = "./flex_config.json"
+	GATE_NUM_SUBSYS      = 8
+	GATE_NUM_SWITCH      = 8
+	QUEUE_NUM_SWITCH     = 8
+	QUEUE_LEN_SWITCH     = 4096
+	BUF_LEN              = 65536
+	CONFIG_LOC           = "./flex_config.json"
+	COLLECT_STATS_PERIOD = 5 // in seconds
 )
 
 // switch or subsys
@@ -120,7 +121,7 @@ func collectStatistics() {
 			Msg:        "",
 			Statistics: tmp,
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(COLLECT_STATS_PERIOD * time.Second)
 	}
 }
 
