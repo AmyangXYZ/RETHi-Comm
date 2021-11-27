@@ -247,13 +247,14 @@ func postFlows(ctx *sgo.Context) error {
 		fmt.Println(err)
 		return err
 	}
+	fmt.Println(flows)
 	simStartedFlag = 1
 	stopFlowSig = make(chan bool, 56)
 	for _, f := range flows {
 		subsys := Subsystems[f.ID]
 		for i, flag := range f.Dst {
 			if flag == "X" {
-				go func(dstID int) {
+				go func(dstID int, f Flow) {
 					for {
 						select {
 						case <-stopFlowSig:
@@ -270,7 +271,7 @@ func postFlows(ctx *sgo.Context) error {
 						}
 					}
 
-				}(i)
+				}(i, f)
 				// delay between different flows
 				time.Sleep(50 * time.Millisecond)
 			}
