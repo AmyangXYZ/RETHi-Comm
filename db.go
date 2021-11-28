@@ -42,6 +42,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	_, err = db.Exec(`DELETE FROM STATISTICS WHERE 1`)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func insertTopo(topo TopologyData) {
@@ -148,7 +152,7 @@ func queryStatsByName(name string) ([][3]int, error) {
 	var stats [][3]int
 	var rows *sql.Rows
 
-	rows, err = db.Query(`SELECT TIMESTAMP,TX,RX FROM STATISTICS WHERE NAME=? and TIMESTAMP>?`, name, boottime*1000)
+	rows, err = db.Query(`SELECT TIMESTAMP,TX,RX FROM STATISTICS WHERE NAME=?`, name)
 	if err != nil {
 		return stats, err
 	}

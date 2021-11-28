@@ -150,7 +150,6 @@ export default {
             } else {
               for (var i in this.optionPie.series[0].data) {
                 if (this.optionPie.series[0].data[i].name == n) {
-                  
                   this.optionPie.series[0].data[i].value =
                     stats[n][1] -
                     this.trafficPerSubsysHistory[n][
@@ -169,11 +168,11 @@ export default {
           }
         }
         if (this.trafficAmountHistory.length > 0) {
+          var diff = trafficAmount - this.trafficAmountHistory[this.trafficAmountHistory.length - 1].traffic
+          if (diff<0) diff = 0
           this.optionLine.series[0].data.push([
             timestamp,
-            trafficAmount -
-              this.trafficAmountHistory[this.trafficAmountHistory.length - 1]
-                .traffic,
+            diff,
           ]);
         }
         if (this.optionLine.series[0].data.length > 50) {

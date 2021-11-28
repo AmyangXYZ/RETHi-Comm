@@ -4,7 +4,7 @@
       <h3>Statistics of <span style="text-decoration: underline">{{selectedNode}}</span></h3>
     </div>
     <vs-row vs-align="center">
-      <vs-col vs-offset="0.2" vs-w="2" id="summary" v-if="nodes_loaded">
+      <vs-col vs-offset="0.2" vs-w="2.5" id="summary" v-if="nodes_loaded">
         <span>
           Inbound: {{stats_summary[selectedNode].inbound}} pkts
         </span> <br>
@@ -12,13 +12,13 @@
           Outbound: {{stats_summary[selectedNode].outbound}} pkts
         </span> <br>
         <span>
-          Average Delay: {{stats_summary[selectedNode].avg_delay}} us
+          Average delay: {{stats_summary[selectedNode].avg_delay}} us
         </span> <br>
         <span>
-          Fault Count: {{stats_summary[selectedNode].fault_cnt}}
+          Fault count: {{stats_summary[selectedNode].fault_cnt}}
         </span>
       </vs-col>
-      <vs-col vs-w="9.8">
+      <vs-col vs-w="9.3">
         <ECharts
           id="bar-chart"
           ref="stats"
@@ -64,7 +64,7 @@ export default {
         grid: {
           // height: "70%",
           top: "10%",
-          bottom: "25%",
+          bottom: "20%",
           right: "5%",
           left: "5%",
         },

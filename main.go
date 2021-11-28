@@ -69,7 +69,6 @@ var (
 
 func main() {
 	boottime = time.Now().Unix()
-	fmt.Println(boottime, time.Now().UnixNano()/1e6)
 	config, err := ioutil.ReadFile(CONFIG_LOC)
 	if err != nil {
 		fmt.Println("reading configuration error")

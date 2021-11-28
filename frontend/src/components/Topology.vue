@@ -98,7 +98,7 @@
 
       <div v-show="editMode">
         <vs-row vs-type="flex" vs-justify="center" style="margin-top: 8px">
-          <vs-col vs-offset="2" vs-w="2">
+          <vs-col vs-offset="1" vs-w="0.5">
             <vs-button
               class="buttons"
               size="small"
@@ -108,7 +108,18 @@
               icon="fa-plus"
               @click="editAddSwitch"
             >
-              Add
+            </vs-button>
+          </vs-col>
+          <vs-col vs-offset="0.1" vs-w="1">
+            <vs-button
+              class="buttons"
+              size="small"
+              color="danger"
+              icon-pack="fas"
+              type="filled"
+              icon="fa-minus"
+              @click="editAddSwitch"
+            >   
             </vs-button>
           </vs-col>
           <vs-col vs-offset="1" vs-w="1">
