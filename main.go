@@ -13,13 +13,14 @@ import (
 )
 
 const (
-	GATE_NUM_SUBSYS      = 8
-	GATE_NUM_SWITCH      = 8
-	QUEUE_NUM_SWITCH     = 8
-	QUEUE_LEN_SWITCH     = 4096
-	BUF_LEN              = 65536
-	CONFIG_LOC           = "./flex_config.json"
-	COLLECT_STATS_PERIOD = 5 // in seconds
+	GATE_NUM_SUBSYS     = 8
+	GATE_NUM_SWITCH     = 8
+	QUEUE_NUM_SWITCH    = 8
+	QUEUE_LEN_SWITCH    = 4096
+	BUF_LEN             = 65536
+	CONFIG_LOC          = "./flex_config.json"
+	SAVE_STATS_PERIOD   = 10 // in seconds
+	UPLOAD_STATS_PERIOD = 3  // in seconds
 )
 
 // switch or subsys
@@ -68,7 +69,7 @@ var (
 
 func main() {
 	boottime = time.Now().Unix()
-
+	fmt.Println(boottime, time.Now().UnixNano()/1e6)
 	config, err := ioutil.ReadFile(CONFIG_LOC)
 	if err != nil {
 		fmt.Println("reading configuration error")
@@ -105,6 +106,23 @@ func findNodeByName(name string) Node {
 }
 
 func collectStatistics() {
+	// save to db
+	go func() {
+		for {
+			var tmp = map[string][2]int{}
+			for _, s := range Subsystems {
+				tmp[s.Name()] = [2]int{s.fwdCnt, s.recvCnt}
+			}
+
+			for _, sw := range Switches {
+				tmp[sw.Name()] = [2]int{sw.fwdCnt, sw.recvCnt}
+			}
+			saveStats(tmp)
+			time.Sleep(SAVE_STATS_PERIOD * time.Second)
+		}
+	}()
+
+	// send to frontend
 	for {
 		var tmp = map[string][2]int{}
 
@@ -121,7 +139,7 @@ func collectStatistics() {
 			Msg:        "",
 			Statistics: tmp,
 		}
-		time.Sleep(COLLECT_STATS_PERIOD * time.Second)
+		time.Sleep(UPLOAD_STATS_PERIOD * time.Second)
 	}
 }
 

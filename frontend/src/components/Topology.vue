@@ -46,11 +46,11 @@
                   color="primary"
                   icon-pack="fas"
                   type="filled"
-                  icon="fa-plus"
+                  icon="fa-edit"
                   icon-after
                   @click="editEnable"
                 >
-                  New
+                  Edit
                 </vs-button>
               </vs-col>
             </vs-row>
@@ -127,8 +127,8 @@
             <vs-select class="connect-select" v-model="connectHost0">
               <vs-select-item
                 :key="index"
-                :value="item.value"
-                :text="item.text"
+                :value="index"
+                :text="item"
                 v-for="(item, index) in nodes"
               />
             </vs-select>
@@ -137,8 +137,8 @@
             <vs-select class="connect-select" v-model="connectHost1">
               <vs-select-item
                 :key="index"
-                :value="item.value"
-                :text="item.text"
+                :value="index"
+                :text="item"
                 v-for="(item, index) in nodes"
               />
             </vs-select>
@@ -260,7 +260,7 @@ export default {
       tmpDistance: 1000,
       linkStats: {},
       switchCnt: 7,
-      nodes: [], // load from nodes_position.json
+      nodes: [], // 
       connectHost0: 0,
       connectHost1: 0,
       tooltipDefault: {
@@ -474,10 +474,7 @@ export default {
             node.itemStyle.color = "deepskyblue";
             if (node.name == "SW0") node.itemStyle.color = "#0079A3";
           }
-          this.nodes.push({
-            text: node.name,
-            value: i,
-          });
+          this.nodes.push(node.name);
         }
 
         var edges = [];
@@ -504,6 +501,8 @@ export default {
 
         this.option.series[0].data = res.data.data.nodes;
         this.option.series[0].links = edges;
+
+        this.$EventBus.$emit("topology", {nodes: this.nodes, edges:edges})
 
         this.initNodesStatistics();
         this.initLinkStatus();
@@ -533,7 +532,7 @@ export default {
             "TX:" + stats[name][0] + "\nRX:" + stats[name][1] + "\n\n" + name;
           var idx = 0;
           for (var j = 0; j < this.nodes.length; j++) {
-            if (this.nodes[j].text == name) {
+            if (this.nodes[j] == name) {
               idx = j;
               break;
             }
@@ -571,9 +570,12 @@ export default {
       }
     },
     handleClick(item) {
-      if (item.name.length <= 5) return;
-      this.selectedLink = item.name;
-      this.activePrompt = true;
+      if (item.dataType=="node") {
+        this.$EventBus.$emit("selectedNode", item.data.name)
+      } else if (item.dataType=="edge") {
+        this.selectedLink = item.name;
+        this.activePrompt = true;
+      }
     },
     closePrompt() {
       this.activePrompt = false;
@@ -715,7 +717,7 @@ export default {
     editAddSwitch() {
       var name = "SW" + this.switchCnt;
       this.switchCnt++;
-      this.nodes.push({ text: name, value: this.nodes.length });
+      this.nodes.push(name);
       this.option.series[0].data.push({
         name: name,
         value: [150, 100],
@@ -738,8 +740,8 @@ export default {
     editConnect() {
       if (this.connectHost0 != this.connectHost1) {
         this.option.series[0].links.push({
-          source: this.nodes[this.connectHost0].text,
-          target: this.nodes[this.connectHost1].text,
+          source: this.nodes[this.connectHost0],
+          target: this.nodes[this.connectHost1],
         });
       }
     },
@@ -748,8 +750,8 @@ export default {
         for (var i = 0; i < this.option.series[0].links.length; i++) {
           var l = this.option.series[0].links[i];
           if (
-            (l.source == this.nodes[this.connectHost0].text && l.target == this.nodes[this.connectHost1].text) ||
-            (l.source == this.nodes[this.connectHost1].text && l.target == this.nodes[this.connectHost0].text)
+            (l.source == this.nodes[this.connectHost0] && l.target == this.nodes[this.connectHost1]) ||
+            (l.source == this.nodes[this.connectHost1] && l.target == this.nodes[this.connectHost0])
           ) {
             this.option.series[0].links.splice(i,1)
           }

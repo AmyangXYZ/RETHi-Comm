@@ -11,12 +11,16 @@
       <vs-col vs-offset=0.2 vs-w=5.1  style="z-index:99">
         <Simulation v-if="mode=='Simulation'"/>
         <Fault/>
-        <Console name="comm" height="300px"/>
+        <Console name="comm" height="358px"/>
       </vs-col>
     </vs-row>
     <vs-row vs-w="12">
-      <vs-col vs-offset=0.8 vs-w="10.8">
+      <vs-col vs-offset=0.8 vs-w="6.8">
         <Statistics/>
+        
+      </vs-col>
+      <vs-col vs-offset=0.2 vs-w="3.8">
+        <Traffic/>
       </vs-col>
     </vs-row>
   </div>
@@ -31,6 +35,7 @@ import Navbar from './components/Navbar.vue'
 import Simulation from './components/Simulation.vue';
 import Statistics from './components/Statistics.vue';
 import Sidebar from './components/Sidebar.vue';
+import Traffic from './components/Traffic.vue';
 
 export default {
   name: 'App',
@@ -43,6 +48,7 @@ export default {
     Configuration,
     Statistics,
     Sidebar,
+    Traffic,
   },
   data() {
     return {

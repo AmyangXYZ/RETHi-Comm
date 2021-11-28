@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -34,10 +35,10 @@ func init() {
 		panic(err)
 	}
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS STATISTICS (
-		ID SMALLINT,
-		Name VARCHAR(16) NOT NULL,
-		SOURCE INT,
-		DELAY DOUBLE);`)
+		TIMESTAMP BIGINT,
+		NAME VARCHAR(16) NOT NULL,
+		TX INT,
+		RX INT);`)
 	if err != nil {
 		panic(err)
 	}
@@ -121,4 +122,42 @@ func queryTopoTags() ([]string, error) {
 		tags = append(tags, tag)
 	}
 	return tags, nil
+}
+
+func saveStats(data map[string][2]int) {
+	t := time.Now()
+	timestamp := t.UnixNano() / 1e6
+	stmt, err := db.Prepare(`INSERT INTO STATISTICS (TIMESTAMP, NAME, TX, RX) VALUES (?, ?, ?, ?);`)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer stmt.Close()
+
+	for name, value := range data {
+		_, err = stmt.Exec(timestamp, name, value[0], value[1])
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+// timestamp, tx, rx
+func queryStatsByName(name string) ([][3]int, error) {
+	var stats [][3]int
+	var rows *sql.Rows
+
+	rows, err = db.Query(`SELECT TIMESTAMP,TX,RX FROM STATISTICS WHERE NAME=? and TIMESTAMP>?`, name, boottime*1000)
+	if err != nil {
+		return stats, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var data [3]int
+		rows.Scan(&data[0], &data[1], &data[2])
+		stats = append(stats, data)
+	}
+	return stats, nil
 }

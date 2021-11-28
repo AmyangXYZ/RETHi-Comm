@@ -1,32 +1,26 @@
 <template>
-  <vs-card style="height: 420px">
+  <vs-card style="height: 390px">
     <div slot="header" style="text-align: left">
-      <h3>Statistics</h3>
+      <h3>Statistics of <span style="text-decoration: underline">{{selectedNode}}</span></h3>
     </div>
-    <vs-row vs-w="12" vs-align="center">
-      <vs-col vs-w="5">
-        <ECharts
-          id="pie-chart"
-          ref="stats"
-          :options="optionPie"
-          themes="macarons"
-          autoresize
-        />
-        <ECharts
-          id="line-chart"
-          ref="stats"
-          :options="optionLine"
-          themes="macarons"
-          autoresize
-        />
-        
+    <vs-row vs-align="center">
+      <vs-col vs-offset="0.2" vs-w="2" id="summary" v-if="nodes_loaded">
+        <span>
+          Inbound: {{stats_summary[selectedNode].inbound}} pkts
+        </span> <br>
+        <span>
+          Outbound: {{stats_summary[selectedNode].outbound}} pkts
+        </span> <br>
+        <span>
+          Average Delay: {{stats_summary[selectedNode].avg_delay}} us
+        </span> <br>
+        <span>
+          Fault Count: {{stats_summary[selectedNode].fault_cnt}}
+        </span>
       </vs-col>
-      <vs-col vs-w="3">
-        
-      </vs-col>
-      <vs-col vs-offset="0" vs-w="3">
+      <vs-col vs-w="9.8">
         <ECharts
-          id="pie-chart"
+          id="bar-chart"
           ref="stats"
           :options="optionBar"
           themes="macarons"
@@ -34,15 +28,18 @@
         />
       </vs-col>
     </vs-row>
+      
+      
   </vs-card>
 </template>
 
 <script>
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
-import "echarts/lib/chart/pie";
+import "echarts/lib/chart/bar";
 import "echarts/lib/chart/graph";
-import "echarts/lib/component/title";
+import "echarts/lib/component/legend";
+import "echarts/lib/component/dataZoom";
 import "echarts/lib/component/tooltip";
 
 export default {
@@ -51,199 +48,156 @@ export default {
   },
   data() {
     return {
-      mdoe: ["by-sender", "by-receiver"],
-      trafficAmountHistory: [],
-      trafficPerSubsysHistory: {},
-      trafficDiffPerSubsysHistory: {},
-      selectedTs: 0,
-      optionLine: {
+      selectedNode: "HMS",
+      stats_summary: {},
+      traffic_history: {},
+      nodes_loaded: false,
+      nodes: [],
+      refreshTimer: {},
+      optionBar: {
+        title: {
+
+        },
         tooltip: {
           trigger: "axis",
-          formatter: (item) => {
-            this.selectedTs = item[0].data[0]
-            return new Date(item[0].data[0]-5000).toLocaleString('en-US', {hour12: false}).substr(12, 8)+"~"+item[0].axisValueLabel+"<br>"+item[0].data[1]+" packets"
-          }
         },
         grid: {
-          height: "40%",
-          top: "20%",
-          bottom: "10%",
+          // height: "70%",
+          top: "10%",
+          bottom: "25%",
+          right: "5%",
+          left: "5%",
         },
+        legend: {
+          data: ['Inbound', 'Outbound'] 
+        },
+        dataZoom: [
+          {
+            type: "inside",
+            start: 0,
+            end: 100,
+          },
+          {
+            start: 0,
+            end: 100,
+            handleIcon:
+              "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+            handleSize: "80%",
+            handleStyle: {
+              color: "#fff",
+              shadowBlur: 3,
+              shadowColor: "rgba(0, 0, 0, 0.6)",
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            }
+          }
+        ],
         xAxis: {
           type: "time",
           data: [],
         },
         yAxis: {
-          name: "Packets",
+          name: "Traffic",
           type: "value",
-          boundaryGap: ["50%", "100%"],
+          boundaryGap: ["0%", "20%"],
           // min: 0,
         },
         series: [
           {
-            lineStyle: {
-              // color: "rgba(90,11,192,1)",
-              width:3
-            },
-            symbolSize: 4,
-            data: [],
-            type: "line",
-            smooth: true,
-            // animation: false,
+            name: 'Inbound',
+            type: 'bar',
+            // barGay: "30%",
+            barCategoryGap: "40%",
+            data:[],
+            itemStyle: {
+              color: "rgba(27,113,222,1)"
+            }
           },
-        ],
-      },
-      optionPie: {
-        color: [
-          "#5470c6",
-          "#91cc75",
-          "#fac858",
-          "#ee6666",
-          "#73c0de",
-          "#3ba272",
-          "#fc8452",
-          "#9a60b4",
-          "#ea7ccc",
-        ],
-        title: {
-          text: "Traffic Summary",
-          subtext: "",
-          left: "center",
-          textStyle: {
-            fontSize: 16,
-            fontWeight: 500,
-          },
-        },
-        tooltip: {
-          trigger: "item",
-        },
-        legend: {
-          orient: "vertical",
-          left: "left",
-        },
-        series: [
           {
-            type: "pie",
-            top: "20%",
-            bottom: "0",
-            radius: "100%",
-            startAngle: 225,
-            stillShowZeroSum: true,
-            label: {
-              position:"inside",
-              fontSize: 14,
-              formatter: (item)=> {
-                if(item.data.value>0)
-                  return `${item.data.name}`
-                return ""
-              }
-            },
-            data: [
-              { value: 1, name: "GCC" },
-              { value: 1, name: "HMS" },
-              { value: 1, name: "STR" },
-              { value: 1, name: "PWR" },
-              { value: 1, name: "ECLSS" },
-              { value: 1, name: "AGT" },
-              { value: 1, name: "INT" },
-              { value: 1, name: "EXT" },
-            ],
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: "rgba(0, 0, 0, 0.7)",
-              },
-            },
+            name: 'Outbound',
+            type: 'bar',
+            // barGay: "30%",
+            barCategoryGap: "40%",
+            data:[],
+            itemStyle: {
+              color: "rgba(243,171,71,1)"
+            }
           },
         ],
       },
-      optionBar: {},
+      
     };
   },
   methods: {
-    updateLineChart() {
-      this.optionLine.series[0].data.push([+new Date(),0])
-      this.$EventBus.$on("stats_comm", (stats) => {
-        var trafficAmount = 0;
-        var timestamp = +new Date();
-        this.trafficDiffPerSubsysHistory[timestamp] = {}
-        for (var n in stats) {
-          if (stats[n].indexOf("SW") == -1) {
-            trafficAmount += stats[n][1]; // rx amount
-
-            
-
-            if (this.trafficPerSubsysHistory[n] == null) {
-              this.trafficPerSubsysHistory[n] = [
-                { ts: timestamp, traffic: stats[n][1] },
-              ];
+    drawStats() {
+      this.$api.get("/api/stats/"+this.selectedNode)
+      .then((res)=>{
+        if (res.data.flag==0) return
+        this.optionBar.series[0].data = []
+        this.optionBar.series[1].data = []
+        for (var i in res.data.data) {
+          var stat = res.data.data[i]
+          var diffRx = 0
+          var diffTx = 0
+          if (i>0) {
+            diffRx = stat[1]-res.data.data[i-1][1]
+            diffTx = stat[2]-res.data.data[i-1][2]
+          }
+          this.optionBar.series[0].data.push([stat[0], diffRx])
+          this.optionBar.series[1].data.push([stat[0], diffTx])
+          if (i==res.data.data.length-1) {
+            if (this.stats_summary[this.selectedNode]==null) {
+              this.stats_summary[this.selectedNode] = {inbound: stat[1], outbound:stat[2], avg_delay:0,fault_cnt:0}
             } else {
-              for (var i in this.optionPie.series[0].data) {
-                if (this.optionPie.series[0].data[i].name == n) {
-                  
-                  this.optionPie.series[0].data[i].value =
-                    stats[n][1] -
-                    this.trafficPerSubsysHistory[n][
-                      this.trafficPerSubsysHistory[n].length - 1
-                    ].traffic;
-                  this.trafficDiffPerSubsysHistory[timestamp][n] = this.optionPie.series[0].data[i].value
-                  break;
-                }
-              }
-              
-              this.trafficPerSubsysHistory[n].push({
-                ts: timestamp,
-                traffic: stats[n][1],
-              });
+              this.stats_summary[this.selectedNode].inbound = stat[1]
+              this.stats_summary[this.selectedNode].outbound = stat[2]
             }
+            this.stats_summary = JSON.parse(JSON.stringify(this.stats_summary))
           }
         }
-        if (this.trafficAmountHistory.length > 0) {
-          this.optionLine.series[0].data.push([
-            timestamp,
-            trafficAmount -
-              this.trafficAmountHistory[this.trafficAmountHistory.length - 1]
-                .traffic,
-          ]);
-        }
-        if (this.optionLine.series[0].data.length > 50) {
-          this.optionLine.series[0].data.shift();
-        }
-        this.trafficAmountHistory.push({
-          ts: timestamp,
-          traffic: trafficAmount,
-        });
-      });
+      })
     },
   },
   mounted() {
-    this.updateLineChart();
+    this.$EventBus.$on("topology", (topo)=>{
+      this.nodes = topo.nodes
+      for (var n in this.nodes) {
+        this.stats_summary[this.nodes[n]] = {inbound:0, outbound:0, avg_delay:0, fault_cnt:0}
+      }
+      // window.console.log(this.stats_summary)
+      this.nodes_loaded = true
+      
+    })
+    
+    this.drawStats()
+    // this.refreshTimer = setInterval(this.drawStats, 10*1000)
+    this.$EventBus.$on("selectedNode", (node)=>{
+      // clearInterval(this.refreshTimer)
+      this.selectedNode = node
+      this.drawStats()
+      // this.refreshTimer = setInterval(this.drawStats, 10*1000)
+    })
+  },
+  created() {
+
   },
   watch: {
-    selectedTs: function() {
-      for (var s in this.trafficDiffPerSubsysHistory[this.selectedTs]) {
-        for (var i in this.optionPie.series[0].data) {
-          if (this.optionPie.series[0].data[i].name == s) {
-            
-            this.optionPie.series[0].data[i].value = this.trafficDiffPerSubsysHistory[this.selectedTs][s]
-            window.console.log(s,this.optionPie.series[0].data[i].value)
-            break
-          }
-        }
-      }
-    },
+    // stats_summary: function() {
+    // }
   },
 };
 </script>
 
 <style scoped>
-#pie-chart {
-  width: 100%;
-  height: 200px
+#summary {
+  text-align: left;
+  line-height: 2;
+  font-size: 1rem;
+  font-weight: 500;
 }
-#line-chart {
+
+#bar-chart {
   width: 100%;
-  height: 200px
+  height: 320px;
 }
 </style>

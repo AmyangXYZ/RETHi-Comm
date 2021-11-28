@@ -57,6 +57,8 @@ func runHTTPSever() {
 	app.POST("/api/topology", postTopo)
 	app.OPTIONS("/api/topology", sgo.PreflightHandler)
 
+	app.GET("/api/stats/:name", getStatsByName)
+
 	app.POST("/api/links", postDefaultSetting)
 	app.OPTIONS("/api/links", sgo.PreflightHandler)
 	app.POST("/api/link/:name", postLink)
@@ -177,6 +179,18 @@ func postTopo(ctx *sgo.Context) error {
 	loadTopo(topo)
 	insertTopo(topo)
 	return ctx.Text(200, "")
+}
+
+func getStatsByName(ctx *sgo.Context) error {
+	stats, err := queryStatsByName(ctx.Param("name"))
+	if err != nil {
+		return ctx.JSON(500, 0, err.Error(), nil)
+	}
+	if len(stats) == 0 {
+		return ctx.JSON(200, 0, "no result found", nil)
+	}
+
+	return ctx.JSON(200, 1, "success", stats)
 }
 
 // set link properties
