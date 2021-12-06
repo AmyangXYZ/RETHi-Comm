@@ -143,6 +143,8 @@ export default {
             diffRx = stat[1]-res.data.data[i-1][1]
             diffTx = stat[2]-res.data.data[i-1][2]
           }
+          if (diffRx<0) diffRx = 0
+          if (diffTx<0) diffTx = 0
           this.optionBar.series[0].data.push([stat[0], diffRx])
           this.optionBar.series[1].data.push([stat[0], diffTx])
           if (i==res.data.data.length-1) {
