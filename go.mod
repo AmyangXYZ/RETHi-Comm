@@ -1,4 +1,4 @@
-module github.com/AmyangXYZ/RETHi-CommunicationNetwork-Go
+module github.com/AmyangXYZ/RETHi-Comm
 
 go 1.16
 
