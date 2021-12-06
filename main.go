@@ -46,11 +46,12 @@ type SubsysConfig struct {
 }
 
 var (
-	boottime      int64
-	LogsComm      = make(chan Log, 65536)
-	SUBSYS_LIST   []SubsysConfig              // access by id
-	SUBSYS_TABLE  = map[string]SubsysConfig{} // access by name
-	ROUTING_TABLE = map[int][]string{         // subsysID: switches
+	CONSOLE_ENABLED = false
+	boottime        int64
+	LogsComm        = make(chan Log, 6553600)
+	SUBSYS_LIST     []SubsysConfig              // access by id
+	SUBSYS_TABLE    = map[string]SubsysConfig{} // access by name
+	ROUTING_TABLE   = map[int][]string{         // subsysID: switches
 		1: {"SW1", "SW7", "SW2"},
 		2: {"SW2", "SW1", "SW3"},
 		3: {"SW3", "SW2", "SW4"},

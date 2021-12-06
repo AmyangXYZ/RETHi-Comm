@@ -170,15 +170,19 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
 				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
-				LogsComm <- Log{
-					Type: 0,
-					Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+				if CONSOLE_ENABLED {
+					LogsComm <- Log{
+						Type: 0,
+						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+					}
 				}
 			} else {
 				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.2f s\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
-				LogsComm <- Log{
-					Type: 0,
-					Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+				if CONSOLE_ENABLED {
+					LogsComm <- Log{
+						Type: 0,
+						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+					}
 				}
 			}
 		}
