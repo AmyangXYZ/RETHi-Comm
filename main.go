@@ -46,7 +46,7 @@ type SubsysConfig struct {
 }
 
 var (
-	CONSOLE_ENABLED = true
+	CONSOLE_ENABLED = false
 	boottime        int64
 	LogsComm        = make(chan Log, 6553600)
 	SUBSYS_LIST     []SubsysConfig              // access by id
@@ -85,8 +85,14 @@ func main() {
 	}
 
 	fmt.Println(`Start Communication Network`)
-
-	go collectStatistics()
+	go func() {
+		for {
+			last := FwdCntTotal
+			time.Sleep(time.Second)
+			fmt.Println(FwdCntTotal - last)
+		}
+	}()
+	// go collectStatistics()
 	runHTTPSever()
 }
 

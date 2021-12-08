@@ -172,10 +172,10 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 
 			FwdCntTotal++
 			processingDelaySum += pkt.TimeReceived.Sub(pkt.TimeCreated)
-			fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
+			// fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
@@ -183,7 +183,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					}
 				}
 			} else {
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
