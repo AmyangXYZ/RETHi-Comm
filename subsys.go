@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
 )
 
 // Subsys listens and forward UDP packets from each subsystem
@@ -149,6 +150,7 @@ func (s *Subsys) handlePacket() {
 // send internal messages from switches to outside
 func (s *Subsys) handleMessage(inGate *Gate) {
 	// fmt.Println("waiting msg from switches")
+	processingDelaySum := time.Duration(0)
 	for {
 		select {
 		case <-s.stopSig:
@@ -157,6 +159,8 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 		case pkt := <-inGate.Channel:
 
 			pkt.Path = append(pkt.Path, s.name)
+			pkt.TimeReceived = time.Now()
+
 			s.recvCnt++
 			// fmt.Println(pkt.RawBytes)
 			if !pkt.IsSim {
@@ -167,9 +171,11 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			}
 
 			FwdCntTotal++
+			processingDelaySum += pkt.TimeReceived.Sub(pkt.TimeCreated)
+			fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
@@ -177,7 +183,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					}
 				}
 			} else {
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.2f s\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
@@ -199,6 +205,7 @@ func (s *Subsys) CreateFlow(dst int) {
 	buf[0] = pkt.Src
 	buf[1] = pkt.Dst
 	pkt.RawBytes = buf[:]
+	pkt.TimeCreated = time.Now()
 
 	if g, err := s.routing(pkt); err == nil {
 		// fmt.Println("sent to", g.Neighbor)
