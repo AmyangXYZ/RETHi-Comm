@@ -31,6 +31,7 @@ class Packet:
 # _type = 3
 # _priority = 4
 # _row = 1
+
 # _col = 4
 # _length = 5
 # _payload = [1, 2.2, -3, 400, -800]

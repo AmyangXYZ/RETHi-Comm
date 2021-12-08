@@ -771,6 +771,7 @@ export default {
     },
   },
   mounted() {
+    // this.postTopology("p1test");
     window.topo = this;
     this.option.tooltip = this.tooltipDefault;
     this.getTopologyTags();

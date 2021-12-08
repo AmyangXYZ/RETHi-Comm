@@ -3,49 +3,49 @@
         "id": 0,
         "name": "GCC",
         "local_addr": ":10000",
-        "remote_addr": "127.0.0.1:20000"
+        "remote_addr": "host.docker.internal:20000"
     },
     {
         "id": 1,
         "name": "HMS",
         "local_addr": ":10001",
-        "remote_addr": "127.0.0.1:20001"
+        "remote_addr": "host.docker.internal:20001"
     },
     {
         "id": 2,
         "name": "STR",
         "local_addr": ":10002",
-        "remote_addr": "127.0.0.1:20002"
+        "remote_addr": "192.168.1.2:20002"
     },
     {
         "id": 3,
         "name": "PWR",
         "local_addr": ":10003",
-        "remote_addr": "127.0.0.1:10013"
+        "remote_addr": "host.docker.internal:10013"
     },
     {
         "id": 4,
         "name": "ECLSS",
         "local_addr": ":10004",
-        "remote_addr": "127.0.0.1:10014"
+        "remote_addr": "host.docker.internal:10014"
     },
     {
         "id": 5,
         "name": "AGT",
         "local_addr": ":10005",
-        "remote_addr": "127.0.0.1:10015"
+        "remote_addr": "host.docker.internal:10015"
     },
     {
         "id": 6,
         "name": "INT",
         "local_addr": ":10006",
-        "remote_addr": "127.0.0.1:10016"
+        "remote_addr": "host.docker.internal:10016"
     },
     {
         "id": 7,
         "name": "EXT",
         "local_addr": ":10007",
-        "remote_addr": "127.0.0.1:10017"
+        "remote_addr": "host.docker.internal:10017"
     }
 
 ]

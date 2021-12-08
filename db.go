@@ -51,6 +51,7 @@ func init() {
 func insertTopo(topo TopologyData) {
 	db.Exec(fmt.Sprintf("DELETE FROM TOPOLOGY_NODES WHERE TAG=\"%s\"", topo.Tag))
 	db.Exec(fmt.Sprintf("DELETE FROM TOPOLOGY_EDGES WHERE TAG=\"%s\"", topo.Tag))
+
 	stmtNodes, err := db.Prepare(`INSERT INTO TOPOLOGY_NODES (TAG, NAME, POS_X, POS_Y) VALUES (?, ?, ?, ?);`)
 	if err != nil {
 		fmt.Println(err)
@@ -79,6 +80,7 @@ func insertTopo(topo TopologyData) {
 			fmt.Println(err)
 		}
 	}
+	fmt.Println(topo.Tag)
 }
 
 func queryTopo(tag string) (TopologyData, error) {
