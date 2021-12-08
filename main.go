@@ -46,7 +46,7 @@ type SubsysConfig struct {
 }
 
 var (
-	CONSOLE_ENABLED = false
+	CONSOLE_ENABLED = true
 	boottime        int64
 	LogsComm        = make(chan Log, 6553600)
 	SUBSYS_LIST     []SubsysConfig              // access by id
@@ -92,7 +92,7 @@ func main() {
 	// 		fmt.Println(FwdCntTotal - last)
 	// 	}
 	// }()
-	// go collectStatistics()
+	go collectStatistics()
 	runHTTPSever()
 }
 
