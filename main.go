@@ -85,13 +85,13 @@ func main() {
 	}
 
 	fmt.Println(`Start Communication Network`)
-	go func() {
-		for {
-			last := FwdCntTotal
-			time.Sleep(time.Second)
-			fmt.Println(FwdCntTotal - last)
-		}
-	}()
+	// go func() {
+	// 	for {
+	// 		last := FwdCntTotal
+	// 		time.Sleep(time.Second)
+	// 		fmt.Println(FwdCntTotal - last)
+	// 	}
+	// }()
 	// go collectStatistics()
 	runHTTPSever()
 }

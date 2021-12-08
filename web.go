@@ -275,7 +275,6 @@ func postFlows(ctx *sgo.Context) error {
 						default:
 							subsys.CreateFlow(dstID)
 							if freq, err := strconv.ParseFloat(f.Freq, 64); err == nil {
-								// freq = 50
 								time.Sleep(time.Duration(1/freq*1000*1000*1000) * time.Nanosecond)
 							} else {
 								fmt.Println(err)

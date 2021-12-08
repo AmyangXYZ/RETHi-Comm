@@ -126,13 +126,15 @@ func (s *Subsys) handlePacket() {
 			return
 		}
 
-		fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
+		// fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
 		pkt := new(Packet)
 		err = pkt.FromBuf(buf[0:n])
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
+		pkt.Path = append(pkt.Path, s.name)
+		pkt.TimeCreated = time.Now()
 		if pkt.Src != uint8(SUBSYS_TABLE[s.name].ID) {
 			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
 		}
@@ -175,7 +177,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			// fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
-				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
@@ -183,7 +185,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					}
 				}
 			} else {
-				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
