@@ -10,15 +10,14 @@ import (
 )
 
 var (
-	db  *sql.DB
-	err error
+	db *sql.DB
 )
 
 func init() {
-	db, err = sql.Open("mysql", fmt.Sprintf("%v:%v@(db:3306)/%v", // "db" is the database container's name in the docker-compose.yml
+	db, _ = sql.Open("mysql", fmt.Sprintf("%v:%v@(hms_db:3306)/%v", // "hms_db" is the database container's name in the docker-compose.yml
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME")))
+		os.Getenv("DB_DB")))
 
 	// wait database container to start
 	for {
@@ -41,7 +40,5 @@ func main() {
 	db.QueryRow("SELECT VERSION()").Scan(&version)
 	fmt.Println("Connected to:", version)
 
-	for {
-
-	}
+	select {}
 }

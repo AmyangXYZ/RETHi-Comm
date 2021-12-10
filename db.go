@@ -3,10 +3,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
-	// _ "github.com/mattn/go-sqlite3"
-	_ "modernc.org/sqlite"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -15,9 +15,19 @@ var (
 )
 
 func init() {
-	db, err = sql.Open("sqlite", "./comm.db")
-	if err != nil {
-		panic(err)
+	db, _ = sql.Open("mysql", fmt.Sprintf("%v:%v@(comm_db:3306)/%v",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_DB")))
+
+	// wait database container to start
+	for {
+		err := db.Ping()
+		if err == nil {
+			break
+		}
+		fmt.Println(err)
+		time.Sleep(2 * time.Second)
 	}
 
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS TOPOLOGY_NODES (
@@ -30,8 +40,8 @@ func init() {
 	}
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS TOPOLOGY_EDGES (
 		TAG VARCHAR(64) NOT NULL,
-		NODE0 VARCHAR(16) NOT NULL,
-		NODE1 VARCHAR(16) NOT NULL);`)
+		SOURCE VARCHAR(16) NOT NULL,
+		TARGET VARCHAR(16) NOT NULL);`)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +69,7 @@ func insertTopo(topo TopologyData) {
 		return
 	}
 
-	stmtEdges, err := db.Prepare(`INSERT INTO TOPOLOGY_EDGES (TAG, NODE0, NODE1) VALUES (?, ?, ?);`)
+	stmtEdges, err := db.Prepare(`INSERT INTO TOPOLOGY_EDGES (TAG, SOURCE, TARGET) VALUES (?, ?, ?);`)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -81,7 +91,6 @@ func insertTopo(topo TopologyData) {
 			fmt.Println(err)
 		}
 	}
-	fmt.Println(topo.Tag)
 }
 
 func queryTopo(tag string) (TopologyData, error) {
@@ -101,7 +110,7 @@ func queryTopo(tag string) (TopologyData, error) {
 		rowsNodes.Scan(&node.Name, &node.Position[0], &node.Position[1])
 		topo.Nodes = append(topo.Nodes, node)
 	}
-	rowsEdges, err = db.Query(`SELECT NODE0, NODE1 FROM TOPOLOGY_EDGES where TAG=?`, tag)
+	rowsEdges, err = db.Query(`SELECT SOURCE, TARGET FROM TOPOLOGY_EDGES where TAG=?`, tag)
 	if err != nil {
 		return topo, err
 	}
