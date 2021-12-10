@@ -12,7 +12,7 @@ services:
       ADDR_LOCAL_AGT: ":10005"
       ADDR_LOCAL_INT: ":10006"
       ADDR_LOCAL_EXT: ":10007"
-      ADDR_REMOTE_GCC: "host.docker.internal:20000" # refer to host's localhost
+      ADDR_REMOTE_GCC: "host.docker.internal:20000" # refer to host's localhosdockt
       ADDR_REMOTE_HMS: "host.docker.internal:20001"
       ADDR_REMOTE_STR: "host.docker.internal:20002"
       ADDR_REMOTE_PWR: "host.docker.internal:20003"
@@ -28,8 +28,8 @@ services:
       - "10000-10007:10000-10007/udp"
     depends_on:
       - comm_db
-    links:
-      - comm_db
+    networks:
+      - comm-network
 
   comm_db:
     image: mariadb
@@ -40,6 +40,8 @@ services:
       MYSQL_PASSWORD: password
     expose:
       - "3306"
+    networks:
+      - comm-network
 
   data_service:
     image: data-service
@@ -51,8 +53,8 @@ services:
       DB_PASSWORD: password
     depends_on:
       - hms_db
-    links:
-      - hms_db
+    networks:
+      - hms-network
 
   hms_db:
     image: mariadb
@@ -63,3 +65,9 @@ services:
       MYSQL_PASSWORD: password
     expose:
       - "3306"
+    networks:
+      - hms-network
+
+networks:
+  comm-network:
+  hms-network:
