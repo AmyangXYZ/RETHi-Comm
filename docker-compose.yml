@@ -1,8 +1,8 @@
 version: "3.9"
 services:
   comm:
-    # image: amyangxyz111/rethi-comm
-    image: comm-t
+    image: amyangxyz111/rethi-comm
+    # image: comm-t
     environment:
       ADDR_LOCAL_GCC: ":10000"
       ADDR_LOCAL_HMS: ":10001"
@@ -24,26 +24,26 @@ services:
       - "8000:8000"
       - "10000-10007:10000-10007/udp" # listening ports
 
-  # data_service:
-  #   image: data-service
-  #   ports:
-  #     - "20001:20001"
-  #   environment:
-  #     # should be same with db's env
-  #     DB_NAME: hms
-  #     DB_USER: uu
-  #     DB_PASSWORD: password
-  #   depends_on:
-  #     - db
-  #   links:
-  #     - db
+  data_service:
+    image: data-service
+    ports:
+      - "20001:20001"
+    environment:
+      # should be same with db's env
+      DB_NAME: hms
+      DB_USER: uu
+      DB_PASSWORD: password
+    depends_on:
+      - db
+    links:
+      - db
 
-  # db:
-  #   image: mariadb
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: any
-  #     MYSQL_DATABASE: hms
-  #     MYSQL_USER: uu
-  #     MYSQL_PASSWORD: password
-  #   expose:
-  #     - "3306"
+  db:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: any
+      MYSQL_DATABASE: hms
+      MYSQL_USER: uu
+      MYSQL_PASSWORD: password
+    expose:
+      - "3306"
