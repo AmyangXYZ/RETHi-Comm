@@ -200,7 +200,7 @@ func (sw *Switch) handle(pkt *Packet) {
 
 func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
 	for _, g := range sw.gatesOut {
-		if g.Neighbor == SUBSYS_LIST[pkt.Dst].Name {
+		if g.Neighbor == SUBSYS_LIST[pkt.Dst] {
 			return g, nil
 		}
 	}

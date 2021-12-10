@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"time"
 )
 
@@ -42,9 +43,9 @@ func NewSubsys(name string) *Subsys {
 		gatesIn[i] = NewGate(i, name)
 		gatesOut[i] = NewGate(i, name)
 	}
-	for _, v := range SUBSYS_LIST {
-		if name == v.Name {
-			id = v.ID
+	for i, v := range SUBSYS_LIST {
+		if name == v {
+			id = i
 			break
 		}
 	}
@@ -81,10 +82,11 @@ func (s *Subsys) InGate() *Gate {
 }
 
 func (s *Subsys) Start() {
+	// fmt.Printf("Start virtual subsys - %s: local_addr: %s, remote_addr: %s\n",
+	// 	s.name, SUBSYS_TABLE[s.name].LocalAddr, SUBSYS_TABLE[s.name].RemoteAddr)
 	fmt.Printf("Start virtual subsys - %s: local_addr: %s, remote_addr: %s\n",
-		s.name, SUBSYS_TABLE[s.name].LocalAddr, SUBSYS_TABLE[s.name].RemoteAddr)
-
-	udpAddr, err := net.ResolveUDPAddr("udp", SUBSYS_TABLE[s.name].LocalAddr)
+		s.name, os.Getenv("ADDR_LOCAL_"+s.name), os.Getenv("ADDR_REMOTE_"+s.name))
+	udpAddr, err := net.ResolveUDPAddr("udp", os.Getenv("ADDR_LOCAL"+s.name))
 	if err != nil {
 		fmt.Println("invalid address")
 		return
@@ -97,7 +99,7 @@ func (s *Subsys) Start() {
 	}
 	go s.handlePacket()
 
-	s.outConn, err = net.Dial("udp", SUBSYS_TABLE[s.name].RemoteAddr)
+	s.outConn, err = net.Dial("udp", os.Getenv("ADDR_REMOTE_"+s.name))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -135,9 +137,9 @@ func (s *Subsys) handlePacket() {
 		}
 		pkt.Path = append(pkt.Path, s.name)
 		pkt.TimeCreated = time.Now()
-		if pkt.Src != uint8(SUBSYS_TABLE[s.name].ID) {
-			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
-		}
+		// if pkt.Src != uint8(SUBSYS_TABLE[s.name].ID) {
+		// 	fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
+		// }
 
 		if g, err := s.routing(pkt); err == nil {
 			// fmt.Println("sent to", g.Neighbor)
@@ -222,7 +224,7 @@ func (s *Subsys) CreateFlow(dst int) {
 func (s *Subsys) routing(pkt *Packet) (*Gate, error) {
 	if pkt.Dst == 0 || s.name == "GCC" { // to/from GCC
 		for _, g := range s.gatesOut {
-			if g.Neighbor == SUBSYS_LIST[pkt.Dst].Name {
+			if g.Neighbor == SUBSYS_LIST[pkt.Dst] {
 				return g, nil
 			}
 		}

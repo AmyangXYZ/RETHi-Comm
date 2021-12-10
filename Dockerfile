@@ -2,7 +2,8 @@ FROM golang:alpine AS builder
 RUN apk add --no-cache make build-base
 WORKDIR /go/src/app
 COPY . .
-RUN go build -o RETHi-Comm . 
+RUN go mod download &&\
+    go build -o RETHi-Comm . 
 
 FROM alpine
 COPY --from=builder /go/src/app/RETHi-Comm ./

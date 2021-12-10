@@ -1,49 +1,49 @@
 version: "3.9"
 services:
   comm:
-    image: amyangxyz111/rethi-comm
+    # image: amyangxyz111/rethi-comm
+    image: comm-t
     environment:
-      LOCAL_ADDR_GCC: ":10000"
-      LOCAL_ADDR_HMS: ":10001"
-      LOCAL_ADDR_STR: ":10002"
-      LOCAL_ADDR_PWR: ":10003"
-      LOCAL_ADDR_ECLSS: ":10004"
-      LOCAL_ADDR_AGT: ":10005"
-      LOCAL_ADDR_INT: ":10006"
-      LOCAL_ADDR_EXT: ":10007"
-      REMOTE_ADDR_GCC: "host.docker.internal:20000" # refer to host's localhost
-      REMOTE_ADDR_HMS: "host.docker.internal:20001"
-      REMOTE_ADDR_STR: "host.docker.internal:20002"
-      REMOTE_ADDR_PWR: "host.docker.internal:20003"
-      REMOTE_ADDR_ECLSS: "host.docker.internal:20004"
-      REMOTE_ADDR_AGT: "host.docker.internal:20005"
-      REMOTE_ADDR_INT: "host.docker.internal:20006"
-      REMOTE_ADDR_EXT: "host.docker.internal:20007"
+      ADDR_LOCAL_GCC: ":10000"
+      ADDR_LOCAL_HMS: ":10001"
+      ADDR_LOCAL_STR: ":10002"
+      ADDR_LOCAL_PWR: ":10003"
+      ADDR_LOCAL_ECLSS: ":10004"
+      ADDR_LOCAL_AGT: ":10005"
+      ADDR_LOCAL_INT: ":10006"
+      ADDR_LOCAL_EXT: ":10007"
+      ADDR_REMOTE_GCC: "host.docker.internal:20000" # refer to host's localhost
+      ADDR_REMOTE_HMS: "host.docker.internal:20001"
+      ADDR_REMOTE_STR: "host.docker.internal:20002"
+      ADDR_REMOTE_PWR: "host.docker.internal:20003"
+      ADDR_REMOTE_ECLSS: "host.docker.internal:20004"
+      ADDR_REMOTE_AGT: "host.docker.internal:20005"
+      ADDR_REMOTE_INT: "host.docker.internal:20006"
+      ADDR_REMOTE_EXT: "host.docker.internal:20007"
     ports:
       - "8000:8000"
       - "10000-10007:10000-10007/udp" # listening ports
-    
 
-  data_service:
-    image: data-service
-    ports:
-      - "20001:20001"
-    environment:
-      # should be same with db's env
-      DB_NAME: hms
-      DB_USER: uu
-      DB_PASSWORD: password
-    depends_on:
-      - db
-    links:
-      - db
+  # data_service:
+  #   image: data-service
+  #   ports:
+  #     - "20001:20001"
+  #   environment:
+  #     # should be same with db's env
+  #     DB_NAME: hms
+  #     DB_USER: uu
+  #     DB_PASSWORD: password
+  #   depends_on:
+  #     - db
+  #   links:
+  #     - db
 
-  db:
-    image: mariadb
-    environment:
-      MYSQL_ROOT_PASSWORD: any
-      MYSQL_DATABASE: hms
-      MYSQL_USER: uu
-      MYSQL_PASSWORD: password
-    expose:
-      - "3306"
+  # db:
+  #   image: mariadb
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: any
+  #     MYSQL_DATABASE: hms
+  #     MYSQL_USER: uu
+  #     MYSQL_PASSWORD: password
+  #   expose:
+  #     - "3306"

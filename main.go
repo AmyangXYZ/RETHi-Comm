@@ -6,9 +6,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"time"
 )
 
@@ -18,7 +16,6 @@ const (
 	QUEUE_NUM_SWITCH    = 8
 	QUEUE_LEN_SWITCH    = 4096
 	BUF_LEN             = 65536
-	CONFIG_LOC          = "./flex_config.json"
 	SAVE_STATS_PERIOD   = 10 // in seconds
 	UPLOAD_STATS_PERIOD = 3  // in seconds
 )
@@ -37,21 +34,12 @@ type Log struct {
 	Statistics map[string][2]int `json:"stats_comm"`
 }
 
-// for reading config from json
-type SubsysConfig struct {
-	ID         int    `json:"id"`
-	Name       string `json:"name"`
-	LocalAddr  string `json:"local_addr"`
-	RemoteAddr string `json:"remote_addr"`
-}
-
 var (
 	CONSOLE_ENABLED = true
 	boottime        int64
 	LogsComm        = make(chan Log, 6553600)
-	SUBSYS_LIST     []SubsysConfig              // access by id
-	SUBSYS_TABLE    = map[string]SubsysConfig{} // access by name
-	ROUTING_TABLE   = map[int][]string{         // subsysID: switches
+	SUBSYS_LIST     = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
+	ROUTING_TABLE   = map[int][]string{                                                  // subsysID: switches
 		1: {"SW1", "SW7", "SW2"},
 		2: {"SW2", "SW1", "SW3"},
 		3: {"SW3", "SW2", "SW4"},
@@ -70,28 +58,8 @@ var (
 
 func main() {
 	boottime = time.Now().Unix()
-	config, err := ioutil.ReadFile(CONFIG_LOC)
-	if err != nil {
-		fmt.Println("reading configuration error")
-		return
-	}
-	err = json.Unmarshal(config, &SUBSYS_LIST)
-	if err != nil {
-		fmt.Println(err)
-	}
-	// fmt.Println(SUBSYS_LIST)
-	for _, v := range SUBSYS_LIST {
-		SUBSYS_TABLE[v.Name] = v
-	}
 
 	fmt.Println(`Start Communication Network`)
-	// go func() {
-	// 	for {
-	// 		last := FwdCntTotal
-	// 		time.Sleep(time.Second)
-	// 		fmt.Println(FwdCntTotal - last)
-	// 	}
-	// }()
 	go collectStatistics()
 	runHTTPSever()
 }
