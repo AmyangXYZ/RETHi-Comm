@@ -1,8 +1,8 @@
 FROM golang:alpine AS builder
 WORKDIR /go/src/app
 COPY . .
-RUN go mod download &&\
-    go build -o data_service
+RUN go mod download
+RUN go build -o data_service
 
 FROM alpine
 COPY --from=builder /go/src/app/data_service ./

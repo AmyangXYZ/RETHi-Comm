@@ -2,12 +2,12 @@ FROM golang:alpine AS builder
 RUN apk add --no-cache make build-base
 WORKDIR /go/src/app
 COPY . .
-RUN go mod download &&\
-    go build -o RETHi-Comm . 
+RUN go mod download 
+RUN go build -o RETHi-Comm . 
 
 FROM alpine
 COPY --from=builder /go/src/app/RETHi-Comm ./
-COPY dist.tar.xz comm.db flex_config.json ./
+COPY dist.tar.xz comm.db ./
 RUN mkdir templates &&\
     tar -xvf dist.tar.xz &&\
     mv ./dist/static ./static &&\

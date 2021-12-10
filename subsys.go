@@ -82,11 +82,9 @@ func (s *Subsys) InGate() *Gate {
 }
 
 func (s *Subsys) Start() {
-	// fmt.Printf("Start virtual subsys - %s: local_addr: %s, remote_addr: %s\n",
-	// 	s.name, SUBSYS_TABLE[s.name].LocalAddr, SUBSYS_TABLE[s.name].RemoteAddr)
 	fmt.Printf("Start virtual subsys - %s: local_addr: %s, remote_addr: %s\n",
 		s.name, os.Getenv("ADDR_LOCAL_"+s.name), os.Getenv("ADDR_REMOTE_"+s.name))
-	udpAddr, err := net.ResolveUDPAddr("udp", os.Getenv("ADDR_LOCAL"+s.name))
+	udpAddr, err := net.ResolveUDPAddr("udp", os.Getenv("ADDR_LOCAL_"+s.name))
 	if err != nil {
 		fmt.Println("invalid address")
 		return
@@ -97,6 +95,7 @@ func (s *Subsys) Start() {
 		fmt.Println(err)
 		return
 	}
+
 	go s.handlePacket()
 
 	s.outConn, err = net.Dial("udp", os.Getenv("ADDR_REMOTE_"+s.name))
@@ -128,7 +127,7 @@ func (s *Subsys) handlePacket() {
 			return
 		}
 
-		// fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
+		fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
 		pkt := new(Packet)
 		err = pkt.FromBuf(buf[0:n])
 		if err != nil {
@@ -137,9 +136,9 @@ func (s *Subsys) handlePacket() {
 		}
 		pkt.Path = append(pkt.Path, s.name)
 		pkt.TimeCreated = time.Now()
-		// if pkt.Src != uint8(SUBSYS_TABLE[s.name].ID) {
-		// 	fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
-		// }
+		if pkt.Src != uint8(s.id) {
+			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
+		}
 
 		if g, err := s.routing(pkt); err == nil {
 			// fmt.Println("sent to", g.Neighbor)
