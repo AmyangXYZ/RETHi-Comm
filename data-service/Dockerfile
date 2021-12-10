@@ -1,12 +1,13 @@
-FROM golang:alpine
-# RUN apk add --no-cache make build-base
+FROM golang:alpine AS builder
 WORKDIR /go/src/app
 COPY . .
 RUN go get -d -v ./...
-RUN go install -v ./... 
-EXPOSE 10001/udp
-CMD ["data_service"]
+RUN go build -o data_service
 
-# docker pull golang:alpine
-# docker buildx build -t amyangxyz111/rethi-comm --platform linux/arm64,linux/amd64 .
-# docker run -d -p8000:8000 -p"127.0.0.1:10000-10007:10000-10007/udp" --name comm amyangxyz111/rethi-comm
+FROM alpine
+COPY --from=builder /go/src/app/data_service ./
+EXPOSE 8000 10000-10007/udp 
+CMD ["./data_service"]
+
+# build locally: docker build -t data-service . 
+# build and push for arm64 and amd64: docker buildx build -t 'your_docker_hub_repo' --platform linux/arm64,linux/amd64 --push .
