@@ -1,8 +1,8 @@
 version: "3.9"
 services:
   comm:
-    # image: amyangxyz111/rethi-comm
-    image: comm-t
+    image: amyangxyz111/rethi-comm
+    # image: comm-t
     environment:
       ADDR_LOCAL_GCC: ":10000"
       ADDR_LOCAL_HMS: ":10001"
