@@ -127,7 +127,7 @@ func (s *Subsys) handlePacket() {
 			return
 		}
 
-		fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
+		// fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
 		pkt := new(Packet)
 		err = pkt.FromBuf(buf[0:n])
 		if err != nil {

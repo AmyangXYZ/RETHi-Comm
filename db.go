@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	// _ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 var (
@@ -14,7 +15,7 @@ var (
 )
 
 func init() {
-	db, err = sql.Open("sqlite3", "./comm.db")
+	db, err = sql.Open("sqlite", "./comm.db")
 	if err != nil {
 		panic(err)
 	}

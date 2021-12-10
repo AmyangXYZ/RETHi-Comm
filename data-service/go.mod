@@ -1,4 +1,4 @@
-module data_service
+module data-service
 
 go 1.17
 
