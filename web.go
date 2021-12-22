@@ -137,17 +137,6 @@ func getTopoTags(ctx *sgo.Context) error {
 	return ctx.JSON(200, 1, "success", tags)
 }
 
-type TopologyData struct {
-	Tag   string         `json:"tag"`
-	Nodes []TopologyNode `json:"nodes"`
-	Edges [][2]string    `json:"edges"`
-}
-
-type TopologyNode struct {
-	Name     string `json:"name"`
-	Position [2]int `json:"value"`
-}
-
 func getTopo(ctx *sgo.Context) error {
 	topo, err := queryTopo(ctx.Param("tag"))
 	if err != nil {

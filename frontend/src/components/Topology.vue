@@ -119,7 +119,7 @@
               type="filled"
               icon="fa-minus"
               @click="editAddSwitch"
-            >   
+            >
             </vs-button>
           </vs-col>
           <vs-col vs-offset="1" vs-w="1">
@@ -246,8 +246,6 @@ import "echarts/lib/chart/graph";
 import "echarts/lib/component/tooltip";
 import "echarts/lib/component/graphic";
 
-import topology from "./topology.json";
-
 export default {
   components: {
     ECharts,
@@ -271,7 +269,7 @@ export default {
       tmpDistance: 1000,
       linkStats: {},
       switchCnt: 7,
-      nodes: [], // 
+      nodes: [], //
       connectHost0: 0,
       connectHost1: 0,
       tooltipDefault: {
@@ -387,7 +385,6 @@ export default {
               show: true,
               fontSize: 12.5,
             },
-            // data: nodes_position,
             data: [],
             links: [],
           },
@@ -418,8 +415,6 @@ export default {
     getTopologyTags() {
       this.$api.get("/api/topologies").then((res) => {
         if (res.data.flag == 0) {
-          this.postTopology("default");
-          setTimeout(this.getTopologyTags, 200);
           return;
         }
         this.topoTags = res.data.data;
@@ -432,29 +427,18 @@ export default {
     postTopology(tag) {
       var nodes = [];
       var edges = [];
-      if (tag == "default") {
-        for (var n in topology.nodes) {
-          nodes.push({
-            name: topology.nodes[n].name,
-            value: topology.nodes[n].value,
-          });
-        }
-        for (var e in topology.edges) {
-          edges.push([topology.edges[e][0], topology.edges[e][1]]);
-        }
-      } else {
-        for (var nn in this.option.series[0].data) {
-          nodes.push({
-            name: this.option.series[0].data[nn].name,
-            value: this.option.series[0].data[nn].value,
-          });
-        }
-        for (var ee in this.option.series[0].links) {
-          edges.push([
-            this.option.series[0].links[ee].source,
-            this.option.series[0].links[ee].target,
-          ]);
-        }
+
+      for (var nn in this.option.series[0].data) {
+        nodes.push({
+          name: this.option.series[0].data[nn].name,
+          value: this.option.series[0].data[nn].value,
+        });
+      }
+      for (var ee in this.option.series[0].links) {
+        edges.push([
+          this.option.series[0].links[ee].source,
+          this.option.series[0].links[ee].target,
+        ]);
       }
       this.$api.post("/api/topology", {
         tag: tag,
@@ -513,7 +497,7 @@ export default {
         this.option.series[0].data = res.data.data.nodes;
         this.option.series[0].links = edges;
 
-        this.$EventBus.$emit("topology", {nodes: this.nodes, edges:edges})
+        this.$EventBus.$emit("topology", { nodes: this.nodes, edges: edges });
 
         this.initNodesStatistics();
         this.initLinkStatus();
@@ -581,9 +565,9 @@ export default {
       }
     },
     handleClick(item) {
-      if (item.dataType=="node") {
-        this.$EventBus.$emit("selectedNode", item.data.name)
-      } else if (item.dataType=="edge") {
+      if (item.dataType == "node") {
+        this.$EventBus.$emit("selectedNode", item.data.name);
+      } else if (item.dataType == "edge") {
         this.selectedLink = item.name;
         this.activePrompt = true;
       }
@@ -761,17 +745,18 @@ export default {
         for (var i = 0; i < this.option.series[0].links.length; i++) {
           var l = this.option.series[0].links[i];
           if (
-            (l.source == this.nodes[this.connectHost0] && l.target == this.nodes[this.connectHost1]) ||
-            (l.source == this.nodes[this.connectHost1] && l.target == this.nodes[this.connectHost0])
+            (l.source == this.nodes[this.connectHost0] &&
+              l.target == this.nodes[this.connectHost1]) ||
+            (l.source == this.nodes[this.connectHost1] &&
+              l.target == this.nodes[this.connectHost0])
           ) {
-            this.option.series[0].links.splice(i,1)
+            this.option.series[0].links.splice(i, 1);
           }
         }
       }
     },
   },
   mounted() {
-    // this.postTopology("p1test");
     window.topo = this;
     this.option.tooltip = this.tooltipDefault;
     this.getTopologyTags();

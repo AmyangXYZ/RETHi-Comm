@@ -3,31 +3,8 @@
   <div slot="header" style="text-align:left;">
       <h3>Configurations</h3>
     </div>
-  <vs-tabs :value="1" >
-    <vs-tab index="0" label="IP Addr">
-      <vs-table  :data="configAddrs" stripe class="addr">
-        <template slot="thead">
-          <vs-th> Subsys </vs-th>
-          <vs-th> Local </vs-th>
-          <vs-th> Remote </vs-th>
-        </template>
-
-        <template slot-scope="{ data }" >
-          <vs-tr :key="indextr" v-for="(tr, indextr) in data">
-            <vs-td :data="data[indextr].name" >
-              {{ tr.name }}
-            </vs-td>
-            <vs-td :data="data[indextr].local">
-              {{ tr.local }}
-            </vs-td>
-            <vs-td :data="data[indextr].remote">
-              {{ tr.remote }}
-            </vs-td>
-          </vs-tr>
-        </template>
-      </vs-table>
-    </vs-tab>
-    <vs-tab index="1" label="Links">
+  <vs-tabs :value="0" >
+    <vs-tab index="0" label="Links">
       <vs-table :data="configLinks" class="links">
         <template slot="thead">
           <vs-th> Link Type</vs-th>
@@ -97,11 +74,9 @@
         </template>
       </vs-table>
     </vs-tab>
-
-    
-    <vs-tab index="2" label="Routing">
+    <vs-tab index="1" label="Routing">
     </vs-tab>
-    <vs-tab index="3" label="Scheduling">
+    <vs-tab index="2" label="Scheduling">
     </vs-tab>
   </vs-tabs>
 </vs-card>  
@@ -113,16 +88,6 @@ import { debounce } from "./debounce";
 export default {
   data() {
     return {
-      configAddrs: [
-        {name:"GCC", local: "0.0.0.0:10000", remote: "127.0.0.1:20000"},
-        {name:"HMS", local: "0.0.0.0:10001", remote: "127.0.0.1:20001"},
-        {name:"STR", local: "0.0.0.0:10002", remote: "127.0.0.1:20002"},
-        {name:"PWR", local: "0.0.0.0:10003", remote: "127.0.0.1:20003"},
-        {name:"ECLSS", local: "0.0.0.0:10004", remote: "127.0.0.1:20004"},
-        {name:"AGT", local: "0.0.0.0:10005", remote: "127.0.0.1:20005"},
-        {name:"INT", local: "0.0.0.0:10006", remote: "127.0.0.1:20006"},
-        {name:"EXT", local: "0.0.0.0:10007", remote: "127.0.0.1:20007"},
-      ],
       configLinks: [
         {
           link: "In-habitat",

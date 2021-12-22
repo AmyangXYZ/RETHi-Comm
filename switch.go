@@ -13,6 +13,7 @@ import (
 // Switch simulates MQMO TSN switch
 type Switch struct {
 	name           string
+	position       [2]int
 	fwdCnt         int
 	recvCnt        int
 	gatesIn        [GATE_NUM_SWITCH]*Gate
@@ -25,7 +26,7 @@ type Switch struct {
 	stopSig        chan bool
 }
 
-func NewSwitch(name string) *Switch {
+func NewSwitch(name string, position [2]int) *Switch {
 	var gatesIn [GATE_NUM_SWITCH]*Gate
 	var gatesOut [GATE_NUM_SWITCH]*Gate
 	for i := 0; i < GATE_NUM_SWITCH; i++ {
@@ -40,6 +41,7 @@ func NewSwitch(name string) *Switch {
 
 	sw := &Switch{
 		name:        name,
+		position:    position,
 		gatesIn:     gatesIn,
 		gatesOut:    gatesOut,
 		gatesInIdx:  -1,

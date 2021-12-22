@@ -9,7 +9,7 @@
         
       </vs-col>
       <vs-col vs-offset=0.2 vs-w=5.1  style="z-index:99">
-        <Simulation v-if="mode=='Simulation'"/>
+        <Flow v-if="mode=='Simulation'"/>
         <Fault/>
         <Console name="comm" height="358px"/>
       </vs-col>
@@ -32,7 +32,7 @@ import Configuration from './components/Configuration.vue';
 import Console from "./components/Console.vue";
 import Fault from './components/Fault.vue';
 import Navbar from './components/Navbar.vue'
-import Simulation from './components/Simulation.vue';
+import Flow from './components/Flow.vue';
 import Statistics from './components/Statistics.vue';
 import Sidebar from './components/Sidebar.vue';
 import Traffic from './components/Traffic.vue';
@@ -43,7 +43,7 @@ export default {
     Topology,
     Console,
     Navbar,
-    Simulation,
+    Flow,
     Fault,
     Configuration,
     Statistics,

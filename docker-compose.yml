@@ -25,7 +25,7 @@ services:
       DB_PASSWORD: password
     ports:
       - "8000:8000"
-      - "10000-10007:10000-10007/udp"
+      - "20000-20007:10000-10007/udp"
     depends_on:
       - comm_db
     networks:
@@ -43,31 +43,31 @@ services:
     networks:
       - comm-network
 
-  data_service:
-    image: data-service
-    ports:
-      - "20001:20001"
-    environment:
-      DB_DB: hms
-      DB_USER: uu
-      DB_PASSWORD: password
-    depends_on:
-      - hms_db
-    networks:
-      - hms-network
+  # data_service:
+  #   image: data-service
+  #   ports:
+  #     - "20001:20001"
+  #   environment:
+  #     DB_DB: hms
+  #     DB_USER: uu
+  #     DB_PASSWORD: password
+  #   depends_on:
+  #     - hms_db
+  #   networks:
+  #     - hms-network
 
-  hms_db:
-    image: mariadb
-    environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-      MYSQL_DATABASE: hms
-      MYSQL_USER: uu
-      MYSQL_PASSWORD: password
-    expose:
-      - "3306"
-    networks:
-      - hms-network
+  # hms_db:
+  #   image: mariadb
+  #   environment:
+  #     MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+  #     MYSQL_DATABASE: hms
+  #     MYSQL_USER: uu
+  #     MYSQL_PASSWORD: password
+  #   expose:
+  #     - "3306"
+  #   networks:
+  #     - hms-network
 
 networks:
   comm-network:
-  hms-network:
+  # hms-network:

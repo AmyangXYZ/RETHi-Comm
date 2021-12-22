@@ -16,8 +16,9 @@ import (
 
 // Subsys listens and forward UDP packets from each subsystem
 type Subsys struct {
-	name string
-	id   int
+	name     string
+	position [2]int
+	id       int
 	// recv conn from other node
 	inConn *net.UDPConn
 	// send conn to other node
@@ -34,7 +35,7 @@ type Subsys struct {
 }
 
 // returns a Subsys pointer
-func NewSubsys(name string) *Subsys {
+func NewSubsys(name string, position [2]int) *Subsys {
 	id := 0
 
 	var gatesIn [GATE_NUM_SUBSYS]*Gate
@@ -52,6 +53,7 @@ func NewSubsys(name string) *Subsys {
 
 	s := &Subsys{
 		name:        name,
+		position:    position,
 		id:          id,
 		gatesIn:     gatesIn,
 		gatesOut:    gatesOut,
