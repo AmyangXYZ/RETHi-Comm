@@ -77,6 +77,7 @@ export default {
         {text:"Long Delay", value:1},
         {text:"Mis-routing", value:2},
         {text:"Congestion", value:3},
+        {text:"Stuck", value:4},
       ],
     }
   },

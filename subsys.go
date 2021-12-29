@@ -136,6 +136,7 @@ func (s *Subsys) handlePacket() {
 			fmt.Println(err)
 			continue
 		}
+		pkt.SequenceNumber = getSeqNum()
 		pkt.Path = append(pkt.Path, s.name)
 		pkt.TimeCreated = time.Now()
 		if pkt.Src != uint8(s.id) {
@@ -175,24 +176,23 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 				}
 			}
 
-			FwdCntTotal++
 			processingDelaySum += pkt.TimeReceived.Sub(pkt.TimeCreated)
 			// fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", SequenceNumber, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
-						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", SequenceNumber, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 					}
 				}
 			} else {
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", SequenceNumber, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
-						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", FwdCntTotal, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", SequenceNumber, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 					}
 				}
 			}
@@ -211,7 +211,7 @@ func (s *Subsys) CreateFlow(dst int) {
 	buf[1] = pkt.Dst
 	pkt.RawBytes = buf[:]
 	pkt.TimeCreated = time.Now()
-
+	pkt.SequenceNumber = getSeqNum()
 	if g, err := s.routing(pkt); err == nil {
 		// fmt.Println("sent to", g.Neighbor)
 		pkt.Path = append(pkt.Path, s.name)

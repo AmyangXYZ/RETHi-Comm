@@ -268,7 +268,7 @@ export default {
       tmpBandwidth: 1,
       tmpDistance: 1000,
       linkStats: {},
-      switchCnt: 7,
+      switchCnt: 0,
       nodes: [], //
       connectHost0: 0,
       connectHost1: 0,
@@ -468,7 +468,7 @@ export default {
             this.switchCnt++;
             node.symbol = "rect";
             node.itemStyle.color = "deepskyblue";
-            if (node.name == "SW0") node.itemStyle.color = "#0079A3";
+            // if (node.name == "SW0") node.itemStyle.color = "#0079A3";
           }
           this.nodes.push(node.name);
         }

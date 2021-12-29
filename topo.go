@@ -3,14 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 )
 
-var (
-	presetTopos = []string{
-		`{ "tag": "default", "nodes": [ { "name": "GCC", "value": [ 150, 1300 ] }, { "name": "HMS", "value": [ 500, 1150 ] }, { "name": "STR", "value": [ 650, 300 ] }, { "name": "PWR", "value": [ 1200, 75 ] }, { "name": "ECLSS", "value": [ 1750, 300 ] }, { "name": "AGT", "value": [ 1900, 850 ] }, { "name": "INT", "value": [ 1750, 1425 ] }, { "name": "EXT", "value": [ 1200, 1600 ] }, { "name": "SW0", "value": [ 1200, 850 ] }, { "name": "SW1", "value": [ 850, 1000 ] }, { "name": "SW2", "value": [ 875, 525 ] }, { "name": "SW3", "value": [ 1200, 375 ] }, { "name": "SW4", "value": [ 1525, 525 ] }, { "name": "SW5", "value": [ 1650, 850 ] }, { "name": "SW6", "value": [ 1525, 1175 ] }, { "name": "SW7", "value": [ 1200, 1300 ] } ], "edges": [ [ "HMS", "GCC" ], [ "HMS", "SW1" ], [ "HMS", "SW2" ], [ "HMS", "SW7" ], [ "STR", "SW2" ], [ "STR", "SW1" ], [ "STR", "SW3" ], [ "PWR", "SW3" ], [ "PWR", "SW2" ], [ "PWR", "SW4" ], [ "ECLSS", "SW4" ], [ "ECLSS", "SW3" ], [ "ECLSS", "SW5" ], [ "AGT", "SW5" ], [ "AGT", "SW4" ], [ "AGT", "SW6" ], [ "INT", "SW6" ], [ "INT", "SW5" ], [ "INT", "SW7" ], [ "EXT", "SW7" ], [ "EXT", "SW1" ], [ "EXT", "SW6" ], [ "SW1", "SW2" ], [ "SW2", "SW3" ], [ "SW3", "SW4" ], [ "SW4", "SW5" ], [ "SW5", "SW6" ], [ "SW6", "SW7" ], [ "SW7", "SW1" ], [ "SW1", "SW0" ], [ "SW2", "SW0" ], [ "SW3", "SW0" ], [ "SW4", "SW0" ], [ "SW5", "SW0" ], [ "SW6", "SW0" ], [ "SW7", "SW0" ] ] }`,
-		`{ "tag": "noRedundancy", "nodes": [ { "name": "GCC", "value": [ 150, 1300 ] }, { "name": "HMS", "value": [ 500, 1150 ] }, { "name": "STR", "value": [ 650, 300 ] }, { "name": "PWR", "value": [ 1200, 75 ] }, { "name": "ECLSS", "value": [ 1750, 300 ] }, { "name": "AGT", "value": [ 1900, 850 ] }, { "name": "INT", "value": [ 1750, 1425 ] }, { "name": "EXT", "value": [ 1200, 1600 ] }, { "name": "SW0", "value": [ 1200, 850 ] }, { "name": "SW1", "value": [ 850, 1000 ] }, { "name": "SW2", "value": [ 875, 525 ] }, { "name": "SW3", "value": [ 1200, 375 ] }, { "name": "SW4", "value": [ 1525, 525 ] }, { "name": "SW5", "value": [ 1650, 850 ] }, { "name": "SW6", "value": [ 1525, 1175 ] }, { "name": "SW7", "value": [ 1200, 1300 ] } ], "edges": [ [ "HMS", "GCC" ], [ "HMS", "SW1" ], [ "STR", "SW2" ], [ "PWR", "SW3" ], [ "ECLSS", "SW4" ], [ "AGT", "SW5" ], [ "INT", "SW6" ], [ "EXT", "SW7" ], [ "SW1", "SW2" ], [ "SW2", "SW3" ], [ "SW3", "SW4" ], [ "SW4", "SW5" ], [ "SW5", "SW6" ], [ "SW6", "SW7" ], [ "SW7", "SW1" ], [ "SW1", "SW0" ], [ "SW2", "SW0" ], [ "SW3", "SW0" ], [ "SW4", "SW0" ], [ "SW5", "SW0" ], [ "SW6", "SW0" ], [ "SW7", "SW0" ] ] }`,
-	}
-)
+type RoutingEntry struct {
+	Dst     int
+	NextHop string
+	Cost    int
+}
 
 type TopologyData struct {
 	Tag   string         `json:"tag"`
@@ -24,13 +24,18 @@ type TopologyNode struct {
 }
 
 func init() {
-	for _, topoJSON := range presetTopos {
-		var topo TopologyData
-		if err = json.Unmarshal([]byte(topoJSON), &topo); err != nil {
-			panic(err)
-		}
+	presetTopos := []TopologyData{}
+	j, err := ioutil.ReadFile("./topos.json")
+	if err != nil {
+		panic(err)
+	}
+	if err = json.Unmarshal(j, &presetTopos); err != nil {
+		panic(err)
+	}
+
+	for _, topo := range presetTopos {
 		insertTopo(topo)
-		if topo.Tag == "default" {
+		if topo.Tag == "frer" {
 			loadTopo(topo)
 		}
 	}
@@ -39,6 +44,8 @@ func init() {
 // load a topo
 func loadTopo(topo TopologyData) error {
 	fmt.Println("load topology - " + topo.Tag)
+	genRoutingTable(topo)
+
 	if len(Switches) > 0 || len(Subsystems) > 0 || len(Links) > 0 {
 		// fmt.Println("stop all running nodes and links")
 		for _, l := range Links {
@@ -70,4 +77,8 @@ func loadTopo(topo TopologyData) error {
 		}
 	}
 	return nil
+}
+
+func genRoutingTable(topo TopologyData) {
+	// fmt.Println(topo.Edges)
 }

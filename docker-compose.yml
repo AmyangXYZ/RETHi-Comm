@@ -1,8 +1,8 @@
 version: "3.9"
 services:
   comm:
-    image: amyangxyz111/rethi-comm
-    # image: comm-t
+    # image: amyangxyz111/rethi-comm
+    image: comm-t
     environment:
       ADDR_LOCAL_GCC: ":10000"
       ADDR_LOCAL_HMS: ":10001"
@@ -12,7 +12,7 @@ services:
       ADDR_LOCAL_AGT: ":10005"
       ADDR_LOCAL_INT: ":10006"
       ADDR_LOCAL_EXT: ":10007"
-      ADDR_REMOTE_GCC: "host.docker.internal:20000" # refer to host's localhosdockt
+      ADDR_REMOTE_GCC: "host.docker.internal:20000" # refer to host's localhost
       ADDR_REMOTE_HMS: "host.docker.internal:20001"
       ADDR_REMOTE_STR: "host.docker.internal:20002"
       ADDR_REMOTE_PWR: "host.docker.internal:20003"

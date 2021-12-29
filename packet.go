@@ -20,12 +20,13 @@ type Packet struct {
 	Payload      []byte `json:"payload"`
 
 	// internal use
-	IsSim        bool
-	RawBytes     []byte
-	Delay        float64
-	Path         []string
-	TimeCreated  time.Time
-	TimeReceived time.Time
+	IsSim          bool
+	SequenceNumber int // for 802.1CB-FRER
+	RawBytes       []byte
+	Delay          float64
+	Path           []string
+	TimeCreated    time.Time
+	TimeReceived   time.Time
 }
 
 func (pkt *Packet) FromBuf(buf []byte) error {

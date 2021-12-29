@@ -16,6 +16,7 @@ FROM alpine
 WORKDIR /app
 COPY --from=frontend-builder /app/dist ./
 COPY --from=backend-builder /go/bin/RETHi-Comm ./
+COPY topos.json ./
 RUN mkdir templates &&\
     mv ./index.html ./templates/index.html &&\
     sed -i 's/^/{{define "index"}}/' ./templates/index.html &&\

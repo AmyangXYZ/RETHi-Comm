@@ -23,7 +23,11 @@ type Switch struct {
 	queue          [QUEUE_NUM_SWITCH]chan *Packet // priority queue
 	Failed         bool
 	FailedDuration int
-	stopSig        chan bool
+
+	FREREnabled       bool
+	SeqRecoverHistory map[int32]bool
+
+	stopSig chan bool
 }
 
 func NewSwitch(name string, position [2]int) *Switch {
@@ -229,4 +233,9 @@ func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
 	}
 
 	return nil, errors.New("[" + sw.name + "] cannot found next hop")
+}
+
+func (sw *Switch) routingFRER(pkt *Packet) (*Gate, error) {
+
+	return nil, nil
 }

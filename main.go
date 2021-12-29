@@ -40,20 +40,23 @@ var (
 	LogsComm        = make(chan Log, 6553600)
 	SUBSYS_LIST     = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
 	ROUTING_TABLE   = map[int][]string{                                                  // subsysID: switches
-		1: {"SW1", "SW7", "SW2"},
-		2: {"SW2", "SW1", "SW3"},
-		3: {"SW3", "SW2", "SW4"},
-		4: {"SW4", "SW3", "SW5"},
-		5: {"SW5", "SW4", "SW6"},
-		6: {"SW6", "SW5", "SW7"},
-		7: {"SW7", "SW6", "SW1"},
+		1: {"SW1", "SW2"},
+		2: {"SW3", "SW4"},
+
+		// 1: {"SW1", "SW7", "SW2"},
+		// 2: {"SW2", "SW1", "SW3"},
+		// 3: {"SW3", "SW2", "SW4"},
+		// 4: {"SW4", "SW3", "SW5"},
+		// 5: {"SW5", "SW4", "SW6"},
+		// 6: {"SW6", "SW5", "SW7"},
+		// 7: {"SW7", "SW6", "SW1"},
 	}
 
-	FwdCntTotal   = 0
-	Subsystems    []*Subsys
-	Switches      []*Switch
-	Links         []*Link
-	ActiveTopoTag = ""
+	SequenceNumber = 0
+	Subsystems     []*Subsys
+	Switches       []*Switch
+	Links          []*Link
+	ActiveTopoTag  = ""
 )
 
 func main() {
@@ -62,6 +65,25 @@ func main() {
 	fmt.Println(`Start Communication Network`)
 	go collectStatistics()
 	runHTTPSever()
+}
+
+func getSeqNum() int {
+	tmp := SequenceNumber
+	SequenceNumber++
+	return tmp
+}
+
+func subsysID2Name(id int) string {
+	return SUBSYS_LIST[id]
+}
+
+func subsysName2ID(name string) int {
+	for i, n := range SUBSYS_LIST {
+		if n == name {
+			return i
+		}
+	}
+	return -1
 }
 
 func findNodeByName(name string) Node {

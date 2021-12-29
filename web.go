@@ -161,6 +161,7 @@ func postTopo(ctx *sgo.Context) error {
 		return err
 	}
 	var topo TopologyData
+	fmt.Println(string(body))
 	if err = json.Unmarshal(body, &topo); err != nil {
 		fmt.Println(err)
 		return err
