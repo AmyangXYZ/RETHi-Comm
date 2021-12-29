@@ -300,6 +300,7 @@ export default {
         },
       },
       tooltipEdit: {
+        triggerOn: 'none',
         formatter: (item) => {
           if (item.dataType == "node")
             return "X: " + item.value[0] + "<br>Y: " + item.value[1];
