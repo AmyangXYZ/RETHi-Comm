@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+const (
+	PACKET_TYPE_MGMT = 0x00
+	PACKET_TYPE_DATA = 0x01
+)
+
 type Packet struct {
 	// protocol use
 	Src          uint8  `json:"src"`

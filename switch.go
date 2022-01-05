@@ -8,6 +8,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 // Switch simulates MQMO TSN switch
@@ -27,6 +28,8 @@ type Switch struct {
 	FREREnabled       bool
 	SeqRecoverHistory map[int32]bool
 
+	RoutingTable map[string][]RoutingEntry
+
 	stopSig chan bool
 }
 
@@ -44,15 +47,45 @@ func NewSwitch(name string, position [2]int) *Switch {
 	}
 
 	sw := &Switch{
-		name:        name,
-		position:    position,
-		gatesIn:     gatesIn,
-		gatesOut:    gatesOut,
-		gatesInIdx:  -1,
-		gatesOutIdx: -1,
-		queue:       queue,
-		stopSig:     make(chan bool),
+		name:         name,
+		position:     position,
+		gatesIn:      gatesIn,
+		gatesOut:     gatesOut,
+		gatesInIdx:   -1,
+		gatesOutIdx:  -1,
+		queue:        queue,
+		RoutingTable: make(map[string][]RoutingEntry),
+		stopSig:      make(chan bool),
 	}
+
+	for _, subsys := range Subsystems {
+		paths := Graph.FindAllPaths(name, subsys.Name())
+		table := []RoutingEntry{}
+		for _, p := range paths {
+			entry := RoutingEntry{NextHop: p[1], HopCount: len(p) - 1}
+			found := false
+			for _, e := range table {
+				if e.NextHop == entry.NextHop {
+					found = true
+					if e.HopCount > entry.HopCount {
+						e.HopCount = entry.HopCount
+					}
+				}
+			}
+			if !found {
+				table = append(table, entry)
+			}
+		}
+		sort.SliceStable(table, func(i, j int) bool {
+			return table[i].HopCount < table[j].HopCount
+		})
+		sw.RoutingTable[subsys.Name()] = table
+	}
+	// fmt.Println(name)
+	// for dst, p := range sw.RoutingTable {
+	// 	fmt.Println("    ", dst, p)
+	// }
+
 	go sw.Start()
 	Switches = append(Switches, sw)
 	return sw
@@ -205,32 +238,48 @@ func (sw *Switch) handle(pkt *Packet) {
 }
 
 func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
-	for _, g := range sw.gatesOut {
-		if g.Neighbor == SUBSYS_LIST[pkt.Dst] {
-			return g, nil
-		}
-	}
-
-	for _, g := range sw.gatesOut {
-		for _, otherSw := range ROUTING_TABLE[int(pkt.Dst)] {
-			if g.Neighbor == otherSw {
-				for _, swww := range Switches {
-					if swww.name == otherSw {
-						if !swww.Failed {
-							return g, nil
-						}
-					}
+L1:
+	for _, entry := range sw.RoutingTable[subsysID2Name(pkt.Dst)] {
+		if entry.NextHop[:2] == "SW" {
+			for _, swww := range Switches {
+				if swww.name == entry.NextHop && swww.Failed {
+					continue L1
 				}
+			}
+		}
+		for _, g := range sw.gatesOut {
+			if g.Neighbor == entry.NextHop {
+				return g, nil
 			}
 		}
 	}
 
-	// not found, send to SW0
-	for _, g := range sw.gatesOut {
-		if g.Neighbor == "SW0" {
-			return g, nil
-		}
-	}
+	// for _, g := range sw.gatesOut {
+	// 	if g.Neighbor == SUBSYS_LIST[pkt.Dst] {
+	// 		return g, nil
+	// 	}
+	// }
+
+	// for _, g := range sw.gatesOut {
+	// 	for _, otherSw := range ROUTING_TABLE[int(pkt.Dst)] {
+	// 		if g.Neighbor == otherSw {
+	// 			for _, swww := range Switches {
+	// 				if swww.name == otherSw {
+	// 					if !swww.Failed {
+	// 						return g, nil
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	// // not found, send to SW0
+	// for _, g := range sw.gatesOut {
+	// 	if g.Neighbor == "SW0" {
+	// 		return g, nil
+	// 	}
+	// }
 
 	return nil, errors.New("[" + sw.name + "] cannot found next hop")
 }

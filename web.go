@@ -254,31 +254,37 @@ func postFlows(ctx *sgo.Context) error {
 	simStartedFlag = 1
 	stopFlowSig = make(chan bool, 56)
 	for _, f := range flows {
-		subsys := Subsystems[f.ID]
-		for i, flag := range f.Dst {
-			if flag == "X" {
-				go func(dstID int, f Flow) {
-					for {
-						select {
-						case <-stopFlowSig:
-							return
-						default:
-							subsys.CreateFlow(dstID)
-							if freq, err := strconv.ParseFloat(f.Freq, 64); err == nil {
-								time.Sleep(time.Duration(1/freq*1000*1000*1000) * time.Nanosecond)
-							} else {
-								fmt.Println(err)
-								return
+		// subsys := Subsystems[f.ID]
+		for _, subsys := range Subsystems {
+			if subsysName2ID(subsys.Name()) == f.ID {
+				for i, flag := range f.Dst {
+					if flag == "X" {
+						go func(dstID int, f Flow) {
+							for {
+								select {
+								case <-stopFlowSig:
+									return
+								default:
+									subsys.CreateFlow(dstID)
+									if freq, err := strconv.ParseFloat(f.Freq, 64); err == nil {
+										time.Sleep(time.Duration(1/freq*1000*1000*1000) * time.Nanosecond)
+									} else {
+										fmt.Println(err)
+										return
+									}
+
+								}
 							}
 
-						}
+						}(i, f)
+						// delay between different flows
+						time.Sleep(50 * time.Millisecond)
 					}
-
-				}(i, f)
-				// delay between different flows
-				time.Sleep(50 * time.Millisecond)
+				}
+				break
 			}
 		}
+
 	}
 	return ctx.Text(200, "biu")
 }

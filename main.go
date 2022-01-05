@@ -60,9 +60,9 @@ var (
 )
 
 func main() {
+	fmt.Println(`Start Communication Network`)
 	boottime = time.Now().Unix()
 
-	fmt.Println(`Start Communication Network`)
 	go collectStatistics()
 	runHTTPSever()
 }
@@ -73,8 +73,8 @@ func getSeqNum() int {
 	return tmp
 }
 
-func subsysID2Name(id int) string {
-	return SUBSYS_LIST[id]
+func subsysID2Name(id uint8) string {
+	return SUBSYS_LIST[int(id)]
 }
 
 func subsysName2ID(name string) int {
