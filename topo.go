@@ -29,7 +29,7 @@ type TopologyNode struct {
 	Position [2]int `json:"value"`
 }
 
-func init() {
+func initTopology() {
 	presetTopos := []TopologyData{}
 	j, err := ioutil.ReadFile("./topos.json")
 	if err != nil {
@@ -42,7 +42,7 @@ func init() {
 	for _, topo := range presetTopos {
 		insertTopo(topo)
 		if topo.Tag == "default" {
-			ActiveTopoTag = "default"
+			ActiveTopoTag = topo.Tag
 			loadTopo(topo)
 		}
 	}

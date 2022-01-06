@@ -36,105 +36,21 @@ type Log struct {
 
 var (
 	CONSOLE_ENABLED = true
+	FRER_ENABLED    = true
 	boottime        int64
-	LogsComm        = make(chan Log, 6553600)
-	SUBSYS_LIST     = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
-	ROUTING_TABLE   = map[int][]string{                                                  // subsysID: switches
-		1: {"SW1", "SW2"},
-		2: {"SW3", "SW4"},
-
-		// 1: {"SW1", "SW7", "SW2"},
-		// 2: {"SW2", "SW1", "SW3"},
-		// 3: {"SW3", "SW2", "SW4"},
-		// 4: {"SW4", "SW3", "SW5"},
-		// 5: {"SW5", "SW4", "SW6"},
-		// 6: {"SW6", "SW5", "SW7"},
-		// 7: {"SW7", "SW6", "SW1"},
-	}
-
-	SequenceNumber = 0
-	Subsystems     []*Subsys
-	Switches       []*Switch
-	Links          []*Link
-	ActiveTopoTag  = ""
+	LogsComm              = make(chan Log, 65536)
+	SUBSYS_LIST           = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
+	SequenceNumber  int32 = 0
+	Subsystems      []*Subsys
+	Switches        []*Switch
+	Links           []*Link
+	ActiveTopoTag   = ""
 )
 
 func main() {
 	fmt.Println(`Start Communication Network`)
 	boottime = time.Now().Unix()
-
+	initTopology()
 	go collectStatistics()
 	runHTTPSever()
-}
-
-func getSeqNum() int {
-	tmp := SequenceNumber
-	SequenceNumber++
-	return tmp
-}
-
-func subsysID2Name(id uint8) string {
-	return SUBSYS_LIST[int(id)]
-}
-
-func subsysName2ID(name string) int {
-	for i, n := range SUBSYS_LIST {
-		if n == name {
-			return i
-		}
-	}
-	return -1
-}
-
-func findNodeByName(name string) Node {
-	for _, subsys := range Subsystems {
-		if subsys.Name() == name {
-			return subsys
-		}
-	}
-	for _, sw := range Switches {
-		if sw.Name() == name {
-			return sw
-		}
-	}
-	// nil
-	return &Switch{name: ""}
-}
-
-func collectStatistics() {
-	// save to db
-	go func() {
-		for {
-			var tmp = map[string][2]int{}
-			for _, s := range Subsystems {
-				tmp[s.Name()] = [2]int{s.fwdCnt, s.recvCnt}
-			}
-
-			for _, sw := range Switches {
-				tmp[sw.Name()] = [2]int{sw.fwdCnt, sw.recvCnt}
-			}
-			saveStats(tmp)
-			time.Sleep(SAVE_STATS_PERIOD * time.Second)
-		}
-	}()
-
-	// send to frontend
-	for {
-		var tmp = map[string][2]int{}
-
-		for _, s := range Subsystems {
-			tmp[s.Name()] = [2]int{s.fwdCnt, s.recvCnt}
-		}
-
-		for _, sw := range Switches {
-			tmp[sw.Name()] = [2]int{sw.fwdCnt, sw.recvCnt}
-		}
-
-		LogsComm <- Log{
-			Type:       1,
-			Msg:        "",
-			Statistics: tmp,
-		}
-		time.Sleep(UPLOAD_STATS_PERIOD * time.Second)
-	}
 }

@@ -25,7 +25,6 @@ type Switch struct {
 	Failed         bool
 	FailedDuration int
 
-	FREREnabled       bool
 	SeqRecoverHistory map[int32]bool
 
 	RoutingTable map[string][]RoutingEntry
@@ -47,15 +46,16 @@ func NewSwitch(name string, position [2]int) *Switch {
 	}
 
 	sw := &Switch{
-		name:         name,
-		position:     position,
-		gatesIn:      gatesIn,
-		gatesOut:     gatesOut,
-		gatesInIdx:   -1,
-		gatesOutIdx:  -1,
-		queue:        queue,
-		RoutingTable: make(map[string][]RoutingEntry),
-		stopSig:      make(chan bool),
+		name:              name,
+		position:          position,
+		gatesIn:           gatesIn,
+		gatesOut:          gatesOut,
+		gatesInIdx:        -1,
+		gatesOutIdx:       -1,
+		queue:             queue,
+		RoutingTable:      make(map[string][]RoutingEntry),
+		SeqRecoverHistory: make(map[int32]bool),
+		stopSig:           make(chan bool),
 	}
 
 	for _, subsys := range Subsystems {
@@ -227,16 +227,43 @@ func (sw *Switch) Stop() {
 
 // handle incoming packets, schedule based on its priority and forward to the destination switch/subsys
 func (sw *Switch) handle(pkt *Packet) {
-	if g, err := sw.routing(pkt); err == nil {
-		// fmt.Println("sent to", g.Neighbor)
-		pkt.Path = append(pkt.Path, sw.name)
-		g.Channel <- pkt
-		sw.fwdCnt++
+	if len(pkt.Path) > 20 {
+		return
+	}
+	if FRER_ENABLED {
+		// eliminate dup
+		if _, ok := sw.SeqRecoverHistory[pkt.SequenceNumber]; ok {
+			return
+		}
+		sw.SeqRecoverHistory[pkt.SequenceNumber] = true
+		// send dup
+		if gates, err := sw.routingFRER(pkt); err == nil {
+			pkt.Path = append(pkt.Path, sw.name)
+			for i, g := range gates {
+				go func(dupID int, g *Gate, pkt *Packet) {
+					pktCopy := new(Packet)
+					*pktCopy = *pkt
+					pkt.dupID = dupID
+					fmt.Println(sw.name, "sent to", g.Neighbor)
+					g.Channel <- pktCopy
+					sw.fwdCnt++
+				}(i, g, pkt)
+
+			}
+		}
 	} else {
-		fmt.Println(err)
+		if g, err := sw.routing(pkt); err == nil {
+			// fmt.Println("sent to", g.Neighbor)
+			pkt.Path = append(pkt.Path, sw.name)
+			g.Channel <- pkt
+			sw.fwdCnt++
+		} else {
+			fmt.Println(err)
+		}
 	}
 }
 
+// find out-gate
 func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
 L1:
 	for _, entry := range sw.RoutingTable[subsysID2Name(pkt.Dst)] {
@@ -254,37 +281,31 @@ L1:
 		}
 	}
 
-	// for _, g := range sw.gatesOut {
-	// 	if g.Neighbor == SUBSYS_LIST[pkt.Dst] {
-	// 		return g, nil
-	// 	}
-	// }
-
-	// for _, g := range sw.gatesOut {
-	// 	for _, otherSw := range ROUTING_TABLE[int(pkt.Dst)] {
-	// 		if g.Neighbor == otherSw {
-	// 			for _, swww := range Switches {
-	// 				if swww.name == otherSw {
-	// 					if !swww.Failed {
-	// 						return g, nil
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	// // not found, send to SW0
-	// for _, g := range sw.gatesOut {
-	// 	if g.Neighbor == "SW0" {
-	// 		return g, nil
-	// 	}
-	// }
-
 	return nil, errors.New("[" + sw.name + "] cannot found next hop")
 }
 
-func (sw *Switch) routingFRER(pkt *Packet) (*Gate, error) {
-
-	return nil, nil
+func (sw *Switch) routingFRER(pkt *Packet) ([]*Gate, error) {
+	gates := []*Gate{}
+L1:
+	for _, entry := range sw.RoutingTable[subsysID2Name(pkt.Dst)] {
+		if entry.NextHop[:2] == "SW" {
+			for _, swww := range Switches {
+				if swww.name == entry.NextHop && swww.Failed {
+					continue L1
+				}
+			}
+		}
+		if entry.NextHop == pkt.Path[len(pkt.Path)-1] {
+			continue
+		}
+		for _, g := range sw.gatesOut {
+			if g.Neighbor == entry.NextHop {
+				gates = append(gates, g)
+			}
+		}
+	}
+	if len(gates) == 0 {
+		return nil, errors.New("[" + sw.name + "] cannot found next hop")
+	}
+	return gates, nil
 }

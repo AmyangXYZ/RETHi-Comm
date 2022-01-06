@@ -216,7 +216,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			// fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", SequenceNumber, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				fmt.Printf("Pkt #%d (dupID: %d): %d bytes, %v, delay: %.3f us, processing delay: %v\n", SequenceNumber, pkt.dupID, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
@@ -275,45 +275,6 @@ L1:
 			}
 		}
 	}
-
-	// if pkt.Dst == 0 || s.name == "GCC" { // to/from GCC
-	// 	for _, g := range s.gatesOut {
-	// 		if g.Neighbor == subsysID2Name(pkt.Dst) {
-	// 			return g, nil
-	// 		}
-	// 	}
-	// }
-
-	// for _, g := range s.gatesOut {
-	// 	for _, sw := range ROUTING_TABLE[int(pkt.Dst)] {
-	// 		if g.Neighbor == sw {
-	// 			for _, swww := range Switches {
-	// 				if swww.name == sw {
-	// 					if !swww.Failed {
-	// 						return g, nil
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	// // not found, sent to an arbitrary switch to reach sw0
-	// // prefer switch with consistent id
-	// for _, g := range s.gatesOut {
-	// 	for _, sw := range ROUTING_TABLE[s.id] {
-	// 		if g.Neighbor == sw {
-	// 			for _, swww := range Switches {
-	// 				if swww.name == sw {
-	// 					if !swww.Failed {
-	// 						return g, nil
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-
-	// }
 
 	return nil, errors.New("[" + s.name + "] cannot found next hop")
 }

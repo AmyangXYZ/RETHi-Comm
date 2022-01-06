@@ -26,12 +26,13 @@ type Packet struct {
 
 	// internal use
 	IsSim          bool
-	SequenceNumber int // for 802.1CB-FRER
 	RawBytes       []byte
 	Delay          float64
 	Path           []string
 	TimeCreated    time.Time
 	TimeReceived   time.Time
+	SequenceNumber int32 // for 802.1CB-FRER
+	dupID          int
 }
 
 func (pkt *Packet) FromBuf(buf []byte) error {
