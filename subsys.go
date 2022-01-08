@@ -12,6 +12,7 @@ import (
 	"net"
 	"os"
 	"sort"
+	"sync"
 )
 
 // Subsys listens and forward UDP packets from each subsystem
@@ -33,7 +34,8 @@ type Subsys struct {
 
 	RoutingTable map[string][]RoutingEntry
 
-	SeqRecoverHistory map[int32]bool // for frer
+	SeqRecoverHistory      map[int32]bool // for frer
+	SeqRecoverHistoryMutex sync.Mutex
 
 	stopSig chan bool
 }
@@ -202,11 +204,14 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			s.recvCnt++
 
 			// eliminate dup
+			s.SeqRecoverHistoryMutex.Lock()
 			if _, ok := s.SeqRecoverHistory[pkt.Seq]; ok {
 				// fmt.Println(sw.name, "eliminate dup from", pkt.Path[len(pkt.Path)-1])
+				s.SeqRecoverHistoryMutex.Unlock()
 				continue
 			}
 			s.SeqRecoverHistory[pkt.Seq] = true
+			s.SeqRecoverHistoryMutex.Unlock()
 
 			pkt.Path = append(pkt.Path, s.name)
 

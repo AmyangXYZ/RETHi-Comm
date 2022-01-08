@@ -75,8 +75,13 @@
       </vs-table>
     </vs-tab>
     <vs-tab index="1" label="Routing">
+      Shortest Path Routing
     </vs-tab>
     <vs-tab index="2" label="Scheduling">
+      MIMOMQ Prioirty Scheduling
+    </vs-tab>
+    <vs-tab index="3" label="Reliability">
+      802.1CB Frame Replication and Elimination for Reliability
     </vs-tab>
   </vs-tabs>
 </vs-card>  

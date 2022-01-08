@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"sync"
 )
 
 // Switch simulates MQMO TSN switch
@@ -25,8 +26,9 @@ type Switch struct {
 	Failed         bool
 	FailedDuration int
 
-	SeqRecoverHistory map[int32]bool
-	RoutingTable      map[string][]RoutingEntry
+	SeqRecoverHistory      map[int32]bool
+	SeqRecoverHistoryMutex sync.Mutex
+	RoutingTable           map[string][]RoutingEntry
 
 	stopSig chan bool
 }
@@ -231,11 +233,14 @@ func (sw *Switch) handle(pkt *Packet) {
 	}
 	if FRER_ENABLED {
 		// eliminate dup
+		sw.SeqRecoverHistoryMutex.Lock()
 		if _, ok := sw.SeqRecoverHistory[pkt.Seq]; ok {
 			// fmt.Println(sw.name, "eliminate dup from", pkt.Path[len(pkt.Path)-1])
+			sw.SeqRecoverHistoryMutex.Unlock()
 			return
 		}
 		sw.SeqRecoverHistory[pkt.Seq] = true
+		sw.SeqRecoverHistoryMutex.Unlock()
 		// send dup
 		if gates, err := sw.routingFRER(pkt); err == nil {
 			pkt.Path = append(pkt.Path, sw.name)
