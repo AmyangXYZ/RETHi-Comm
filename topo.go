@@ -41,7 +41,7 @@ func initTopology() {
 
 	for _, topo := range presetTopos {
 		insertTopo(topo)
-		if topo.Tag == "default" {
+		if topo.Tag == "frer" {
 			ActiveTopoTag = topo.Tag
 			loadTopo(topo)
 		}

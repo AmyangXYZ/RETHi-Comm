@@ -12,7 +12,6 @@ import (
 	"net"
 	"os"
 	"sort"
-	"time"
 )
 
 // Subsys listens and forward UDP packets from each subsystem
@@ -33,6 +32,8 @@ type Subsys struct {
 	gatesOutIdx int
 
 	RoutingTable map[string][]RoutingEntry
+
+	SeqRecoverHistory map[int32]bool // for frer
 
 	stopSig chan bool
 }
@@ -55,15 +56,16 @@ func NewSubsys(name string, position [2]int) *Subsys {
 	}
 
 	s := &Subsys{
-		name:         name,
-		position:     position,
-		id:           id,
-		gatesIn:      gatesIn,
-		gatesOut:     gatesOut,
-		gatesInIdx:   -1,
-		gatesOutIdx:  -1,
-		RoutingTable: make(map[string][]RoutingEntry),
-		stopSig:      make(chan bool),
+		name:              name,
+		position:          position,
+		id:                id,
+		gatesIn:           gatesIn,
+		gatesOut:          gatesOut,
+		gatesInIdx:        -1,
+		gatesOutIdx:       -1,
+		RoutingTable:      make(map[string][]RoutingEntry),
+		SeqRecoverHistory: make(map[int32]bool),
+		stopSig:           make(chan bool),
 	}
 
 	for _, subsys := range SUBSYS_LIST {
@@ -172,9 +174,8 @@ func (s *Subsys) handlePacket() {
 			fmt.Println(err)
 			continue
 		}
-		pkt.SequenceNumber = getSeqNum()
+		pkt.Seq = getSeqNum()
 		pkt.Path = append(pkt.Path, s.name)
-		pkt.TimeCreated = time.Now()
 		if pkt.Src != uint8(s.id) {
 			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
 		}
@@ -192,18 +193,23 @@ func (s *Subsys) handlePacket() {
 // send internal messages from switches to outside
 func (s *Subsys) handleMessage(inGate *Gate) {
 	// fmt.Println("waiting msg from switches")
-	processingDelaySum := time.Duration(0)
 	for {
 		select {
 		case <-s.stopSig:
 			// fmt.Println(s.name, "terminate an ingate goroutine")
 			return
 		case pkt := <-inGate.Channel:
+			s.recvCnt++
+
+			// eliminate dup
+			if _, ok := s.SeqRecoverHistory[pkt.Seq]; ok {
+				// fmt.Println(sw.name, "eliminate dup from", pkt.Path[len(pkt.Path)-1])
+				continue
+			}
+			s.SeqRecoverHistory[pkt.Seq] = true
 
 			pkt.Path = append(pkt.Path, s.name)
-			pkt.TimeReceived = time.Now()
 
-			s.recvCnt++
 			// fmt.Println(pkt.RawBytes)
 			if !pkt.IsSim {
 				_, err := s.outConn.Write(pkt.RawBytes)
@@ -211,24 +217,22 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
 				}
 			}
-
-			processingDelaySum += pkt.TimeReceived.Sub(pkt.TimeCreated)
 			// fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
-				fmt.Printf("Pkt #%d (dupID: %d): %d bytes, %v, delay: %.3f us, processing delay: %v\n", SequenceNumber, pkt.dupID, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
-						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", SequenceNumber, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 					}
 				}
 			} else {
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us, processing delay: %v\n", SequenceNumber, len(pkt.RawBytes), pkt.Path, pkt.Delay, pkt.TimeReceived.Sub(pkt.TimeCreated))
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
 				if CONSOLE_ENABLED {
 					LogsComm <- Log{
 						Type: 0,
-						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", SequenceNumber, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 					}
 				}
 			}
@@ -246,8 +250,7 @@ func (s *Subsys) CreateFlow(dst int) {
 	buf[0] = pkt.Src
 	buf[1] = pkt.Dst
 	pkt.RawBytes = buf[:]
-	pkt.TimeCreated = time.Now()
-	pkt.SequenceNumber = getSeqNum()
+	pkt.Seq = getSeqNum()
 	if g, err := s.routing(pkt); err == nil {
 		// fmt.Println("sent to", g.Neighbor)
 		pkt.Path = append(pkt.Path, s.name)
@@ -259,7 +262,6 @@ func (s *Subsys) CreateFlow(dst int) {
 }
 
 func (s *Subsys) routing(pkt *Packet) (*Gate, error) {
-
 L1:
 	for _, entry := range s.RoutingTable[subsysID2Name(pkt.Dst)] {
 		if entry.NextHop[:2] == "SW" {

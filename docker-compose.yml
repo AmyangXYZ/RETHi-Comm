@@ -25,7 +25,7 @@ services:
       DB_PASSWORD: password
     ports:
       - "8000:8000"
-      - "20000-20007:10000-10007/udp"
+      - "30000-30007:10000-10007/udp"
     depends_on:
       - comm_db
     networks:

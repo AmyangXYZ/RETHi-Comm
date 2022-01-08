@@ -26,8 +26,7 @@ type Switch struct {
 	FailedDuration int
 
 	SeqRecoverHistory map[int32]bool
-
-	RoutingTable map[string][]RoutingEntry
+	RoutingTable      map[string][]RoutingEntry
 
 	stopSig chan bool
 }
@@ -135,84 +134,84 @@ func (sw *Switch) Start() {
 		case <-sw.stopSig:
 			return
 		case pkt := <-sw.queue[0]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 
 		case pkt := <-sw.queue[1]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[1]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 
 		case pkt := <-sw.queue[2]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[2]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[2]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 
 		case pkt := <-sw.queue[3]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[3]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[3]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[3]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 
 		case pkt := <-sw.queue[4]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[4]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[4]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[4]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[4]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 
 		case pkt := <-sw.queue[5]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[5]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[5]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[5]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[5]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[5]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 
 		case pkt := <-sw.queue[6]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[6]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[6]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[6]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[6]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[6]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[6]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 
 		case pkt := <-sw.queue[7]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[7]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[7]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[7]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[7]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[7]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[7]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		case pkt := <-sw.queue[7]:
-			sw.handle(pkt)
+			go sw.handle(pkt)
 		}
 	}
 }
@@ -232,23 +231,19 @@ func (sw *Switch) handle(pkt *Packet) {
 	}
 	if FRER_ENABLED {
 		// eliminate dup
-		if _, ok := sw.SeqRecoverHistory[pkt.SequenceNumber]; ok {
+		if _, ok := sw.SeqRecoverHistory[pkt.Seq]; ok {
+			// fmt.Println(sw.name, "eliminate dup from", pkt.Path[len(pkt.Path)-1])
 			return
 		}
-		sw.SeqRecoverHistory[pkt.SequenceNumber] = true
+		sw.SeqRecoverHistory[pkt.Seq] = true
 		// send dup
 		if gates, err := sw.routingFRER(pkt); err == nil {
 			pkt.Path = append(pkt.Path, sw.name)
-			for i, g := range gates {
-				go func(dupID int, g *Gate, pkt *Packet) {
-					pktCopy := new(Packet)
-					*pktCopy = *pkt
-					pkt.dupID = dupID
-					fmt.Println(sw.name, "sent to", g.Neighbor)
-					g.Channel <- pktCopy
-					sw.fwdCnt++
-				}(i, g, pkt)
-
+			for _, g := range gates {
+				dup := pkt.Dup()
+				// fmt.Println(sw.name, "sent to", g.Neighbor, dup.Path, dup.DupID)
+				g.Channel <- dup
+				sw.fwdCnt++
 			}
 		}
 	} else {

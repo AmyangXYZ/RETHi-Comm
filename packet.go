@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/binary"
-	"time"
+	"math/rand"
 )
 
 const (
@@ -25,14 +25,12 @@ type Packet struct {
 	Payload      []byte `json:"payload"`
 
 	// internal use
-	IsSim          bool
-	RawBytes       []byte
-	Delay          float64
-	Path           []string
-	TimeCreated    time.Time
-	TimeReceived   time.Time
-	SequenceNumber int32 // for 802.1CB-FRER
-	dupID          int
+	IsSim    bool
+	RawBytes []byte
+	Delay    float64
+	Path     []string
+	Seq      int32 // for 802.1CB-FRER
+	DupID    int
 }
 
 func (pkt *Packet) FromBuf(buf []byte) error {
@@ -63,4 +61,14 @@ func (pkt *Packet) ToBuf() []byte {
 	buf[13] = byte(pkt.Col)
 	binary.LittleEndian.PutUint16(buf[14:16], uint16(pkt.Length))
 	return append(buf[:], pkt.Payload...)
+}
+
+// deep copy/duplicate
+func (pkt *Packet) Dup() *Packet {
+	dup := new(Packet)
+	*dup = *pkt
+	// copy slice by value
+	dup.Path = append([]string{}, pkt.Path...)
+	dup.DupID = rand.Intn(1024)
+	return dup
 }
