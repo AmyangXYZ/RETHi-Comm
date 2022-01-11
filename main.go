@@ -18,6 +18,10 @@ const (
 	BUF_LEN             = 65536
 	SAVE_STATS_PERIOD   = 10 // in seconds
 	UPLOAD_STATS_PERIOD = 3  // in seconds
+	WSLOG_HEARTBEAT     = -1
+	WSLOG_MSG           = 0
+	WSLOG_STAT          = 1
+	WSLOG_PKT_TX        = 2
 )
 
 // switch or subsys
@@ -32,13 +36,15 @@ type Log struct {
 	Type       int               `json:"type"` // -1: heartbeat, 0: log, 1: statistics
 	Msg        string            `json:"msg"`
 	Statistics map[string][2]int `json:"stats_comm"`
+	PktTx      [2]string         `json:"pkt_tx"` // [src, dst]
 }
 
 var (
+	MODE            = "Simulation"
 	CONSOLE_ENABLED = true
 	FRER_ENABLED    = true
 	boottime        int64
-	LogsComm              = make(chan Log, 65536)
+	WSLog                 = make(chan Log, 65536)
 	SUBSYS_LIST           = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
 	SequenceNumber  int32 = 0
 	Subsystems      []*Subsys

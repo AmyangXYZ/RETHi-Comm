@@ -8,6 +8,11 @@
 </template>
 
 <script>
+const WSLOG_HEARTBEAT = -1
+const WSLOG_MSG = 0
+const WSLOG_STAT = 1
+const WSLOG_PKT_TX = 2
+
 export default {
   data() {
     return {
@@ -61,10 +66,10 @@ export default {
         
         var entry = JSON.parse(evt.data)
         
-        if(entry.type == -1) {
+        if(entry.type == WSLOG_HEARTBEAT) {
           // heartbeat 
         }
-        if(entry.type == 0) {
+        if(entry.type == WSLOG_MSG) {
           // this.log+="\n[*] "+entry.msg+""
           var date = new Date()
           var options = { hour12: false };
@@ -75,8 +80,12 @@ export default {
           })
 
         }
-        if(entry.type == 1) {
+        if(entry.type == WSLOG_STAT) {
           this.$EventBus.$emit("stats_"+this.name, entry["stats_"+this.name])
+        }
+        if(entry.type == WSLOG_PKT_TX) {
+          this.$EventBus.$emit("pkt_tx", entry["pkt_tx"])
+          window.console.log(entry["pkt_tx"])
         }
       }
     }

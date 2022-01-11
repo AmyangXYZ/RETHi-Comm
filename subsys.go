@@ -177,15 +177,12 @@ func (s *Subsys) handlePacket() {
 			continue
 		}
 		pkt.Seq = getSeqNum()
-		pkt.Path = append(pkt.Path, s.name)
 		if pkt.Src != uint8(s.id) {
 			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
 		}
 
 		if g, err := s.routing(pkt); err == nil {
-			// fmt.Println("sent to", g.Neighbor)
-			g.Channel <- pkt
-			s.fwdCnt++
+			s.send(pkt, g)
 		} else {
 			fmt.Println(err)
 		}
@@ -227,16 +224,16 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 				pkt.Delay *= 1000000
 				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
 				if CONSOLE_ENABLED {
-					LogsComm <- Log{
-						Type: 0,
+					WSLog <- Log{
+						Type: WSLOG_MSG,
 						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 					}
 				}
 			} else {
 				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
 				if CONSOLE_ENABLED {
-					LogsComm <- Log{
-						Type: 0,
+					WSLog <- Log{
+						Type: WSLOG_MSG,
 						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 					}
 				}
@@ -257,10 +254,7 @@ func (s *Subsys) CreateFlow(dst int) {
 	pkt.RawBytes = buf[:]
 	pkt.Seq = getSeqNum()
 	if g, err := s.routing(pkt); err == nil {
-		// fmt.Println("sent to", g.Neighbor)
-		pkt.Path = append(pkt.Path, s.name)
-		g.Channel <- pkt
-		s.fwdCnt++
+		s.send(pkt, g)
 	} else {
 		fmt.Println(err)
 	}
@@ -284,4 +278,17 @@ L1:
 	}
 
 	return nil, errors.New("[" + s.name + "] cannot found next hop")
+}
+
+func (s *Subsys) send(pkt *Packet, gate *Gate) {
+	// fmt.Println("sent to", gate.Neighbor)
+	pkt.Path = append(pkt.Path, s.name)
+	gate.Channel <- pkt
+	if MODE == "Simulation" {
+		WSLog <- Log{
+			Type:  WSLOG_PKT_TX,
+			PktTx: [2]string{s.name, gate.Neighbor},
+		}
+	}
+	s.fwdCnt++
 }

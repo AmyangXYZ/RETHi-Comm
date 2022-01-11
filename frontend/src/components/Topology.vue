@@ -118,7 +118,7 @@
               icon-pack="fas"
               type="filled"
               icon="fa-minus"
-              @click="editAddSwitch"
+              @click="editRemoveSwitch"
             >
             </vs-button>
           </vs-col>
@@ -407,6 +407,16 @@ export default {
             animation: false,
             data: [],
           },
+          {
+            z: 1,
+            type: "graph",
+            coordinateSystem: "cartesian2d",
+            layout: "none",
+            symbolSize: 10,
+            data:[],
+            animationDurationUpdate:1000,
+            animationDuration:1000
+          }
         ],
       },
       option_backup: {},
@@ -733,6 +743,9 @@ export default {
       });
       this.addDraggableGraphicEle();
     },
+    editRemoveSwitch() {
+
+    },
     editConnect() {
       if (this.connectHost0 != this.connectHost1) {
         this.option.series[0].links.push({
@@ -756,12 +769,34 @@ export default {
         }
       }
     },
+    pktTxAnimation(src, dst) {
+      var pkt = {}
+      var dst_pos = []
+      for (var i = 0; i < this.option.series[0].data.length; i++) {
+        if (this.option.series[0].data[i].name==src) {
+          pkt = {
+            value: JSON.parse(JSON.stringify(this.option.series[0].data[i].value))
+          }
+          this.option.series[2].data.push(pkt)-1
+        }
+        if (this.option.series[0].data[i].name==dst) {
+          dst_pos = JSON.parse(JSON.stringify(this.option.series[0].data[i].value))
+        }
+      }
+      setTimeout(()=>{
+        pkt.value = dst_pos
+      },100)
+    },
   },
   mounted() {
     window.topo = this;
     this.option.tooltip = this.tooltipDefault;
     this.getTopologyTags();
     setTimeout(this.monitorNodesStatistics, 200);
+
+    this.$EventBus.$on("pkt_tx", (flow)=>{
+      this.pktTxAnimation(flow[0],flow[1])
+    })
   },
   // created() {
 

@@ -33,10 +33,10 @@ func runHTTPSever() {
 	go func() {
 		for {
 			l := Log{
-				Type: -1,
+				Type: WSLOG_HEARTBEAT,
 				Msg:  "heartbeat",
 			}
-			LogsComm <- l
+			WSLog <- l
 			time.Sleep(10 * time.Second)
 		}
 	}()
@@ -118,7 +118,7 @@ func wsComm(ctx *sgo.Context) error {
 	}()
 	for {
 		select {
-		case l := <-LogsComm:
+		case l := <-WSLog:
 			ws.WriteJSON(l)
 		case <-breakSig:
 			return nil
@@ -311,8 +311,8 @@ func postFault(ctx *sgo.Context) error {
 	}()
 
 	fmt.Printf("Inject %s fault on SW%d, duration: %d s\n", ctx.Param("type"), id, duration)
-	LogsComm <- Log{
-		Type: 0,
+	WSLog <- Log{
+		Type: WSLOG_MSG,
 		Msg:  fmt.Sprintf("Inject %s fault on SW%d, duration: %d s\n", ctx.Param("type"), id, duration),
 	}
 	return ctx.Text(200, "")
@@ -324,8 +324,8 @@ func clearFault(ctx *sgo.Context) error {
 	}
 
 	fmt.Println("Faults cleared")
-	LogsComm <- Log{
-		Type: 0,
+	WSLog <- Log{
+		Type: WSLOG_MSG,
 		Msg:  "Faults cleared",
 	}
 	return ctx.Text(200, "")

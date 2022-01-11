@@ -81,7 +81,7 @@
       MIMOMQ Prioirty Scheduling
     </vs-tab>
     <vs-tab index="3" label="Reliability">
-      802.1CB Frame Replication and Elimination for Reliability
+      IEEE 802.1CB Frame Replication and Elimination for Reliability
     </vs-tab>
   </vs-tabs>
 </vs-card>  

@@ -243,20 +243,14 @@ func (sw *Switch) handle(pkt *Packet) {
 		sw.SeqRecoverHistoryMutex.Unlock()
 		// send dup
 		if gates, err := sw.routingFRER(pkt); err == nil {
-			pkt.Path = append(pkt.Path, sw.name)
 			for _, g := range gates {
 				dup := pkt.Dup()
-				// fmt.Println(sw.name, "sent to", g.Neighbor, dup.Path, dup.DupID)
-				g.Channel <- dup
-				sw.fwdCnt++
+				sw.send(dup, g)
 			}
 		}
 	} else {
 		if g, err := sw.routing(pkt); err == nil {
-			// fmt.Println("sent to", g.Neighbor)
-			pkt.Path = append(pkt.Path, sw.name)
-			g.Channel <- pkt
-			sw.fwdCnt++
+			sw.send(pkt, g)
 		} else {
 			fmt.Println(err)
 		}
@@ -308,4 +302,17 @@ L1:
 		return nil, errors.New("[" + sw.name + "] cannot found next hop")
 	}
 	return gates, nil
+}
+
+func (sw *Switch) send(pkt *Packet, gate *Gate) {
+	// fmt.Println("sent to", g.Neighbor)
+	pkt.Path = append(pkt.Path, sw.name)
+	gate.Channel <- pkt
+	if MODE == "Simulation" {
+		WSLog <- Log{
+			Type:  WSLOG_PKT_TX,
+			PktTx: [2]string{sw.name, gate.Neighbor},
+		}
+	}
+	sw.fwdCnt++
 }

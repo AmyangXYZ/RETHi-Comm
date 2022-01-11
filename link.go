@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 // default values
 var (
 	SpeedWireless     float64 = 300000000    // m/s
@@ -77,12 +79,18 @@ func (l *Link) forward() {
 			l.computeDelay(len(pkt.RawBytes))
 			// fmt.Println(l.delay)
 			// time.Sleep(time.Duration(l.delay) * time.Second)
+			if MODE == "Simulation" {
+				time.Sleep(1 * time.Second)
+			}
 			pkt.Delay += l.delay
 			l.sink1.Channel <- pkt
 		case pkt := <-l.sender2.Channel:
 			l.computeDelay(len(pkt.RawBytes))
 			// fmt.Println(l.delay)
 			pkt.Delay += l.delay
+			if MODE == "Simulation" {
+				time.Sleep(1 * time.Second)
+			}
 			// time.Sleep(time.Duration(l.delay) * time.Second)
 			l.sink2.Channel <- pkt
 		}

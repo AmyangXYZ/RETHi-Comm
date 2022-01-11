@@ -65,8 +65,8 @@ func collectStatistics() {
 			tmp[sw.Name()] = [2]int{sw.fwdCnt, sw.recvCnt}
 		}
 
-		LogsComm <- Log{
-			Type:       1,
+		WSLog <- Log{
+			Type:       WSLOG_STAT,
 			Msg:        "",
 			Statistics: tmp,
 		}
