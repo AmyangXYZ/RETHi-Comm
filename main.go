@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -40,18 +41,35 @@ type Log struct {
 }
 
 var (
-	MODE            = "Simulation"
-	CONSOLE_ENABLED = true
-	FRER_ENABLED    = true
-	boottime        int64
-	WSLog                 = make(chan Log, 65536)
-	SUBSYS_LIST           = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
-	SequenceNumber  int32 = 0
-	Subsystems      []*Subsys
-	Switches        []*Switch
-	Links           []*Link
-	ActiveTopoTag   = ""
+	ANIMATION_ENABLED = false
+	CONSOLE_ENABLED   = false
+	DELAY_ENABLED     = false
+	FRER_ENABLED      = false
+	boottime          int64
+	WSLog                   = make(chan Log, 65536)
+	SUBSYS_LIST             = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
+	SequenceNumber    int32 = 0
+	Subsystems        []*Subsys
+	Switches          []*Switch
+	Links             []*Link
+	ActiveTopoTag     = ""
 )
+
+// read env configs
+func init() {
+	if os.Getenv("ANIMATION_ENABLED") == "true" {
+		ANIMATION_ENABLED = true
+	}
+	if os.Getenv("CONSOLE_ENABLED") == "true" {
+		CONSOLE_ENABLED = true
+	}
+	if os.Getenv("DELAY_ENABLED") == "true" {
+		DELAY_ENABLED = true
+	}
+	if os.Getenv("FRER_ENABLED") == "true" {
+		FRER_ENABLED = true
+	}
+}
 
 func main() {
 	fmt.Println(`Start Communication Network`)

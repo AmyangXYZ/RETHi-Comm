@@ -4,6 +4,11 @@ services:
     # image: amyangxyz111/rethi-comm
     image: comm-t
     environment:
+      ANIMATION_ENABLED: "false"
+      CONSOLE_ENABLED: "true"
+      DELAY_ENABLED: "true"
+      FRER_ENABLED: "false"
+
       ADDR_LOCAL_GCC: ":10000"
       ADDR_LOCAL_HMS: ":10001"
       ADDR_LOCAL_STR: ":10002"
@@ -25,7 +30,7 @@ services:
       DB_PASSWORD: password
     ports:
       - "8000:8000"
-      - "30000-30007:10000-10007/udp"
+      # - "10000-10007:10000-10007/udp"
     depends_on:
       - comm_db
     networks:

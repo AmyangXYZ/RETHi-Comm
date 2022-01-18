@@ -505,6 +505,7 @@ export default {
           edges.push(link);
         }
 
+        this.option.series[2].data = [] // clear pkt icons
         this.option.series[0].data = res.data.data.nodes;
         this.option.series[0].links = edges;
 

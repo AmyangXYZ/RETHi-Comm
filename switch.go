@@ -308,7 +308,7 @@ func (sw *Switch) send(pkt *Packet, gate *Gate) {
 	// fmt.Println("sent to", g.Neighbor)
 	pkt.Path = append(pkt.Path, sw.name)
 	gate.Channel <- pkt
-	if MODE == "Simulation" {
+	if ANIMATION_ENABLED {
 		WSLog <- Log{
 			Type:  WSLOG_PKT_TX,
 			PktTx: [2]string{sw.name, gate.Neighbor},
