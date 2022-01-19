@@ -16,6 +16,6 @@ func NewGate(id int, owner string) *Gate {
 	g := new(Gate)
 	g.ID = id
 	g.Owner = owner
-	g.Channel = make(chan *Packet)
+	g.Channel = make(chan *Packet, 1024)
 	return g
 }

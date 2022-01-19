@@ -4,13 +4,13 @@ import "time"
 
 // default values
 var (
-	SpeedWireless     float64 = 300000000   // m/s
-	DistanceWireless  float64 = 54500000000 // meter 54500000000-401300000000
-	BandwidthWireless float64 = 2048        // bps, 500~32000, ref: https://mars.nasa.gov/msl/mission/communications/
-	SpeedWire         float64 = 231000000   // .77c
-	DistanceWire      float64 = 30          // meter
-	BandwidthWire     float64 = 1073741824  // 1Gbps
-	PacketLossRate    float64 = 0           // percenttge
+	SpeedWireless     float64 = 300000000  // m/s
+	DistanceWireless  float64 = 5450000000 // meter 54500000000-401300000000
+	BandwidthWireless float64 = 2048       // bps, 500~32000, ref: https://mars.nasa.gov/msl/mission/communications/
+	SpeedWire         float64 = 231000000  // .77c
+	DistanceWire      float64 = 30         // meter
+	BandwidthWire     float64 = 1073741824 // 1Gbps
+	PacketLossRate    float64 = 0          // percenttge
 )
 
 // no direction
@@ -76,27 +76,31 @@ func (l *Link) forward() {
 		case <-l.stopSig:
 			return
 		case pkt := <-l.sender1.Channel:
-			l.computeDelay(len(pkt.RawBytes))
+			go func() {
+				l.computeDelay(len(pkt.RawBytes))
 
-			if ANIMATION_ENABLED {
-				time.Sleep(1 * time.Second)
-			}
-			if DELAY_ENABLED {
-				time.Sleep(time.Duration(l.delay) * time.Second)
-			}
-			pkt.Delay += l.delay
-			l.sink1.Channel <- pkt
+				if ANIMATION_ENABLED {
+					time.Sleep(1 * time.Second)
+				}
+				if DELAY_ENABLED {
+					time.Sleep(time.Duration(l.delay) * time.Second)
+				}
+				pkt.Delay += l.delay
+				l.sink1.Channel <- pkt
+			}()
 		case pkt := <-l.sender2.Channel:
-			l.computeDelay(len(pkt.RawBytes))
-			// fmt.Println(l.delay)
-			pkt.Delay += l.delay
-			if ANIMATION_ENABLED {
-				time.Sleep(1 * time.Second)
-			}
-			if DELAY_ENABLED {
-				time.Sleep(time.Duration(l.delay) * time.Second)
-			}
-			l.sink2.Channel <- pkt
+			go func() {
+				l.computeDelay(len(pkt.RawBytes))
+				// fmt.Println(l.delay)
+				pkt.Delay += l.delay
+				if ANIMATION_ENABLED {
+					time.Sleep(1 * time.Second)
+				}
+				if DELAY_ENABLED {
+					time.Sleep(time.Duration(l.delay) * time.Second)
+				}
+				l.sink2.Channel <- pkt
+			}()
 		}
 	}
 }
