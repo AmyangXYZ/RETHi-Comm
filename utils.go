@@ -48,7 +48,7 @@ func collectStatistics() {
 			for _, sw := range Switches {
 				tmp[sw.Name()] = [2]int{sw.fwdCnt, sw.recvCnt}
 			}
-			saveStats(tmp)
+			saveStatsIO(tmp)
 			time.Sleep(SAVE_STATS_PERIOD * time.Second)
 		}
 	}()

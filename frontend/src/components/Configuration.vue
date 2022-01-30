@@ -104,7 +104,7 @@ export default {
           link: "Ground-habitat",
           bandwidth: 2, // Kbps
           speed: "c",
-          distance: 80, // percentage
+          distance: 1, // percentage
         },
       ],
     };
@@ -140,7 +140,7 @@ export default {
     wirelessDelay: debounce(function () {
       const params = new URLSearchParams()
       params.append('type', 'wireless')
-      params.append('distance', this.configLinks[1].distance)
+      params.append('distance', this.wirelessDistance*1000)
       params.append('bandwidth', this.configLinks[1].bandwidth)
       this.$api.post('/api/links', params);
     }, 200),

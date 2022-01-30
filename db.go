@@ -45,7 +45,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS STATISTICS (
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS STATISTICS_IO (
 		TIMESTAMP BIGINT,
 		NAME VARCHAR(16) NOT NULL,
 		TX INT,
@@ -53,7 +53,21 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	_, err = db.Exec(`DELETE FROM STATISTICS WHERE 1`)
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS STATISTICS_DELAY (
+		TIMESTAMP BIGINT,
+		NAME VARCHAR(16) NOT NULL,
+		SOURCE VARCHAR(16) NOT NULL,
+		SEQ INT,
+		DELAY DOUBLE);`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = db.Exec(`DELETE FROM STATISTICS_IO WHERE 1`)
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Exec(`DELETE FROM STATISTICS_DELAY WHERE 1`)
 	if err != nil {
 		panic(err)
 	}
@@ -140,10 +154,10 @@ func queryTopoTags() ([]string, error) {
 	return tags, nil
 }
 
-func saveStats(data map[string][2]int) {
+func saveStatsIO(data map[string][2]int) {
 	t := time.Now()
 	timestamp := t.UnixNano() / 1e6
-	stmt, err := db.Prepare(`INSERT INTO STATISTICS (TIMESTAMP, NAME, TX, RX) VALUES (?, ?, ?, ?);`)
+	stmt, err := db.Prepare(`INSERT INTO STATISTICS_IO (TIMESTAMP, NAME, TX, RX) VALUES (?, ?, ?, ?);`)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -159,12 +173,30 @@ func saveStats(data map[string][2]int) {
 	}
 }
 
+func saveStatsDelay(name, source string, seq int32, delay float64) {
+	t := time.Now()
+	timestamp := t.UnixNano() / 1e6
+	stmt, err := db.Prepare(`INSERT INTO STATISTICS_DELAY (TIMESTAMP, NAME, SOURCE, SEQ, DELAY) VALUES (?, ?, ?, ?, ?);`)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(timestamp, name, source, seq, delay)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
+
 // timestamp, tx, rx
-func queryStatsByName(name string) ([][3]int, error) {
+func queryStatsIOByName(name string) ([][3]int, error) {
 	var stats [][3]int
 	var rows *sql.Rows
 
-	rows, err = db.Query(`SELECT TIMESTAMP,TX,RX FROM STATISTICS WHERE NAME=?`, name)
+	rows, err = db.Query(`SELECT TIMESTAMP,TX,RX FROM STATISTICS_IO WHERE NAME=?`, name)
 	if err != nil {
 		return stats, err
 	}
@@ -175,5 +207,42 @@ func queryStatsByName(name string) ([][3]int, error) {
 		rows.Scan(&data[0], &data[1], &data[2])
 		stats = append(stats, data)
 	}
+	return stats, nil
+}
+
+type StatsDelay struct {
+	Source    string    `json:"source"`
+	Timestamp []int     `json:"timestamp"`
+	Delay     []float64 `json:"delay"`
+}
+
+func queryStatsDelayByName(name string) ([]StatsDelay, error) {
+	var stats []StatsDelay
+
+	for _, subsys := range SUBSYS_LIST {
+		if subsys == name {
+			continue
+		}
+		var rows *sql.Rows
+
+		rows, err = db.Query(`SELECT TIMESTAMP, DELAY FROM STATISTICS_DELAY WHERE NAME=? and SOURCE=?`, name, subsys)
+		if err != nil {
+			return stats, err
+		}
+		var entry StatsDelay
+		entry.Source = subsys
+		defer rows.Close()
+		for rows.Next() {
+			var ts int
+			var delay float64
+			rows.Scan(&ts, &delay)
+			entry.Timestamp = append(entry.Timestamp, ts)
+			entry.Delay = append(entry.Delay, delay)
+		}
+		if len(entry.Timestamp) > 0 {
+			stats = append(stats, entry)
+		}
+	}
+
 	return stats, nil
 }

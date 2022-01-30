@@ -7,7 +7,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -55,8 +57,8 @@ var (
 	ActiveTopoTag     = ""
 )
 
-// read env configs
 func init() {
+	// read env configs
 	if os.Getenv("ANIMATION_ENABLED") == "true" {
 		ANIMATION_ENABLED = true
 	}
@@ -68,6 +70,15 @@ func init() {
 	}
 	if os.Getenv("FRER_ENABLED") == "true" {
 		FRER_ENABLED = true
+	}
+	if len(os.Getenv("RAND_SEED")) > 0 {
+		seed, err := strconv.Atoi(os.Getenv("RAND_SEED"))
+		if err != nil {
+			panic(err)
+		}
+		rand.Seed(int64(seed))
+	} else {
+		rand.Seed(time.Now().UnixNano())
 	}
 }
 

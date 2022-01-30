@@ -57,7 +57,8 @@ func runHTTPSever() {
 	app.POST("/api/topology", postTopo)
 	app.OPTIONS("/api/topology", sgo.PreflightHandler)
 
-	app.GET("/api/stats/:name", getStatsByName)
+	app.GET("/api/stats/:name/io", getStatsIOByName)
+	app.GET("/api/stats/:name/delay", getStatsDelayByName)
 
 	app.POST("/api/links", postDefaultSetting)
 	app.OPTIONS("/api/links", sgo.PreflightHandler)
@@ -171,8 +172,20 @@ func postTopo(ctx *sgo.Context) error {
 	return ctx.Text(200, "")
 }
 
-func getStatsByName(ctx *sgo.Context) error {
-	stats, err := queryStatsByName(ctx.Param("name"))
+func getStatsIOByName(ctx *sgo.Context) error {
+	stats, err := queryStatsIOByName(ctx.Param("name"))
+	if err != nil {
+		return ctx.JSON(500, 0, err.Error(), nil)
+	}
+	if len(stats) == 0 {
+		return ctx.JSON(200, 0, "no result found", nil)
+	}
+
+	return ctx.JSON(200, 1, "success", stats)
+}
+
+func getStatsDelayByName(ctx *sgo.Context) error {
+	stats, err := queryStatsDelayByName(ctx.Param("name"))
 	if err != nil {
 		return ctx.JSON(500, 0, err.Error(), nil)
 	}
@@ -205,8 +218,6 @@ func postLink(ctx *sgo.Context) error {
 
 // set link properties
 func postDefaultSetting(ctx *sgo.Context) error {
-	fmt.Println(ctx.Params())
-
 	if ctx.Param("type") == "wired" {
 		for _, l := range Links {
 			if l.sender1.Owner != "GCC" && l.sender2.Owner != "GCC" {
@@ -223,7 +234,7 @@ func postDefaultSetting(ctx *sgo.Context) error {
 				b, _ := strconv.ParseFloat(ctx.Param("bandwidth"), 64)
 				l.Bandwidth = b * 1024 // in Kbps
 				d, _ := strconv.ParseFloat(ctx.Param("distance"), 64)
-				l.Distance = d * 1000 // in km
+				l.Distance = d // in km
 			}
 		}
 	}

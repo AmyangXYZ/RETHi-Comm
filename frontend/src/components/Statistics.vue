@@ -19,13 +19,27 @@
         </span>
       </vs-col>
       <vs-col vs-w="9.3">
-        <ECharts
-          id="bar-chart"
-          ref="stats"
-          :options="optionBar"
-          themes="macarons"
-          autoresize
-        />
+        <vs-tabs :value="2" >
+          <vs-tab index="0" label="I/O">
+            <ECharts
+                id="bar-chart"
+                ref="stats" 
+                :options="optionIO"
+                themes="macarons"
+                autoresize
+              />
+          </vs-tab>
+          <vs-tab index="1" label="Delay">
+            <ECharts
+                id="bar-chart"
+                ref="stats" 
+                :options="optionDelay"
+                themes="macarons"
+                autoresize
+              />
+          </vs-tab>
+        </vs-tabs>
+        
       </vs-col>
     </vs-row>
       
@@ -37,6 +51,7 @@
 import ECharts from "vue-echarts/components/ECharts";
 import "echarts/lib/chart/line";
 import "echarts/lib/chart/bar";
+import "echarts/lib/chart/scatter";
 import "echarts/lib/chart/graph";
 import "echarts/lib/component/legend";
 import "echarts/lib/component/dataZoom";
@@ -54,10 +69,7 @@ export default {
       nodes_loaded: false,
       nodes: [],
       refreshTimer: {},
-      optionBar: {
-        title: {
-
-        },
+      optionIO: {
         tooltip: {
           trigger: "axis",
         },
@@ -125,16 +137,63 @@ export default {
           },
         ],
       },
-      
+      optionDelay: {
+        tooltip: {
+          trigger: "axis",
+        },
+        grid: {
+          // height: "20%",
+          top: "10%",
+          bottom: "25%",
+          right: "5%",
+          left: "5%",
+        },
+        legend: {
+          data: [] 
+        },
+        dataZoom: [
+          {
+            type: "inside",
+            start: 0,
+            end: 100,
+          },
+          {
+            start: 0,
+            end: 100,
+            handleIcon:
+              "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+            handleSize: "60%",
+            handleStyle: {
+              color: "#fff",
+              shadowBlur: 3,
+              shadowColor: "rgba(0, 0, 0, 0.6)",
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            }
+          }
+        ],
+        xAxis: {
+          type: "time",
+          data: [],
+        },
+        yAxis: {
+          name: "Delay",
+          type: "value",
+          boundaryGap: ["0%", "10%"],
+          // min: 0,
+        },
+        series: [
+        ],
+      },
     };
   },
   methods: {
-    drawStats() {
-      this.$api.get("/api/stats/"+this.selectedNode)
+    drawStatsIO() {
+      this.$api.get("/api/stats/"+this.selectedNode+"/io")
       .then((res)=>{
         if (res.data.flag==0) return
-        this.optionBar.series[0].data = []
-        this.optionBar.series[1].data = []
+        this.optionIO.series[0].data = []
+        this.optionIO.series[1].data = []
         for (var i in res.data.data) {
           var stat = res.data.data[i]
           var diffRx = 0
@@ -145,8 +204,8 @@ export default {
           }
           if (diffRx<0) diffRx = 0
           if (diffTx<0) diffTx = 0
-          this.optionBar.series[0].data.push([stat[0], diffRx])
-          this.optionBar.series[1].data.push([stat[0], diffTx])
+          this.optionIO.series[0].data.push([stat[0], diffRx])
+          this.optionIO.series[1].data.push([stat[0], diffTx])
           if (i==res.data.data.length-1) {
             if (this.stats_summary[this.selectedNode]==null) {
               this.stats_summary[this.selectedNode] = {inbound: stat[1], outbound:stat[2], avg_delay:0,fault_cnt:0}
@@ -159,6 +218,39 @@ export default {
         }
       })
     },
+    drawStatsDelay() {
+       this.$api.get("/api/stats/"+this.selectedNode+"/delay")
+      .then((res)=>{
+        for (var s=0;s<this.optionDelay.series.length;s++) {
+          this.optionDelay.series[s].data = []
+        }
+        window.console.log(this.optionDelay.series)
+        this.optionDelay.legend.data = []
+        if (res.data.flag==0) return       
+        if (this.selectedNode!="GCC") {
+          this.optionDelay.yAxis.name = "Delay (us)"
+        }
+        for (var i=0;i<res.data.data.length;i++) {
+          var entry = res.data.data[i]
+          var line = {
+            name: res.data.data[i].source,
+            type: 'line',
+            data:[],
+            
+            symbol: "none",
+            animation: false
+          }
+          for (var j=0;j<entry.timestamp.length;j++) {
+            if (entry.delay[j]<1) {
+              entry.delay[j]*=1000000
+            }
+            line.data.push([entry.timestamp[j], entry.delay[j]])
+          }
+          this.optionDelay.series.push(line)
+          this.optionDelay.legend.data.push(line.name)
+        }
+      })
+    }
   },
   mounted() {
     this.$EventBus.$on("topology", (topo)=>{
@@ -171,12 +263,14 @@ export default {
       
     })
     
-    this.drawStats()
+    this.drawStatsIO()
+    this.drawStatsDelay()
     // this.refreshTimer = setInterval(this.drawStats, 10*1000)
     this.$EventBus.$on("selectedNode", (node)=>{
       // clearInterval(this.refreshTimer)
       this.selectedNode = node
-      this.drawStats()
+      this.drawStatsIO()
+      this.drawStatsDelay()
       // this.refreshTimer = setInterval(this.drawStats, 10*1000)
     })
   },
@@ -200,6 +294,6 @@ export default {
 
 #bar-chart {
   width: 100%;
-  height: 320px;
+  height: 280px;
 }
 </style>

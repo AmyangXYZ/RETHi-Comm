@@ -1,16 +1,19 @@
 package main
 
-import "time"
+import (
+	"math/rand"
+	"time"
+)
 
 // default values
 var (
-	SpeedWireless     float64 = 300000000  // m/s
-	DistanceWireless  float64 = 5450000000 // meter 54500000000-401300000000
-	BandwidthWireless float64 = 2048       // bps, 500~32000, ref: https://mars.nasa.gov/msl/mission/communications/
-	SpeedWire         float64 = 231000000  // .77c
-	DistanceWire      float64 = 30         // meter
-	BandwidthWire     float64 = 1073741824 // 1Gbps
-	PacketLossRate    float64 = 0          // percenttge
+	SpeedWireless     float64 = 300000000   // m/s
+	DistanceWireless  float64 = 57968000000 // meter 54500000000-401300000000
+	BandwidthWireless float64 = 2048        // bps, 500~32000, ref: https://mars.nasa.gov/msl/mission/communications/
+	SpeedWire         float64 = 231000000   // .77c
+	DistanceWire      float64 = 30          // meter
+	BandwidthWire     float64 = 1073741824  // 1Gbps
+	PacketLossRate    float64 = 0           // percenttge
 )
 
 // no direction
@@ -62,7 +65,11 @@ func Connect(n1, n2 Node) {
 
 // size in bytes
 func (l *Link) computeDelay(pktSize int) {
-	l.delay = float64(pktSize)*8/l.Bandwidth + l.Distance/l.Speed
+	var jitter float64
+	if l.Distance < 1000 { // in-habitat
+		jitter = rand.ExpFloat64() * 10 / 1000000 // us
+	}
+	l.delay = float64(pktSize)*8/l.Bandwidth + l.Distance/l.Speed + jitter
 	// fmt.Println("delay", l.delay)
 }
 

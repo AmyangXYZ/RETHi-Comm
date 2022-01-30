@@ -220,6 +220,9 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
 				}
 			}
+
+			saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
+
 			// fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
@@ -239,6 +242,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					}
 				}
 			}
+
 		}
 	}
 }
@@ -249,7 +253,7 @@ func (s *Subsys) CreateFlow(dst int) {
 		Dst:   uint8(dst),
 		IsSim: true,
 	}
-	var buf [2]byte
+	var buf [64]byte
 	buf[0] = pkt.Src
 	buf[1] = pkt.Dst
 	pkt.RawBytes = buf[:]
