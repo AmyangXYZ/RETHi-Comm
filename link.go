@@ -67,7 +67,7 @@ func Connect(n1, n2 Node) {
 func (l *Link) computeDelay(pktSize int) {
 	var jitter float64
 	if l.Distance < 1000 { // in-habitat
-		jitter = rand.ExpFloat64() * 10 / 1000000 // us
+		jitter = rand.ExpFloat64() * float64(JITTER_BASE) / 1000000 // us
 	}
 	l.delay = float64(pktSize)*8/l.Bandwidth + l.Distance/l.Speed + jitter
 	// fmt.Println("delay", l.delay)

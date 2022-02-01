@@ -9,6 +9,7 @@ services:
       DELAY_ENABLED: "true"
       FRER_ENABLED: "false"
       RAND_SEED: "123"
+      JITTER: "10" # microsecond
       ADDR_LOCAL_GCC: ":10000"
       ADDR_LOCAL_HMS: ":10001"
       ADDR_LOCAL_STR: ":10002"

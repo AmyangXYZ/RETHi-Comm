@@ -47,6 +47,7 @@ var (
 	CONSOLE_ENABLED   = false
 	DELAY_ENABLED     = false
 	FRER_ENABLED      = false
+	JITTER_BASE       = 0
 	boottime          int64
 	WSLog                   = make(chan Log, 65536)
 	SUBSYS_LIST             = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
@@ -79,6 +80,9 @@ func init() {
 		rand.Seed(int64(seed))
 	} else {
 		rand.Seed(time.Now().UnixNano())
+	}
+	if j, err := strconv.Atoi(os.Getenv("JITTER")); err != nil {
+		JITTER_BASE = j
 	}
 }
 
