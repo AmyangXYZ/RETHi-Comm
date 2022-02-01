@@ -81,7 +81,7 @@ func init() {
 	} else {
 		rand.Seed(time.Now().UnixNano())
 	}
-	if j, err := strconv.Atoi(os.Getenv("JITTER")); err != nil {
+	if j, err := strconv.Atoi(os.Getenv("JITTER")); err == nil {
 		JITTER_BASE = j
 	}
 }
