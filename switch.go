@@ -26,6 +26,8 @@ type Switch struct {
 	Failed         bool
 	FailedDuration int
 
+	logMutex sync.Mutex
+
 	SeqRecoverHistory      map[int32]bool
 	SeqRecoverHistoryMutex sync.Mutex
 	RoutingTable           map[string][]RoutingEntry
@@ -314,5 +316,7 @@ func (sw *Switch) send(pkt *Packet, gate *Gate) {
 			PktTx: [2]string{sw.name, gate.Neighbor},
 		}
 	}
+	sw.logMutex.Lock()
 	sw.fwdCnt++
+	sw.logMutex.Unlock()
 }

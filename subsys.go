@@ -13,6 +13,7 @@ import (
 	"os"
 	"sort"
 	"sync"
+	"time"
 )
 
 // Subsys listens and forward UDP packets from each subsystem
@@ -178,6 +179,8 @@ func (s *Subsys) handlePacket() {
 			continue
 		}
 		pkt.Seq = getSeqNum()
+		pkt.RxTimestamp = time.Now().UnixNano()
+		// fmt.Println("packet recv #", pkt.Seq, pkt.RxTimestamp)
 		if pkt.Src != uint8(s.id) {
 			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
 		}
@@ -213,24 +216,30 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 
 			pkt.Path = append(pkt.Path, s.name)
 
+			pkt.TxTimestamp = time.Now().UnixNano()
+			fmt.Println("packet send out #", pkt.Seq, pkt.TxTimestamp)
+
 			// fmt.Println(pkt.RawBytes)
 			if !pkt.IsSim {
 				_, err := s.outConn.Write(pkt.RawBytes)
+
 				if err != nil {
+
 					fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
 				}
 			}
 
-			saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
+			// go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
 
-			// fmt.Println("average processing delay", processingDelaySum.Microseconds()/int64(s.recvCnt))
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %v us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, (pkt.TxTimestamp-pkt.RxTimestamp)/1000)
 				if CONSOLE_ENABLED {
 					WSLog <- Log{
 						Type: WSLOG_MSG,
-						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %v us", pkt.Seq, len(pkt.RawBytes), pkt.Path, (pkt.TxTimestamp-pkt.RxTimestamp)/1000),
+						// Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
 					}
 				}
 			} else {
@@ -258,6 +267,8 @@ func (s *Subsys) CreateFlow(dst int) {
 	buf[1] = pkt.Dst
 	pkt.RawBytes = buf[:]
 	pkt.Seq = getSeqNum()
+	pkt.RxTimestamp = time.Now().UnixNano()
+	// fmt.Println("packet recv #", pkt.Seq, pkt.RxTimestamp)
 	if g, err := s.routing(pkt); err == nil {
 		s.send(pkt, g)
 	} else {

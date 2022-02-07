@@ -25,12 +25,14 @@ type Packet struct {
 	Payload      []byte `json:"payload"`
 
 	// internal use
-	IsSim    bool
-	RawBytes []byte
-	Delay    float64
-	Path     []string
-	Seq      int32 // for 802.1CB-FRER
-	DupID    int
+	IsSim       bool
+	RawBytes    []byte
+	Delay       float64
+	Path        []string
+	Seq         int32 // for 802.1CB-FRER
+	RxTimestamp int64
+	TxTimestamp int64
+	DupID       int
 }
 
 func (pkt *Packet) FromBuf(buf []byte) error {
