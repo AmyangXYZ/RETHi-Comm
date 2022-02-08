@@ -26,7 +26,8 @@ type Switch struct {
 	Failed         bool
 	FailedDuration int
 
-	logMutex sync.Mutex
+	logFwdCntMutex  sync.Mutex
+	logRecvCntMutex sync.Mutex
 
 	SeqRecoverHistory      map[int32]bool
 	SeqRecoverHistoryMutex sync.Mutex
@@ -124,7 +125,9 @@ func (sw *Switch) Start() {
 					return
 				case pkt := <-g.Channel:
 					sw.queue[pkt.Priority] <- pkt
+					sw.logRecvCntMutex.Lock()
 					sw.recvCnt++
+					sw.logRecvCntMutex.Unlock()
 					// fmt.Println(sw.name, "enqueue packet to queue", pkt.Priority)
 				}
 			}
@@ -316,7 +319,7 @@ func (sw *Switch) send(pkt *Packet, gate *Gate) {
 			PktTx: [2]string{sw.name, gate.Neighbor},
 		}
 	}
-	sw.logMutex.Lock()
+	sw.logFwdCntMutex.Lock()
 	sw.fwdCnt++
-	sw.logMutex.Unlock()
+	sw.logFwdCntMutex.Unlock()
 }

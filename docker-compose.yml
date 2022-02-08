@@ -1,15 +1,9 @@
 version: "3.9"
 services:
   comm:
-    # image: amyangxyz111/rethi-comm
-    image: comm-t
+    image: amyangxyz111/rethi-comm
+    # image: comm_t
     environment:
-      ANIMATION_ENABLED: "false"
-      CONSOLE_ENABLED: "true"
-      DELAY_ENABLED: "true"
-      FRER_ENABLED: "false"
-      RAND_SEED: "123"
-      JITTER: "10" # microsecond
       ADDR_LOCAL_GCC: ":10000"
       ADDR_LOCAL_HMS: ":10001"
       ADDR_LOCAL_STR: ":10002"
@@ -18,8 +12,8 @@ services:
       ADDR_LOCAL_AGT: ":10005"
       ADDR_LOCAL_INT: ":10006"
       ADDR_LOCAL_EXT: ":10007"
-      ADDR_REMOTE_GCC: "host.docker.internal:20000" # refer to host's localhost
-      ADDR_REMOTE_HMS: "host.docker.internal:20001"
+      ADDR_REMOTE_GCC: "data_service:20000" # refer to host's localhosdockt
+      ADDR_REMOTE_HMS: "data_service:20001"
       ADDR_REMOTE_STR: "host.docker.internal:20002"
       ADDR_REMOTE_PWR: "host.docker.internal:20003"
       ADDR_REMOTE_ECLSS: "host.docker.internal:20004"
@@ -29,12 +23,20 @@ services:
       DB_DB: comm
       DB_USER: uu
       DB_PASSWORD: password
+    
+      ANIMATION_ENABLED: "false"
+      CONSOLE_ENABLED: "false"
+      DELAY_ENABLED: "false"
+      FRER_ENABLED: "false"
+      RAND_SEED: "123"
+      JITTER: "0"
     ports:
       - "8000:8000"
-      # - "10000-10007:10000-10007/udp"
+      - "10000-10007:10000-10007/udp"
     depends_on:
       - comm_db
     networks:
+      - hms-network
       - comm-network
 
   comm_db:
@@ -49,31 +51,65 @@ services:
     networks:
       - comm-network
 
-  # data_service:
-  #   image: data-service
-  #   ports:
-  #     - "20001:20001"
-  #   environment:
-  #     DB_DB: hms
-  #     DB_USER: uu
-  #     DB_PASSWORD: password
-  #   depends_on:
-  #     - hms_db
-  #   networks:
-  #     - hms-network
+  data_service:
+    image: xuechuanyu/rethi-ds-test
+    ports:
+      - "20000-20001:20000-20001/udp"
+      - "65530-65531:65530-65531/udp"
+      - "8888:8888"
+    environment:
+      DS_LOCAL_ADDR_GROUND: ":20000"
+      DS_REMOTE_ADDR_GROUND: "comm:10000"
 
-  # hms_db:
-  #   image: mariadb
-  #   environment:
-  #     MYSQL_RANDOM_ROOT_PASSWORD: "yes"
-  #     MYSQL_DATABASE: hms
-  #     MYSQL_USER: uu
-  #     MYSQL_PASSWORD: password
-  #   expose:
-  #     - "3306"
-  #   networks:
-  #     - hms-network
+      DS_LOCAL_ADDR_HABITAT: ":20001"
+      DS_REMOTE_ADDR_HABITAT: "comm:10001"
+
+      DS_LOCAL_LOOP_GROUND: ":65530"
+      DS_REMOTE_LOOP_GROUND: "host.docker.internal:65532"
+
+      DS_LOCAL_LOOP_HABITAT: ":65531"
+      DS_REMOTE_LOOP_HABITAT: "host.docker.internal:65533"
+
+      DB_NAME_GROUND: ground
+      DB_USER_GROUND: uu
+      DB_PASSWORD_GROUND: password
+      DB_NAME_HABITAT: habitat
+      DB_USER_HABITAT: uu
+      DB_PASSWORD_HABITAT: password
+    depends_on:
+      - ground_db
+      - habitat_db
+    networks:
+      - hms-network
+
+  ground_db:
+    image: mariadb
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: ground
+      MYSQL_USER: uu
+      MYSQL_PASSWORD: password
+    expose:
+      - "3306"
+    ports:
+      - "3307:3306"
+    networks:
+      - hms-network
+
+  habitat_db:
+    image: mariadb
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: habitat
+      MYSQL_USER: uu
+      MYSQL_PASSWORD: password
+    expose:
+      - "3306"
+    ports:
+      - "3308:3306"
+    networks:
+      - hms-network
 
 networks:
-  comm-network:
-  # hms-network:
+  comm-network: null
+  hms-network: null

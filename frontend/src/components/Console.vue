@@ -36,8 +36,8 @@ export default {
   methods: {
     startWS() {
       var loc = window.location;
-      "ws://"+loc.host+"/ws"
-      this.ws = new WebSocket("ws://127.0.0.1:8000/ws/"+this.name)
+      // "ws://"+loc.host+"/ws"
+      this.ws = new WebSocket("ws://"+loc.host+"/ws/"+this.name)
       // this.ws = new WebSocket("ws://"+loc.host+"/ws")
       this.ws.onopen = () => {
         this.dropped = false

@@ -17,7 +17,7 @@ const (
 	GATE_NUM_SUBSYS     = 8
 	GATE_NUM_SWITCH     = 8
 	QUEUE_NUM_SWITCH    = 8
-	QUEUE_LEN_SWITCH    = 128
+	QUEUE_LEN_SWITCH    = 1024
 	BUF_LEN             = 65536
 	SAVE_STATS_PERIOD   = 10 // in seconds
 	UPLOAD_STATS_PERIOD = 3  // in seconds

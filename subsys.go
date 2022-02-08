@@ -38,6 +38,8 @@ type Subsys struct {
 	SeqRecoverHistory      map[int32]bool // for frer
 	SeqRecoverHistoryMutex sync.Mutex
 
+	logMutex sync.Mutex
+
 	stopSig chan bool
 }
 
@@ -170,26 +172,27 @@ func (s *Subsys) handlePacket() {
 			return
 		}
 
-		// fmt.Printf("[%s] Received packet #%d\n", s.name, s.recvCnt)
+		go func(buffer []byte) {
+			pkt := new(Packet)
+			err = pkt.FromBuf(buf[0:n])
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			pkt.Seq = getSeqNum()
+			pkt.RxTimestamp = time.Now().UnixNano()
+			// fmt.Println("packet recv #", pkt.Seq, pkt.RxTimestamp)
+			if pkt.Src != uint8(s.id) {
+				fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
+			}
 
-		pkt := new(Packet)
-		err = pkt.FromBuf(buf[0:n])
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-		pkt.Seq = getSeqNum()
-		pkt.RxTimestamp = time.Now().UnixNano()
-		// fmt.Println("packet recv #", pkt.Seq, pkt.RxTimestamp)
-		if pkt.Src != uint8(s.id) {
-			fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
-		}
+			if g, err := s.routing(pkt); err == nil {
+				s.send(pkt, g)
+			} else {
+				fmt.Println(err)
+			}
+		}(buf[0:n])
 
-		if g, err := s.routing(pkt); err == nil {
-			s.send(pkt, g)
-		} else {
-			fmt.Println(err)
-		}
 	}
 }
 
@@ -217,16 +220,16 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			pkt.Path = append(pkt.Path, s.name)
 
 			pkt.TxTimestamp = time.Now().UnixNano()
-			fmt.Println("packet send out #", pkt.Seq, pkt.TxTimestamp)
+			// fmt.Println("packet send out #", pkt.Seq, pkt.TxTimestamp)
 
 			// fmt.Println(pkt.RawBytes)
 			if !pkt.IsSim {
-				_, err := s.outConn.Write(pkt.RawBytes)
-
-				if err != nil {
-
-					fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
-				}
+				go func() {
+					_, err := s.outConn.Write(pkt.RawBytes)
+					if err != nil {
+						fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
+					}
+				}()
 			}
 
 			// go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
@@ -234,7 +237,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
 				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %v us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, (pkt.TxTimestamp-pkt.RxTimestamp)/1000)
+				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %v us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, (pkt.TxTimestamp-pkt.RxTimestamp)/1000)
 				if CONSOLE_ENABLED {
 					WSLog <- Log{
 						Type: WSLOG_MSG,
@@ -306,5 +309,7 @@ func (s *Subsys) send(pkt *Packet, gate *Gate) {
 			PktTx: [2]string{s.name, gate.Neighbor},
 		}
 	}
+	s.logMutex.Lock()
 	s.fwdCnt++
+	s.logMutex.Unlock()
 }
