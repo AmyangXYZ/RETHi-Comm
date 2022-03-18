@@ -18,7 +18,6 @@ const (
 	GATE_NUM_SWITCH     = 8
 	QUEUE_NUM_SWITCH    = 8
 	QUEUE_LEN_SWITCH    = 1024
-	BUF_LEN             = 65536
 	SAVE_STATS_PERIOD   = 10 // in seconds
 	UPLOAD_STATS_PERIOD = 3  // in seconds
 	WSLOG_HEARTBEAT     = -1
@@ -43,6 +42,7 @@ type Log struct {
 }
 
 var (
+	PKT_BUF_LEN       = 1024
 	ANIMATION_ENABLED = false
 	CONSOLE_ENABLED   = false
 	DELAY_ENABLED     = false
@@ -60,6 +60,13 @@ var (
 
 func init() {
 	// read env configs
+	if len(os.Getenv("PKT_BUF_LEN")) > 0 {
+		val, err := strconv.Atoi(os.Getenv("PKT_BUF_LEN"))
+		if err != nil {
+			panic(err)
+		}
+		PKT_BUF_LEN = val
+	}
 	if os.Getenv("ANIMATION_ENABLED") == "true" {
 		ANIMATION_ENABLED = true
 	}
