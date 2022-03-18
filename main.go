@@ -60,13 +60,6 @@ var (
 
 func init() {
 	// read env configs
-	if len(os.Getenv("PKT_BUF_LEN")) > 0 {
-		val, err := strconv.Atoi(os.Getenv("PKT_BUF_LEN"))
-		if err != nil {
-			panic(err)
-		}
-		PKT_BUF_LEN = val
-	}
 	if os.Getenv("ANIMATION_ENABLED") == "true" {
 		ANIMATION_ENABLED = true
 	}
