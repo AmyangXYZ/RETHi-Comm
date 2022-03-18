@@ -165,7 +165,7 @@ func (s *Subsys) Stop() {
 // receive external UDP packets
 func (s *Subsys) handlePacket() {
 	for {
-		var buf [BUF_LEN]byte
+		var buf [PKT_BUF_LEN]byte
 		n, err := s.inConn.Read(buf[0:])
 		if err != nil {
 			// fmt.Println(err)

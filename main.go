@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	PKT_BUF_LEN         = 1024
 	GATE_NUM_SUBSYS     = 8
 	GATE_NUM_SWITCH     = 8
 	QUEUE_NUM_SWITCH    = 8
@@ -42,7 +43,6 @@ type Log struct {
 }
 
 var (
-	PKT_BUF_LEN       = 1024
 	ANIMATION_ENABLED = false
 	CONSOLE_ENABLED   = false
 	DELAY_ENABLED     = false
