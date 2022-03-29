@@ -1,5 +1,4 @@
-FROM golang:alpine AS backend-builder
-RUN apk add --no-cache make build-base
+FROM golang AS backend-builder
 WORKDIR /go/src/app
 COPY . .
 RUN go mod download 
