@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	PKT_BUF_LEN         = 1024
+	PKT_BUF_LEN         = 65535
 	GATE_NUM_SUBSYS     = 8
 	GATE_NUM_SWITCH     = 8
 	QUEUE_NUM_SWITCH    = 8
