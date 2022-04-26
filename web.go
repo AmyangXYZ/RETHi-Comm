@@ -255,7 +255,7 @@ func postFlows(ctx *sgo.Context) error {
 		fmt.Println(err)
 		return err
 	}
-	// fmt.Println(string(body))
+	fmt.Println(string(body))
 	var flows []Flow
 	err = json.Unmarshal(body, &flows)
 	if err != nil {

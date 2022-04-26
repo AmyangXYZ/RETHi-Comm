@@ -96,7 +96,6 @@ func NewSubsys(name string, position [2]int) *Subsys {
 	// for dst, p := range s.RoutingTable {
 	// 	fmt.Println("    ", dst, p)
 	// }
-
 	go s.Start()
 	Subsystems = append(Subsystems, s)
 	return s
@@ -141,7 +140,6 @@ func (s *Subsys) Start() {
 		fmt.Println(err)
 		return
 	}
-
 	for _, g := range s.gatesIn {
 		go s.handleMessage(g)
 	}
@@ -191,29 +189,29 @@ func (s *Subsys) handlePacket() {
 
 // send internal messages from switches to outside
 func (s *Subsys) handleMessage(inGate *Gate) {
-	// fmt.Println("waiting msg from switches")
+	// fmt.Println(s.name, "waiting msg from switches")
 	for {
 		select {
 		case <-s.stopSig:
-			// fmt.Println(s.name, "terminate an ingate goroutine")
+			fmt.Println(s.name, "terminate an ingate goroutine")
 			return
 		case pkt := <-inGate.Channel:
 			s.recvCnt++
-
-			// eliminate dup
-			s.SeqRecoverHistoryMutex.Lock()
-			if _, ok := s.SeqRecoverHistory[pkt.Seq]; ok {
-				// fmt.Println(sw.name, "eliminate dup from", pkt.Path[len(pkt.Path)-1])
+			if FRER_ENABLED {
+				// eliminate dup
+				s.SeqRecoverHistoryMutex.Lock()
+				if _, ok := s.SeqRecoverHistory[pkt.Seq]; ok {
+					// fmt.Println(sw.name, "eliminate dup from", pkt.Path[len(pkt.Path)-1])
+					s.SeqRecoverHistoryMutex.Unlock()
+					continue
+				}
+				s.SeqRecoverHistory[pkt.Seq] = true
 				s.SeqRecoverHistoryMutex.Unlock()
-				continue
 			}
-			s.SeqRecoverHistory[pkt.Seq] = true
-			s.SeqRecoverHistoryMutex.Unlock()
-
 			pkt.Path = append(pkt.Path, s.name)
 
 			pkt.TxTimestamp = time.Now().UnixNano()
-			// fmt.Println("packet send out #", pkt.Seq, pkt.TxTimestamp)
+			fmt.Println(s.name, "packet send out #", pkt.Seq, pkt.TxTimestamp)
 
 			// fmt.Println(pkt.RawBytes)
 			if !pkt.IsSim {
@@ -263,8 +261,6 @@ func (s *Subsys) CreateFlow(dst int) {
 	buf[1] = pkt.Dst
 	pkt.RawBytes = buf[:]
 	pkt.Seq = getSeqNum()
-	pkt.RxTimestamp = time.Now().UnixNano()
-	// fmt.Println("packet recv #", pkt.Seq, pkt.RxTimestamp)
 	if g, err := s.routing(pkt); err == nil {
 		s.send(pkt, g)
 	} else {

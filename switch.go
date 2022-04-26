@@ -310,7 +310,7 @@ L1:
 }
 
 func (sw *Switch) send(pkt *Packet, gate *Gate) {
-	// fmt.Println("sent to", g.Neighbor)
+	// fmt.Println("sent to", gate.Neighbor)
 	pkt.Path = append(pkt.Path, sw.name)
 	gate.Channel <- pkt
 	if ANIMATION_ENABLED {
