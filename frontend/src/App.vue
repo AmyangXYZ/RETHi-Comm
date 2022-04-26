@@ -3,15 +3,15 @@
     <Navbar/>
     <Sidebar/>
     <vs-row vs-w=12>
-      <vs-col vs-offset=0.8 vs-w=5.5  style="z-index:99">
+      <vs-col vs-offset=0.8 vs-w=5.2  style="z-index:99">
         <Configuration/>
         <Topology/>
         
       </vs-col>
-      <vs-col vs-offset=0.2 vs-w=5.1  style="z-index:99">
+      <vs-col vs-offset=0.2 vs-w=5.4  style="z-index:99">
         <Flow v-if="mode=='Simulation'"/>
         <Fault/>
-        <Console name="comm" height="358px"/>
+        <Console name="comm" height="308px"/>
       </vs-col>
     </vs-row>
     <vs-row vs-w="12">

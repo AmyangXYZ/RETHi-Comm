@@ -16,7 +16,7 @@ import (
 const (
 	PKT_BUF_LEN         = 65535
 	GATE_NUM_SUBSYS     = 8
-	GATE_NUM_SWITCH     = 8
+	GATE_NUM_SWITCH     = 16
 	QUEUE_NUM_SWITCH    = 8
 	QUEUE_LEN_SWITCH    = 1024
 	SAVE_STATS_PERIOD   = 10 // in seconds
@@ -49,13 +49,25 @@ var (
 	FRER_ENABLED      = false
 	JITTER_BASE       = 0
 	boottime          int64
-	WSLog                   = make(chan Log, 65536)
-	SUBSYS_LIST             = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
-	SequenceNumber    int32 = 0
-	Subsystems        []*Subsys
-	Switches          []*Switch
-	Links             []*Link
-	ActiveTopoTag     = ""
+	WSLog             = make(chan Log, 65536)
+	// SUBSYS_LIST             = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
+	SUBSYS_MAP = map[string]uint8{
+		"GCC":   0,
+		"HMS":   1,
+		"STR":   2,
+		"SPL":   11,
+		"ECLSS": 5,
+		"PWR":   3,
+		"AGT":   6,
+		"IE":    8,
+		"DTB":   9,
+		"EXT":   7,
+	}
+	SequenceNumber int32 = 0
+	Subsystems     []*Subsys
+	Switches       []*Switch
+	Links          []*Link
+	ActiveTopoTag  = ""
 )
 
 func init() {

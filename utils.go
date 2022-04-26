@@ -16,16 +16,16 @@ func getSeqNum() int32 {
 }
 
 func subsysID2Name(id uint8) string {
-	return SUBSYS_LIST[int(id)]
+	for n, i := range SUBSYS_MAP {
+		if id == i {
+			return n
+		}
+	}
+	return ""
 }
 
 func subsysName2ID(name string) int {
-	for i, n := range SUBSYS_LIST {
-		if n == name {
-			return i
-		}
-	}
-	return -1
+	return int(SUBSYS_MAP[name])
 }
 
 func findNodeByName(name string) Node {

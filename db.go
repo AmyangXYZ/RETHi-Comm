@@ -219,7 +219,7 @@ type StatsDelay struct {
 func queryStatsDelayByName(name string) ([]StatsDelay, error) {
 	var stats []StatsDelay
 
-	for _, subsys := range SUBSYS_LIST {
+	for subsys, _ := range SUBSYS_MAP {
 		if subsys == name {
 			continue
 		}

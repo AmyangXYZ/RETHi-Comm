@@ -1,21 +1,36 @@
 <template>
   <vs-card>
-    <div slot="header" style="text-align: left;z-index:20">
-       <vs-row vs-type="flex" vs-justify="space-between">
-        <vs-col vs-w="3"> 
+    <div slot="header" style="text-align: left; z-index: 20">
+      <vs-row vs-type="flex" vs-justify="space-between">
+        <vs-col vs-w="3">
           <h3>Flow Generator</h3>
         </vs-col>
-        <vs-col vs-w="1.25" vs-type="flex" vs-justify="space-between" > 
-          <vs-button size="small" color="primary" icon-pack="fas" type="relief" :disabled="started" icon="fa-play" @click="startSim"></vs-button>
-          <vs-button size="small" color="danger" icon-pack="fas" type="relief" :disabled="!started" icon="fa-stop" @click="stopSim"></vs-button>
+        <vs-col vs-w="1.25" vs-type="flex" vs-justify="space-between">
+          <vs-button
+            size="small"
+            color="primary"
+            icon-pack="fas"
+            type="relief"
+            :disabled="started"
+            icon="fa-play"
+            @click="startSim"
+          ></vs-button>
+          <vs-button
+            size="small"
+            color="danger"
+            icon-pack="fas"
+            type="relief"
+            :disabled="!started"
+            icon="fa-stop"
+            @click="stopSim"
+          ></vs-button>
         </vs-col>
       </vs-row>
     </div>
-    
-    <vs-row vs-align="center">
-      <vs-col  vs-w="12">
-        <vs-table :data="im"  v-model="selectedFlows" multiple>
 
+    <vs-row vs-align="center">
+      <vs-col vs-w="12">
+        <vs-table :data="im" v-model="selectedFlows" multiple>
           <!-- <template slot="header">
             <vs-row>
               <vs-col vs-type="flex" vs-justify="center"> 
@@ -26,48 +41,30 @@
             </vs-row>
           </template> -->
           <template slot="thead">
-            <vs-th>
-              Src \ Dst
-            </vs-th>
-            <vs-th>
-              GCC
-            </vs-th>
-            <vs-th>
-              HMS
-            </vs-th>
-            <vs-th>
-              STR
-            </vs-th>
-            <vs-th>
-              PWR
-            </vs-th>
-            <vs-th>
-              ECLSS
-            </vs-th>
-            <vs-th>
-              AGT
-            </vs-th>
-            <vs-th>
-              INT
-            </vs-th>
-            <vs-th>
-              EXT
-            </vs-th>
-            <vs-th>
-              Freq (Hz)
-            </vs-th>
+            <vs-th> Src \ Dst </vs-th>
+            <vs-th> GCC </vs-th>
+            <vs-th> HMS </vs-th>
+            <vs-th> STR </vs-th>
+            <vs-th> SPL </vs-th>
+            <vs-th> PWR </vs-th>
+            <vs-th> ECLSS </vs-th>
+            <vs-th> AGT </vs-th>
+            <vs-th> IE </vs-th>
+            <vs-th> EXT </vs-th>
+            <vs-th> DTB </vs-th>
+            <vs-th> Freq (Hz) </vs-th>
           </template>
 
-          <template slot-scope="{data}">
-            <vs-tr :data="tr" :key="indextr" v-for="(tr, indextr) in data" >
+          <template slot-scope="{ data }">
+            <vs-tr :data="tr" :key="indextr" v-for="(tr, indextr) in data">
               <vs-td :data="data[indextr].name">
-                {{data[indextr].name}}
+                {{ data[indextr].name }}
               </vs-td>
 
               <vs-td :key="i" v-for="(s, i) in tr.dst" :data="s">
-                {{s}}
+                {{ s }}
                 <template slot="edit">
-                  <vs-select id="mode-select" v-model="tr.dst[i]" >
+                  <vs-select id="mode-select" v-model="tr.dst[i]">
                     <vs-select-item text="X" value="X" />
                     <vs-select-item text="-" value="-" />
                   </vs-select>
@@ -75,7 +72,7 @@
               </vs-td>
 
               <vs-td :data="tr.freq">
-                {{tr.freq}}
+                {{ tr.freq }}
                 <template slot="edit">
                   <vs-input v-model="tr.freq" class="inputx" />
                 </template>
@@ -94,16 +91,30 @@ export default {
     return {
       started: false,
       selectedFlows: [],
-      im: [                     // 0    1    2    3    4    5    6   7
-        {name:"GCC",  id:0,  dst:["-", "X", "-", "-", "-", "-", "-","-"], freq:"0.1"},
+      subsys_list: [
+        {"GCC":   0},
+        {"HMS":   1},
+        {"STR":   2},
+        {"SPL":   11},
+        {"ECLSS": 5},
+        {"PWR":   3},
+        {"AGT":   6},
+        {"IE":    8},
+        {"DTB":   9},
+        {"EXT":   7},
+      ],
+      im: [                     // 0    1    2    3    4    5    6   7 8 
+        {name:"GCC",  id:0,  dst:["-", "X", "-", "-","-", "-", "-", "-", "-","-"], freq:"0.1"},
         // {name:"HMS",  id:1,  dst:["X", "-", "-", "-", "-", "X", "-","-"], freq:"1"},
-        {name:"HMS",  id:1,  dst:["-", "-", "X", "-", "-", "-", "-","-"], freq:"0.1"},
-        {name:"STR",  id:2,  dst:["-", "X", "-", "X", "-", "X", "X","-"], freq:"10"},
-        {name:"PWR",  id:3,  dst:["-", "X", "X", "-", "X", "X", "X","-"], freq:"2"},
-        {name:"ECLSS",id:4,  dst:["-", "-", "-", "X", "-", "-", "X","-"], freq:"2"},
-        {name:"AGT",  id:5,  dst:["-", "X", "X", "X", "X", "-", "-","-"], freq:"5"},
-        {name:"INT",  id:6,  dst:["-", "-", "X", "X", "X", "-", "-","-"], freq:"1"},
-        {name:"EXT",  id:7,  dst:["-", "-", "X", "X", "X", "-", "-","-"], freq:"1"},
+        {name:"HMS",  id:1,  dst:["-", "-", "X", "-","-","-", "-", "-", "-","-"], freq:"0.1"},
+        {name:"STR",  id:2,  dst:["-", "X", "-", "X","-","X", "-", "X", "X","-"], freq:"10"},
+        {name:"SPL",  id:11,  dst:["-", "X", "-", "-","X","-", "-", "X", "X","-"], freq:"10"},
+        {name:"PWR",  id:3,  dst:["-", "X", "X", "-","-","-", "X", "X", "X","-"], freq:"2"},
+        {name:"ECLSS",id:5,  dst:["-", "-", "-", "-","X","-", "-", "-", "X","-"], freq:"2"},
+        {name:"AGT",  id:6,  dst:["-", "X", "X", "X","-","-", "-", "-", "-","-"], freq:"5"},
+        {name:"IE",  id:8,  dst:["-", "-", "X", "X","-","X", "X", "-", "-","-"], freq:"1"},
+        {name:"EXT",  id:7,  dst:["-", "-", "X", "X","-","-", "X", "-", "-","-"], freq:"1"},
+        {name:"DTB",  id:9,  dst:["-", "-", "X", "X","X","-", "X", "-", "-","-"], freq:"1"},
       ]
     }
   },
@@ -111,7 +122,7 @@ export default {
     startSim() {
       var flowsCnt = 0;
       for (var i=0;i<this.selectedFlows.length;i++) {
-        for (var j=0;j<8;j++) {
+        for (var j=0;j<11;j++) {
           if (this.selectedFlows[i].dst[j]=="X") {
             flowsCnt++
           }
@@ -150,12 +161,13 @@ export default {
 
 <style scoped>
 .vs-table--content {
-  overflow:hidden;
+  overflow: hidden;
 }
 
-th,td {
+th,
+td {
   text-align: center;
-  padding-left:16px;
+  padding-left: 16px;
   font-weight: 600;
   font-size: 0.85rem;
 }

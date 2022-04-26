@@ -45,7 +45,6 @@ type Subsys struct {
 
 // returns a Subsys pointer
 func NewSubsys(name string, position [2]int) *Subsys {
-	id := 0
 
 	var gatesIn [GATE_NUM_SUBSYS]*Gate
 	var gatesOut [GATE_NUM_SUBSYS]*Gate
@@ -53,17 +52,11 @@ func NewSubsys(name string, position [2]int) *Subsys {
 		gatesIn[i] = NewGate(i, name)
 		gatesOut[i] = NewGate(i, name)
 	}
-	for i, v := range SUBSYS_LIST {
-		if name == v {
-			id = i
-			break
-		}
-	}
 
 	s := &Subsys{
 		name:              name,
 		position:          position,
-		id:                id,
+		id:                subsysName2ID(name),
 		gatesIn:           gatesIn,
 		gatesOut:          gatesOut,
 		gatesInIdx:        -1,
@@ -73,7 +66,7 @@ func NewSubsys(name string, position [2]int) *Subsys {
 		stopSig:           make(chan bool),
 	}
 
-	for _, subsys := range SUBSYS_LIST {
+	for subsys, _ := range SUBSYS_MAP {
 		if subsys == name {
 			continue
 		}
@@ -127,8 +120,8 @@ func (s *Subsys) InGate() *Gate {
 }
 
 func (s *Subsys) Start() {
-	fmt.Printf("Start virtual subsys - %s: local_addr: %s, remote_addr: %s\n",
-		s.name, os.Getenv("ADDR_LOCAL_"+s.name), os.Getenv("ADDR_REMOTE_"+s.name))
+	fmt.Printf("Start virtual subsys (id: %d) - %s: local_addr: %s, remote_addr: %s\n",
+		s.id, s.name, os.Getenv("ADDR_LOCAL_"+s.name), os.Getenv("ADDR_REMOTE_"+s.name))
 	udpAddr, err := net.ResolveUDPAddr("udp", os.Getenv("ADDR_LOCAL_"+s.name))
 	if err != nil {
 		fmt.Println("invalid address")
