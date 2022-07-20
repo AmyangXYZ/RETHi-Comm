@@ -13,6 +13,7 @@ services:
       ADDR_LOCAL_EXT: ":10007"
       ADDR_LOCAL_IE: ":10008"
       ADDR_LOCAL_DTB: ":10009"
+      ADDR_LOCAL_CORRD: ":10010"
 
       ADDR_REMOTE_GCC: "host.docker.internal:20000" #
       ADDR_REMOTE_HMS: "host.docker.internal:20001"
@@ -24,6 +25,7 @@ services:
       ADDR_REMOTE_EXT: "host.docker.internal:20007"
       ADDR_REMOTE_IE: "host.docker.internal:20008"
       ADDR_REMOTE_DTB: "host.docker.internal:20009"
+      ADDR_REMOTE_CORRD: "host.docker.internal:20010"
 
       ANIMATION_ENABLED: "false"
       CONSOLE_ENABLED: "true"
@@ -36,7 +38,7 @@ services:
       DB_PASSWORD: password
     ports:
       - "8000:8000"
-      - "10000-10007:10000-10007/udp"
+      - "10000-10010:10000-10010/udp"
     depends_on:
       - comm_db
     networks:

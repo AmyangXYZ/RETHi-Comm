@@ -211,7 +211,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			pkt.Path = append(pkt.Path, s.name)
 
 			pkt.TxTimestamp = time.Now().UnixNano()
-			fmt.Println(s.name, "packet send out #", pkt.Seq, pkt.TxTimestamp)
+			// fmt.Println(s.name, "packet send out #", pkt.Seq, pkt.TxTimestamp)
 
 			// fmt.Println(pkt.RawBytes)
 			if !pkt.IsSim {
