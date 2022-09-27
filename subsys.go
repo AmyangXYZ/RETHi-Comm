@@ -293,7 +293,7 @@ L1:
 		}
 	}
 
-	return nil, errors.New("[" + s.name + "] cannot found next hop")
+	return nil, errors.New("[" + s.name + "] cannot found next hop to " + string(pkt.Dst))
 }
 
 func (s *Subsys) send(pkt *Packet, gate *Gate) {

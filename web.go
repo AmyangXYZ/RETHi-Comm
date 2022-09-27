@@ -277,10 +277,10 @@ func postFlows(ctx *sgo.Context) error {
 	}
 	simStartedFlag = 1
 	stopFlowSig = make(chan bool, 56)
+	subsysList := []string{"GCC", "HMS", "STR", "SPL", "PWR", "ECLSS", "AGT", "IE", "EXT", "DTB", "COORD"}
 	for _, f := range flows {
-		// subsys := Subsystems[f.ID]
 		for _, subsys := range Subsystems {
-			if subsysName2ID(subsys.Name()) == f.ID {
+			if subsys.Name() == f.Name {
 				for i, flag := range f.Dst {
 					if flag == "X" {
 						go func(dstID int, f Flow) {
@@ -300,7 +300,7 @@ func postFlows(ctx *sgo.Context) error {
 								}
 							}
 
-						}(i, f)
+						}(subsysName2ID(subsysList[i]), f)
 						// delay between different flows
 						time.Sleep(200 * time.Millisecond)
 					}

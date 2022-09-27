@@ -42,16 +42,9 @@
           </template> -->
           <template slot="thead">
             <vs-th> Src \ Dst </vs-th>
-            <vs-th> GCC </vs-th>
-            <vs-th> HMS </vs-th>
-            <vs-th> STR </vs-th>
-            <vs-th> SPL </vs-th>
-            <vs-th> PWR </vs-th>
-            <vs-th> ECLSS </vs-th>
-            <vs-th> AGT </vs-th>
-            <vs-th> IE </vs-th>
-            <vs-th> EXT </vs-th>
-            <vs-th> DTB </vs-th>
+            <vs-th v-for="(v,i) in im" :key="i">
+              {{v.name}}
+            </vs-th>
             <vs-th> Freq (Hz) </vs-th>
           </template>
 
@@ -91,30 +84,18 @@ export default {
     return {
       started: false,
       selectedFlows: [],
-      subsys_list: [
-        {"GCC":   0},
-        {"HMS":   1},
-        {"STR":   2},
-        {"SPL":   11},
-        {"ECLSS": 5},
-        {"PWR":   3},
-        {"AGT":   6},
-        {"IE":    8},
-        {"DTB":   9},
-        {"EXT":   7},
-      ],
-      im: [                     // 0    1    2    3    4    5    6   7 8 
-        {name:"GCC",  id:0,  dst:["-", "X", "-", "-","-", "-", "-", "-", "-","-"], freq:"0.1"},
-        // {name:"HMS",  id:1,  dst:["X", "-", "-", "-", "-", "X", "-","-"], freq:"1"},
-        {name:"HMS",  id:1,  dst:["-", "-", "X", "-","-","-", "-", "-", "-","-"], freq:"0.1"},
-        {name:"STR",  id:2,  dst:["-", "X", "-", "X","-","X", "-", "X", "X","-"], freq:"10"},
-        {name:"SPL",  id:11,  dst:["-", "X", "-", "-","X","-", "-", "X", "X","-"], freq:"10"},
-        {name:"PWR",  id:3,  dst:["-", "X", "X", "-","-","-", "X", "X", "X","-"], freq:"2"},
-        {name:"ECLSS",id:5,  dst:["-", "-", "-", "-","X","-", "-", "-", "X","-"], freq:"2"},
-        {name:"AGT",  id:6,  dst:["-", "X", "X", "X","-","-", "-", "-", "-","-"], freq:"5"},
-        {name:"IE",  id:8,  dst:["-", "-", "X", "X","-","X", "X", "-", "-","-"], freq:"1"},
-        {name:"EXT",  id:7,  dst:["-", "-", "X", "X","-","-", "X", "-", "-","-"], freq:"1"},
-        {name:"DTB",  id:9,  dst:["-", "-", "X", "X","X","-", "X", "-", "-","-"], freq:"1"},
+      im: [               // 0   1   2   3   4   5   6   7   8   9  10
+        {name:"GCC",   dst:["-","X","-","-","-","-","-","-","-","-","-"], freq:"0.1"},
+        {name:"HMS",   dst:["X","-","-","-","-","-","-","-","-","-","X"], freq:"0.25"},
+        {name:"STR",   dst:["-","X","-","X","-","X","-","X","X","-","-"], freq:"10"},
+        {name:"SPL",   dst:["-","X","-","-","X","-","-","X","X","-","-"], freq:"10"},
+        {name:"PWR",   dst:["-","X","X","-","-","-","X","X","X","-","-"], freq:"2"},
+        {name:"ECLSS", dst:["-","-","-","-","X","-","-","-","X","-","-"], freq:"2"},
+        {name:"AGT",   dst:["-","X","X","X","-","-","-","-","-","-","-"], freq:"5"},
+        {name:"IE",    dst:["-","-","X","X","-","X","X","-","-","-","-"], freq:"1"},
+        {name:"EXT",   dst:["-","-","X","X","-","-","X","-","-","-","-"], freq:"1"},
+        {name:"DTB",   dst:["-","-","X","X","X","-","X","-","-","-","-"], freq:"1"},
+        {name:"COORD", dst:["-","-","X","X","X","-","X","-","-","-","-"], freq:"0.1"},
       ]
     }
   },
@@ -167,7 +148,7 @@ export default {
 th,
 td {
   text-align: center;
-  padding-left: 16px;
+  padding-left: 10px;
   font-weight: 600;
   font-size: 0.85rem;
 }
