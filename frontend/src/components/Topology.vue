@@ -5,26 +5,38 @@
         <vs-col vs-w="3">
           <h3>Topology</h3>
         </vs-col>
-        <vs-col vs-w="8" vs-type="flex" vs-justify="flex-end">
+        <vs-col vs-w="9" vs-type="flex" vs-justify="flex-end">
           <div v-show="!editMode">
+            
             <vs-row vs-w="12">
-              <vs-col vs-offset="-0.5" vs-w="5">
+              <vs-col vs-offset="-0.5" vs-w="3.6">
                 <vs-button
                   class="buttons"
-                  style="width: 100px"
+                  style="width: 100px;height:30px;font-size:0.75rem"
                   size="small"
                   key="view"
-                  :color="viewActiveOnly ? 'rgb(255, 130, 0)' : 'success'"
-                  icon-pack="fas"
-                  type="filled"
-                  icon="fa-eye"
+                  :color="ANIMATION_ENABLED ? 'success' : 'grey'"
+                
+                  @click="pktTxAnimationToggle"
+                >
+                 Animation {{ ANIMATION_ENABLED ? "On" : "Off" }}
+                </vs-button>
+              </vs-col>
+              <vs-col vs-offset="0.3" vs-w="2.5">
+                <vs-button
+                  class="buttons"
+                  style="width:80px;height:30px;font-size:0.75rem"
+                  size="small"
+                  key="view"
+                  :color="viewActiveOnly ? 'success' : 'grey'"
+
                   @click="toggleViewOption"
                 >
                   {{ viewActiveOnly ? "Active only" : "All paths" }}
                 </vs-button>
               </vs-col>
 
-              <vs-col vs-offset="0.2" vs-w="3">
+              <vs-col vs-offset="0.7" vs-w="2.7">
                 <vs-select
                   class="connect-select"
                   v-model="selectedTopo"
@@ -38,7 +50,7 @@
                   />
                 </vs-select>
               </vs-col>
-              <vs-col vs-offset="1" vs-w="2">
+              <vs-col vs-offset="0.3" vs-w="2">
                 <vs-button
                   style="margin-left: 5px"
                   class="buttons"
@@ -253,6 +265,7 @@ export default {
   data() {
     return {
       nodes_position: [],
+      ANIMATION_ENABLED:false,
       editMode: false,
       viewActiveOnly: false,
       activeNodes: [],
@@ -270,8 +283,10 @@ export default {
       linkStats: {},
       switchCnt: 0,
       nodes: [], //
+      packets:[],
       connectHost0: 0,
       connectHost1: 0,
+      nodesIndexMap: {},
       tooltipDefault: {
         trigger: "item",
         enterable: true,
@@ -318,7 +333,7 @@ export default {
         xAxis: {
           type: "value",
           position: "top",
-          // min:-500,
+          min:100,
           max: 2050,
           interval: 50,
           axisTick: {
@@ -414,8 +429,8 @@ export default {
             layout: "none",
             symbolSize: 10,
             data:[],
-            animationDurationUpdate:1000,
-            animationDuration:1000
+            animationDurationUpdate:500,
+            // animationDuration:1000
           }
         ],
       },
@@ -468,6 +483,7 @@ export default {
         this.switchCnt = 0;
         for (var i = 0; i < res.data.data.nodes.length; i++) {
           var node = res.data.data.nodes[i];
+          this.nodesIndexMap[node.name] = i
           node.itemStyle = {
             opacity: 1,
           };
@@ -770,23 +786,19 @@ export default {
         }
       }
     },
-    pktTxAnimation(src, dst) {
-      var pkt = {}
-      var dst_pos = []
-      for (var i = 0; i < this.option.series[0].data.length; i++) {
-        if (this.option.series[0].data[i].name==src) {
-          pkt = {
-            value: JSON.parse(JSON.stringify(this.option.series[0].data[i].value))
-          }
-          this.option.series[2].data.push(pkt)-1
-        }
-        if (this.option.series[0].data[i].name==dst) {
-          dst_pos = JSON.parse(JSON.stringify(this.option.series[0].data[i].value))
-        }
+    pktTxAnimationToggle() {
+      this.packets = {}
+      this.ANIMATION_ENABLED = !this.ANIMATION_ENABLED 
+      this.$api.get(`/api/animation/${this.ANIMATION_ENABLED}`)
+    },
+    pktTxAnimation(flow) {
+      window.console.log(flow)
+      if (this.packets[flow.seq]==null) {
+        this.packets[flow.seq] = {value :JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.sender]].value))}
+        this.option.series[2].data.push(this.packets[flow.seq])
+      } else {
+        this.packets[flow.seq].value = JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.sender]].value))
       }
-      setTimeout(()=>{
-        pkt.value = dst_pos
-      },100)
     },
   },
   mounted() {
@@ -796,7 +808,8 @@ export default {
     setTimeout(this.monitorNodesStatistics, 200);
 
     this.$EventBus.$on("pkt_tx", (flow)=>{
-      this.pktTxAnimation(flow[0],flow[1])
+      if (this.ANIMATION_ENABLED)
+        this.pktTxAnimation(flow)
     })
   },
   // created() {

@@ -13,7 +13,7 @@ Vue.prototype.$EventBus = new Vue()
 Vue.use(Vuesax)
 
 var axiosInstance = axios.create()
-axiosInstance.defaults.baseURL = '/'
+axiosInstance.defaults.baseURL = 'http://localhost:8000'
 Vue.prototype.$api = axiosInstance;
 
 new Vue({

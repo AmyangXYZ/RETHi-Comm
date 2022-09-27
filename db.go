@@ -188,7 +188,6 @@ func saveStatsDelay(name, source string, seq int32, delay float64) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 }
 
 // timestamp, tx, rx
@@ -219,7 +218,7 @@ type StatsDelay struct {
 func queryStatsDelayByName(name string) ([]StatsDelay, error) {
 	var stats []StatsDelay
 
-	for subsys, _ := range SUBSYS_MAP {
+	for subsys := range SUBSYS_MAP {
 		if subsys == name {
 			continue
 		}

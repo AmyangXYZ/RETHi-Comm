@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 )
 
@@ -31,7 +31,7 @@ type TopologyNode struct {
 
 func initTopology() {
 	presetTopos := []TopologyData{}
-	j, err := ioutil.ReadFile("./topos.json")
+	j, err := os.ReadFile("./topos.json")
 	if err != nil {
 		panic(err)
 	}
@@ -148,6 +148,6 @@ func (g *TopoGraph) findPath(cur, dst string, visited map[string]bool, path []st
 		}
 	}
 	visited[cur] = false
-	path = path[:len(path)-1]
+	// path = path[:len(path)-1]
 	// fmt.Println(path)
 }

@@ -35,10 +35,7 @@ export default {
   },
   methods: {
     startWS() {
-      var loc = window.location;
-      // "ws://"+loc.host+"/ws"
-      this.ws = new WebSocket("ws://"+loc.host+"/ws/"+this.name)
-      // this.ws = new WebSocket("ws://"+loc.host+"/ws")
+      this.ws = new WebSocket("ws://localhost:8000/ws/"+this.name)
       this.ws.onopen = () => {
         this.dropped = false
         this.log = "[+] Console connected"
@@ -85,7 +82,6 @@ export default {
         }
         if(entry.type == WSLOG_PKT_TX) {
           this.$EventBus.$emit("pkt_tx", entry["pkt_tx"])
-          window.console.log(entry["pkt_tx"])
         }
       }
     }

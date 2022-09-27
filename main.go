@@ -39,7 +39,12 @@ type Log struct {
 	Type       int               `json:"type"` // -1: heartbeat, 0: log, 1: statistics
 	Msg        string            `json:"msg"`
 	Statistics map[string][2]int `json:"stats_comm"`
-	PktTx      [2]string         `json:"pkt_tx"` // [src, dst]
+	PktTx      PktTx             `json:"pkt_tx"`
+}
+
+type PktTx struct {
+	Sender string `json:"sender"`
+	Seq    int    `json:"seq"`
 }
 
 var (
@@ -50,8 +55,7 @@ var (
 	JITTER_BASE       = 0
 	boottime          int64
 	WSLog             = make(chan Log, 65536)
-	// SUBSYS_LIST             = []string{"GCC", "HMS", "STR", "PWR", "ECLSS", "AGT", "INT", "EXT"} // in order
-	SUBSYS_MAP = map[string]uint8{
+	SUBSYS_MAP        = map[string]uint8{
 		"GCC":   0,
 		"HMS":   1,
 		"STR":   2,
@@ -73,9 +77,6 @@ var (
 
 func init() {
 	// read env configs
-	if os.Getenv("ANIMATION_ENABLED") == "true" {
-		ANIMATION_ENABLED = true
-	}
 	if os.Getenv("CONSOLE_ENABLED") == "true" {
 		CONSOLE_ENABLED = true
 	}

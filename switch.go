@@ -316,7 +316,7 @@ func (sw *Switch) send(pkt *Packet, gate *Gate) {
 	if ANIMATION_ENABLED {
 		WSLog <- Log{
 			Type:  WSLOG_PKT_TX,
-			PktTx: [2]string{sw.name, gate.Neighbor},
+			PktTx: PktTx{Sender: sw.name, Seq: int(pkt.Seq)},
 		}
 	}
 	sw.logFwdCntMutex.Lock()

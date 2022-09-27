@@ -87,7 +87,7 @@ func (l *Link) forward() {
 				l.computeDelay(len(pkt.RawBytes))
 
 				if ANIMATION_ENABLED {
-					time.Sleep(1 * time.Second)
+					time.Sleep(1000 * time.Millisecond)
 				}
 				if DELAY_ENABLED {
 					time.Sleep(time.Duration(l.delay) * time.Second)
@@ -101,7 +101,7 @@ func (l *Link) forward() {
 				// fmt.Println(l.delay)
 				pkt.Delay += l.delay
 				if ANIMATION_ENABLED {
-					time.Sleep(1 * time.Second)
+					time.Sleep(1000 * time.Millisecond)
 				}
 				if DELAY_ENABLED {
 					time.Sleep(time.Duration(l.delay) * time.Second)

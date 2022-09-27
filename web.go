@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -74,7 +74,7 @@ func runHTTPSever() {
 	app.OPTIONS("/api/fault/switch/:id", sgo.PreflightHandler)
 
 	app.GET("/api/fault/clear", clearFault)
-
+	app.GET("/api/animation/:flag", getAnimation)
 	if err := app.Run(addr); err != nil {
 		log.Fatal("Listen error", err)
 	}
@@ -127,6 +127,19 @@ func wsComm(ctx *sgo.Context) error {
 	}
 }
 
+func getAnimation(ctx *sgo.Context) error {
+	flag := ctx.Param("flag")
+	if flag == "true" {
+		ANIMATION_ENABLED = true
+		fmt.Println("packet animation enabled")
+	} else {
+		ANIMATION_ENABLED = false
+		fmt.Println("packet animation disabled")
+	}
+
+	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
+}
+
 func getTopoTags(ctx *sgo.Context) error {
 	tags, err := queryTopoTags()
 	if err != nil {
@@ -156,7 +169,7 @@ func getTopo(ctx *sgo.Context) error {
 }
 
 func postTopo(ctx *sgo.Context) error {
-	body, err := ioutil.ReadAll(ctx.Req.Body)
+	body, err := io.ReadAll(ctx.Req.Body)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -250,7 +263,7 @@ type Flow struct {
 }
 
 func postFlows(ctx *sgo.Context) error {
-	body, err := ioutil.ReadAll(ctx.Req.Body)
+	body, err := io.ReadAll(ctx.Req.Body)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -289,7 +302,7 @@ func postFlows(ctx *sgo.Context) error {
 
 						}(i, f)
 						// delay between different flows
-						time.Sleep(50 * time.Millisecond)
+						time.Sleep(200 * time.Millisecond)
 					}
 				}
 				break

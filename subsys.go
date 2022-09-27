@@ -1,5 +1,7 @@
 // Purpose: The virtual subsys in this model, running UDP Subsys to receive packets from subsystems, and
-//          send back to their UDP servers.
+//
+//	send back to their UDP servers.
+//
 // Date Created: 15 Apr 2021
 // Date Last Modified: 17 Apr 2021
 // Modeler Name: Jiachen Wang (UConn)
@@ -66,7 +68,7 @@ func NewSubsys(name string, position [2]int) *Subsys {
 		stopSig:           make(chan bool),
 	}
 
-	for subsys, _ := range SUBSYS_MAP {
+	for subsys := range SUBSYS_MAP {
 		if subsys == name {
 			continue
 		}
@@ -222,8 +224,13 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					}
 				}()
 			}
-
-			// go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
+			if ANIMATION_ENABLED {
+				WSLog <- Log{
+					Type:  WSLOG_PKT_TX,
+					PktTx: PktTx{Sender: s.name, Seq: int(pkt.Seq)},
+				}
+			}
+			go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
 
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
@@ -260,6 +267,7 @@ func (s *Subsys) CreateFlow(dst int) {
 	buf[0] = pkt.Src
 	buf[1] = pkt.Dst
 	pkt.RawBytes = buf[:]
+	pkt.RxTimestamp = time.Now().UnixNano()
 	pkt.Seq = getSeqNum()
 	if g, err := s.routing(pkt); err == nil {
 		s.send(pkt, g)
@@ -295,7 +303,7 @@ func (s *Subsys) send(pkt *Packet, gate *Gate) {
 	if ANIMATION_ENABLED {
 		WSLog <- Log{
 			Type:  WSLOG_PKT_TX,
-			PktTx: [2]string{s.name, gate.Neighbor},
+			PktTx: PktTx{Sender: s.name, Seq: int(pkt.Seq)},
 		}
 	}
 	s.logMutex.Lock()

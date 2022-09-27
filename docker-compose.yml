@@ -27,7 +27,6 @@ services:
       ADDR_REMOTE_DTB: "host.docker.internal:20009"
       ADDR_REMOTE_CORRD: "host.docker.internal:20010"
 
-      ANIMATION_ENABLED: "false"
       CONSOLE_ENABLED: "true"
       DELAY_ENABLED: "false"
       FRER_ENABLED: "false"
