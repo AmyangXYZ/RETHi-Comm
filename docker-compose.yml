@@ -13,7 +13,7 @@ services:
       ADDR_LOCAL_EXT: ":10007"
       ADDR_LOCAL_IE: ":10008"
       ADDR_LOCAL_DTB: ":10009"
-      ADDR_LOCAL_CORRD: ":10010"
+      ADDR_LOCAL_COORD: ":10010"
 
       ADDR_REMOTE_GCC: "host.docker.internal:20000" #
       ADDR_REMOTE_HMS: "host.docker.internal:20001"
@@ -25,7 +25,7 @@ services:
       ADDR_REMOTE_EXT: "host.docker.internal:20007"
       ADDR_REMOTE_IE: "host.docker.internal:20008"
       ADDR_REMOTE_DTB: "host.docker.internal:20009"
-      ADDR_REMOTE_CORRD: "host.docker.internal:20010"
+      ADDR_REMOTE_COORD: "host.docker.internal:20010"
 
       CONSOLE_ENABLED: "true"
       DELAY_ENABLED: "false"

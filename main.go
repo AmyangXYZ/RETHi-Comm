@@ -66,7 +66,7 @@ var (
 		"IE":    8,
 		"DTB":   9,
 		"EXT":   7,
-		"CORRD": 10,
+		"COORD": 10,
 	}
 	SequenceNumber int32 = 0
 	Subsystems     []*Subsys

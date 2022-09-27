@@ -284,6 +284,7 @@ func postFlows(ctx *sgo.Context) error {
 				for i, flag := range f.Dst {
 					if flag == "X" {
 						go func(dstID int, f Flow) {
+							fmt.Println(dstID, subsysList[i], f)
 							for {
 								select {
 								case <-stopFlowSig:

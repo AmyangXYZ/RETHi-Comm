@@ -73,7 +73,7 @@
                 ]
             },
             {
-                "name": "CORRD",
+                "name": "COORD",
                 "value": [
                     450,
                     850
@@ -275,7 +275,7 @@
                 "SW0"
             ],
             [
-                "CORRD",
+                "COORD",
                 "SW10"
             ],
             [
