@@ -43,6 +43,7 @@ type Packet struct {
 	RawBytes    []byte
 	Delay       float64
 	Path        []string
+	UID         int   // for animation
 	Seq         int32 // for 802.1CB-FRER
 	RxTimestamp int64
 	TxTimestamp int64
@@ -86,5 +87,6 @@ func (pkt *Packet) Dup() *Packet {
 	// copy slice by value
 	dup.Path = append([]string{}, pkt.Path...)
 	dup.DupID = rand.Intn(1024)
+	dup.UID = getUID()
 	return dup
 }

@@ -75,13 +75,35 @@
       </vs-table>
     </vs-tab>
     <vs-tab index="1" label="Routing">
-      Shortest Path Routing
+      <vs-row vs-type="flex" vs-justify="center">
+        <vs-col vs-w="8">
+          Shortest Path Routing        
+        </vs-col>
+        <vs-col vs-w="3" style="font-size:0.5rem">
+          <vs-checkbox size="small" v-model="routing"></vs-checkbox>
+        </vs-col>
+      </vs-row>
+
     </vs-tab>
     <vs-tab index="2" label="Scheduling">
-      MIMOMQ Prioirty Scheduling
+      <vs-row vs-type="flex" vs-justify="center">
+        <vs-col vs-w="8">
+          MIMOMQ Prioirty Scheduling
+        </vs-col>
+        <vs-col vs-w="3" style="font-size:0.5rem">
+          <vs-checkbox size="small" v-model="mimomq"></vs-checkbox>
+        </vs-col>
+      </vs-row>
     </vs-tab>
     <vs-tab index="3" label="Reliability">
-      IEEE 802.1CB Frame Replication and Elimination for Reliability
+      <vs-row vs-type="flex" vs-justify="center">
+        <vs-col vs-w="8">
+          IEEE 802.1CB Frame Replication and Elimination for Reliability 
+        </vs-col>
+        <vs-col vs-w="3" style="font-size:0.5rem">
+          <vs-checkbox size="small" v-model="FRER_ENABLED"></vs-checkbox>
+        </vs-col>
+      </vs-row>
     </vs-tab>
   </vs-tabs>
 </vs-card>  
@@ -93,6 +115,9 @@ import { debounce } from "./debounce";
 export default {
   data() {
     return {
+      mimomq:true,
+      routing:true,
+      FRER_ENABLED: false,
       configLinks: [
         {
           link: "In-habitat",
@@ -143,6 +168,9 @@ export default {
       params.append('distance', this.wirelessDistance*1000)
       params.append('bandwidth', this.configLinks[1].bandwidth)
       this.$api.post('/api/links', params);
+    }, 200),
+    FRER_ENABLED: debounce(function () {
+      this.$api.get(`/api/frer/${this.FRER_ENABLED}`);
     }, 200),
   },
   methods: {

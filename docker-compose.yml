@@ -29,7 +29,6 @@ services:
 
       CONSOLE_ENABLED: "true"
       DELAY_ENABLED: "false"
-      FRER_ENABLED: "false"
       RAND_SEED: "123"
       JITTER: "10"
       DB_DB: comm

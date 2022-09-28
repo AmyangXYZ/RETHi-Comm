@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 )
 
 // Switch simulates MQMO TSN switch
@@ -236,6 +237,12 @@ func (sw *Switch) handle(pkt *Packet) {
 	if len(pkt.Path) > 20 {
 		return
 	}
+	if ANIMATION_ENABLED {
+		WSLog <- Log{
+			Type:  WSLOG_PKT_TX,
+			PktTx: PktTx{Node: sw.name, UID: pkt.UID},
+		}
+	}
 	if FRER_ENABLED {
 		// eliminate dup
 		sw.SeqRecoverHistoryMutex.Lock()
@@ -251,6 +258,7 @@ func (sw *Switch) handle(pkt *Packet) {
 			for _, g := range gates {
 				dup := pkt.Dup()
 				sw.send(dup, g)
+				time.Sleep(200 * time.Millisecond)
 			}
 		}
 	} else {
@@ -316,7 +324,7 @@ func (sw *Switch) send(pkt *Packet, gate *Gate) {
 	if ANIMATION_ENABLED {
 		WSLog <- Log{
 			Type:  WSLOG_PKT_TX,
-			PktTx: PktTx{Sender: sw.name, Seq: int(pkt.Seq)},
+			PktTx: PktTx{Node: sw.name, UID: pkt.UID},
 		}
 	}
 	sw.logFwdCntMutex.Lock()

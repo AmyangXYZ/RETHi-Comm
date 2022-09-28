@@ -36,11 +36,11 @@
                 </vs-button>
               </vs-col>
 
-              <vs-col vs-offset="0.7" vs-w="2.7">
+              <vs-col vs-offset="0.7" vs-w="3.1">
                 <vs-select
                   class="connect-select"
                   v-model="selectedTopo"
-                  width="80px"
+                  width="90px"
                 >
                   <vs-select-item
                     :key="index"
@@ -50,7 +50,7 @@
                   />
                 </vs-select>
               </vs-col>
-              <vs-col vs-offset="0.3" vs-w="2">
+              <vs-col vs-offset="0.2" vs-w="1.5 ">
                 <vs-button
                   style="margin-left: 5px"
                   class="buttons"
@@ -110,7 +110,14 @@
 
       <div v-show="editMode">
         <vs-row vs-type="flex" vs-justify="center" style="margin-top: 8px">
-          <vs-col vs-offset="1" vs-w="0.5">
+          <vs-col vs-offset="-1" vs-w="1">
+            <vs-input
+              style="width: 80px"
+              placeholder="SW#"
+              v-model="newSwitchName"
+            />
+          </vs-col>
+          <vs-col vs-offset="0.5" vs-w="0.5">
             <vs-button
               class="buttons"
               size="small"
@@ -281,7 +288,7 @@ export default {
       tmpBandwidth: 1,
       tmpDistance: 1000,
       linkStats: {},
-      switchCnt: 0,
+      newSwitchName: "",
       nodes: [], //
       packets:[],
       connectHost0: 0,
@@ -421,6 +428,7 @@ export default {
             },
             animation: false,
             data: [],
+            silent:true,
           },
           {
             z: 1,
@@ -738,11 +746,9 @@ export default {
       this.option.tooltip = this.tooltipDefault;
     },
     editAddSwitch() {
-      var name = "SW" + this.switchCnt;
-      this.switchCnt++;
-      this.nodes.push(name);
+      this.nodes.push(this.newSwitchName);
       this.option.series[0].data.push({
-        name: name,
+        name: this.newSwitchName,
         value: [150, 100],
         symbol: "rect",
         itemStyle: {
@@ -752,7 +758,7 @@ export default {
       });
 
       this.option.series[1].data.push({
-        name: "TX:0\nRX:0\n\n" + name,
+        name: "TX:0\nRX:0\n\n" + this.newSwitchName,
         value: [150, 25],
         label: {
           show: true,
@@ -761,7 +767,19 @@ export default {
       this.addDraggableGraphicEle();
     },
     editRemoveSwitch() {
-
+      for (var i = 0; i < this.option.series[0].data.length; i++) {
+        var n = this.option.series[0].data[i];
+        if (n.name==this.newSwitchName) {
+          this.option.series[0].data.splice(i, 1);
+          this.option.series[1].data.splice(i, 1);
+        }
+      }
+      for (var j=this.option.series[0].links.length-1;j>=0;j--) {
+        var l = this.option.series[0].links[j];
+        if (l.source==this.newSwitchName || l.target==this.newSwitchName) {
+          this.option.series[0].links.splice(j, 1);
+        }
+      }
     },
     editConnect() {
       if (this.connectHost0 != this.connectHost1) {
@@ -782,22 +800,23 @@ export default {
               l.target == this.nodes[this.connectHost0])
           ) {
             this.option.series[0].links.splice(i, 1);
+            break
           }
         }
       }
     },
     pktTxAnimationToggle() {
       this.packets = {}
+      this.option.series[2].data = []
       this.ANIMATION_ENABLED = !this.ANIMATION_ENABLED 
       this.$api.get(`/api/animation/${this.ANIMATION_ENABLED}`)
     },
     pktTxAnimation(flow) {
-      window.console.log(flow)
-      if (this.packets[flow.seq]==null) {
-        this.packets[flow.seq] = {value :JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.sender]].value))}
-        this.option.series[2].data.push(this.packets[flow.seq])
+      if (this.packets[flow.uid]==null) {
+        this.packets[flow.uid] = {value :JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.node]].value))}
+        this.option.series[2].data.push(this.packets[flow.uid])
       } else {
-        this.packets[flow.seq].value = JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.sender]].value))
+        this.packets[flow.uid].value = JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.node]].value))
       }
     },
   },

@@ -11,7 +11,12 @@
       <vs-col vs-offset=0.2 vs-w=5.4  style="z-index:99">
         <Flow v-if="mode=='Simulation'"/>
         <Fault/>
-        <Console name="comm" height="308px"/>
+        <Console name="comm" height="283px"/>
+      </vs-col>
+    </vs-row>
+    <vs-row vs-w="12">
+      <vs-col vs-offset=0.8 vs-w="10.8">
+        <Schedule/>
       </vs-col>
     </vs-row>
     <vs-row vs-w="12">
@@ -36,6 +41,7 @@ import Flow from './components/Flow.vue';
 import Statistics from './components/Statistics.vue';
 import Sidebar from './components/Sidebar.vue';
 import Traffic from './components/Traffic.vue';
+import Schedule from './components/Schedule.vue';
 
 export default {
   name: 'App',
@@ -49,6 +55,7 @@ export default {
     Statistics,
     Sidebar,
     Traffic,
+    Schedule,
   },
   data() {
     return {

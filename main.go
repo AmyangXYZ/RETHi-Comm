@@ -20,7 +20,7 @@ const (
 	QUEUE_NUM_SWITCH    = 8
 	QUEUE_LEN_SWITCH    = 1024
 	SAVE_STATS_PERIOD   = 10 // in seconds
-	UPLOAD_STATS_PERIOD = 3  // in seconds
+	UPLOAD_STATS_PERIOD = 2  // in seconds
 	WSLOG_HEARTBEAT     = -1
 	WSLOG_MSG           = 0
 	WSLOG_STAT          = 1
@@ -43,8 +43,8 @@ type Log struct {
 }
 
 type PktTx struct {
-	Sender string `json:"sender"`
-	Seq    int    `json:"seq"`
+	Node string `json:"node"`
+	UID  int    `json:"uid"`
 }
 
 var (
@@ -69,6 +69,7 @@ var (
 		"COORD": 10,
 	}
 	SequenceNumber int32 = 0
+	UID                  = 0
 	Subsystems     []*Subsys
 	Switches       []*Switch
 	Links          []*Link
@@ -82,9 +83,6 @@ func init() {
 	}
 	if os.Getenv("DELAY_ENABLED") == "true" {
 		DELAY_ENABLED = true
-	}
-	if os.Getenv("FRER_ENABLED") == "true" {
-		FRER_ENABLED = true
 	}
 	if len(os.Getenv("RAND_SEED")) > 0 {
 		seed, err := strconv.Atoi(os.Getenv("RAND_SEED"))

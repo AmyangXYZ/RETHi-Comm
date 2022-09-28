@@ -6,12 +6,21 @@ import (
 )
 
 var seqNumIncMutex sync.Mutex
+var UIDIncMutex sync.Mutex
 
 func getSeqNum() int32 {
 	seqNumIncMutex.Lock()
 	tmp := SequenceNumber
 	SequenceNumber++
 	seqNumIncMutex.Unlock()
+	return tmp
+}
+
+func getUID() int {
+	UIDIncMutex.Lock()
+	tmp := UID
+	UID++
+	UIDIncMutex.Unlock()
 	return tmp
 }
 

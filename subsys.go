@@ -173,12 +173,18 @@ func (s *Subsys) handlePacket() {
 				return
 			}
 			pkt.Seq = getSeqNum()
+			pkt.UID = getUID()
 			pkt.RxTimestamp = time.Now().UnixNano()
 			// fmt.Println("packet recv #", pkt.Seq, pkt.RxTimestamp)
 			if pkt.Src != uint8(s.id) {
 				fmt.Printf("[%s]WARNING! SRC doesn't match\n", s.name)
 			}
-
+			if ANIMATION_ENABLED {
+				WSLog <- Log{
+					Type:  WSLOG_PKT_TX,
+					PktTx: PktTx{Node: s.name, UID: pkt.UID},
+				}
+			}
 			if g, err := s.routing(pkt); err == nil {
 				s.send(pkt, g)
 			} else {
@@ -195,7 +201,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 	for {
 		select {
 		case <-s.stopSig:
-			fmt.Println(s.name, "terminate an ingate goroutine")
+			// fmt.Println(s.name, "terminate an ingate goroutine")
 			return
 		case pkt := <-inGate.Channel:
 			s.recvCnt++
@@ -227,7 +233,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			if ANIMATION_ENABLED {
 				WSLog <- Log{
 					Type:  WSLOG_PKT_TX,
-					PktTx: PktTx{Sender: s.name, Seq: int(pkt.Seq)},
+					PktTx: PktTx{Node: s.name, UID: pkt.UID},
 				}
 			}
 			go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
@@ -269,6 +275,7 @@ func (s *Subsys) CreateFlow(dst int) {
 	pkt.RawBytes = buf[:]
 	pkt.RxTimestamp = time.Now().UnixNano()
 	pkt.Seq = getSeqNum()
+	pkt.UID = getUID()
 	if g, err := s.routing(pkt); err == nil {
 		s.send(pkt, g)
 	} else {
@@ -303,7 +310,7 @@ func (s *Subsys) send(pkt *Packet, gate *Gate) {
 	if ANIMATION_ENABLED {
 		WSLog <- Log{
 			Type:  WSLOG_PKT_TX,
-			PktTx: PktTx{Sender: s.name, Seq: int(pkt.Seq)},
+			PktTx: PktTx{Node: s.name, UID: pkt.UID},
 		}
 	}
 	s.logMutex.Lock()

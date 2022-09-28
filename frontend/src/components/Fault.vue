@@ -1,5 +1,5 @@
 <template>
-  <vs-card id="fault">
+  <vs-card v-if="switches.length>0" id="fault">
     <div slot="header" style="text-align: left">
        <vs-row vs-type="flex" vs-justify="space-between">
         <vs-col vs-w="3"> 
@@ -33,7 +33,7 @@
           </vs-col>
           <vs-col vs-offset="0.5" vs-w="6">
               <vs-select class="selectbox" v-model="affected">
-                <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in components" />
+                <vs-select-item :key="index" :value="index" :text="item" v-for="item,index in switches" />
               </vs-select>
           </vs-col>
         </vs-row>
@@ -62,16 +62,7 @@ export default {
       selectedType: 0,
       affected: 1,
       duration: 30,
-      components: [ // switches only now
-        {text:"SW0", value:0},
-        {text:"SW1", value:1},
-        {text:"SW2", value:2},
-        {text:"SW3", value:3},
-        {text:"SW4", value:4},
-        {text:"SW5", value:5},
-        {text:"SW6", value:6},
-        {text:"SW7", value:7},
-      ],
+      switches: [],
       types: [
         {text:"Failure", value:0},
         {text:"Long Delay", value:1},
@@ -104,6 +95,15 @@ export default {
         color: "primary"
       })
     }
+  },
+  mounted() {
+     this.$EventBus.$on("topology", (topo)=>{
+      this.switches = []
+      for (var i in topo.nodes) {
+        if (topo.nodes[i].substr(0,2)=="SW")
+          this.switches.push(topo.nodes[i])
+      }
+    })
   }
 }
 </script>

@@ -74,7 +74,8 @@ func runHTTPSever() {
 	app.OPTIONS("/api/fault/switch/:id", sgo.PreflightHandler)
 
 	app.GET("/api/fault/clear", clearFault)
-	app.GET("/api/animation/:flag", getAnimation)
+	app.GET("/api/animation/:flag", getAnimationFlag)
+	app.GET("/api/frer/:flag", getFRERFlag)
 	if err := app.Run(addr); err != nil {
 		log.Fatal("Listen error", err)
 	}
@@ -127,7 +128,7 @@ func wsComm(ctx *sgo.Context) error {
 	}
 }
 
-func getAnimation(ctx *sgo.Context) error {
+func getAnimationFlag(ctx *sgo.Context) error {
 	flag := ctx.Param("flag")
 	if flag == "true" {
 		ANIMATION_ENABLED = true
@@ -136,7 +137,18 @@ func getAnimation(ctx *sgo.Context) error {
 		ANIMATION_ENABLED = false
 		fmt.Println("packet animation disabled")
 	}
+	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
+}
 
+func getFRERFlag(ctx *sgo.Context) error {
+	flag := ctx.Param("flag")
+	if flag == "true" {
+		FRER_ENABLED = true
+		fmt.Println("FRER enabled")
+	} else {
+		FRER_ENABLED = false
+		fmt.Println("FRER disabled")
+	}
 	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
 }
 
@@ -284,7 +296,6 @@ func postFlows(ctx *sgo.Context) error {
 				for i, flag := range f.Dst {
 					if flag == "X" {
 						go func(dstID int, f Flow) {
-							fmt.Println(dstID, subsysList[i], f)
 							for {
 								select {
 								case <-stopFlowSig:
