@@ -63,8 +63,7 @@ func NewSwitch(name string, position [2]int) *Switch {
 		// for k := 0; k < QUEUE_NUM_SWITCH; k++ {
 		// 	utilization[i][k] = math.Pow(1/3.0, float64(k)+1)
 		// }
-
-		schedule[i] = make([]TimeWindows, HYPER_PERIOD)
+		// schedule[i] = make([]TimeWindows, HYPER_PERIOD)
 		for k, _ := range schedule[i] {
 			schedule[i][k] = TimeWindows{
 				int(rand.ExpFloat64()*9) % QUEUE_NUM_SWITCH,
