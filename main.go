@@ -49,11 +49,14 @@ type PktTx struct {
 }
 
 var (
-	ANIMATION_ENABLED = false
-	CONSOLE_ENABLED   = false
-	DELAY_ENABLED     = false
-	FRER_ENABLED      = false
-	JITTER_BASE       = 0
+	ASN                             = 0
+	HYPER_PERIOD                    = 100
+	SLOT_DURATION     time.Duration = 100 // us, interval of ASN incremental
+	ANIMATION_ENABLED               = false
+	CONSOLE_ENABLED                 = false
+	DELAY_ENABLED                   = false
+	FRER_ENABLED                    = false
+	JITTER_BASE                     = 0
 	boottime          int64
 	WSLog             = make(chan Log, 65536)
 	SUBSYS_MAP        = map[string]uint8{
@@ -97,6 +100,12 @@ func init() {
 	if j, err := strconv.Atoi(os.Getenv("JITTER")); err == nil {
 		JITTER_BASE = j
 	}
+	go func() {
+		for {
+			ASN++
+			time.Sleep(SLOT_DURATION * time.Microsecond)
+		}
+	}()
 }
 
 func main() {

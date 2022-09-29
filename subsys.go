@@ -273,9 +273,10 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 
 func (s *Subsys) CreateFlow(dst int) {
 	pkt := &Packet{
-		Src:   uint8(s.id),
-		Dst:   uint8(dst),
-		IsSim: true,
+		Src:      uint8(s.id),
+		Dst:      uint8(dst),
+		Priority: 0,
+		IsSim:    true,
 	}
 	var buf [64]byte
 	buf[0] = pkt.Src

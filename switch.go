@@ -13,17 +13,25 @@ import (
 	"time"
 )
 
-// Switch simulates MQMO TSN switch
+type TimeWindows struct {
+	Queue int `json:"queue"`
+	Start int `json:"start"`
+	End   int `json:"end"`
+}
+
+// Switch simulates MIMOMQ TSN switch
 type Switch struct {
 	name           string
 	position       [2]int
 	fwdCnt         int
 	recvCnt        int
+	GCL            [GATE_NUM_SWITCH][]TimeWindows // gateid:schedule
 	gatesIn        [GATE_NUM_SWITCH]*Gate
 	gatesOut       [GATE_NUM_SWITCH]*Gate
 	gatesInIdx     int
 	gatesOutIdx    int
-	queue          [QUEUE_NUM_SWITCH]chan *Packet // priority queue
+	queue          [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet // priority queue
+	pktWaitlistNum [GATE_NUM_SWITCH]chan int8
 	Failed         bool
 	FailedDuration int
 
@@ -40,14 +48,18 @@ type Switch struct {
 func NewSwitch(name string, position [2]int) *Switch {
 	var gatesIn [GATE_NUM_SWITCH]*Gate
 	var gatesOut [GATE_NUM_SWITCH]*Gate
+	var queue [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet
+	var pktWaitlistNum [GATE_NUM_SWITCH]chan int8
+	var schedule [GATE_NUM_SWITCH][]TimeWindows
+
 	for i := 0; i < GATE_NUM_SWITCH; i++ {
 		gatesIn[i] = NewGate(i, name)
 		gatesOut[i] = NewGate(i, name)
-	}
-
-	var queue [QUEUE_NUM_SWITCH]chan *Packet
-	for j := 0; j < QUEUE_NUM_SWITCH; j++ {
-		queue[j] = make(chan *Packet, QUEUE_LEN_SWITCH)
+		pktWaitlistNum[i] = make(chan int8, 2048)
+		// schedule[i] = make([]TimeWindows, HYPER_PERIOD)
+		schedule[i] = []TimeWindows{
+			TimeWindows{Queue: 0, Start: 0, End: 50},
+		}
 	}
 
 	sw := &Switch{
@@ -58,6 +70,8 @@ func NewSwitch(name string, position [2]int) *Switch {
 		gatesInIdx:        -1,
 		gatesOutIdx:       -1,
 		queue:             queue,
+		pktWaitlistNum:    pktWaitlistNum,
+		GCL:               schedule,
 		RoutingTable:      make(map[string][]RoutingEntry),
 		SeqRecoverHistory: make(map[int32]bool),
 		stopSig:           make(chan bool),
@@ -117,7 +131,7 @@ func (sw *Switch) InGate() *Gate {
 func (sw *Switch) Start() {
 	// fmt.Println("Start Switch", sw.ID)
 
-	// enqueue
+	// handle incoming packets
 	for _, inGate := range sw.gatesIn {
 		go func(g *Gate) {
 			for {
@@ -125,115 +139,60 @@ func (sw *Switch) Start() {
 				case <-sw.stopSig:
 					return
 				case pkt := <-g.Channel:
-					sw.queue[pkt.Priority] <- pkt
+					// sw.queue[pkt.Priority] <- pkt
+					go sw.Classify(pkt)
 					sw.logRecvCntMutex.Lock()
 					sw.recvCnt++
 					sw.logRecvCntMutex.Unlock()
-					// fmt.Println(sw.name, "enqueue packet to queue", pkt.Priority)
 				}
 			}
 		}(inGate)
 	}
 
-	// queue with higher priority is more likely to be accessed
-	// "https://medium.com/a-journey-with-go/go-ordering-in-select-statements-fd0ff80fd8d6"
-	for {
-		select {
-		case <-sw.stopSig:
-			return
-		case pkt := <-sw.queue[0]:
-			go sw.handle(pkt)
+	// watch queues of each gate and send out according to the schedule
+	for _, outGate := range sw.gatesOut {
+		go func(g *Gate) {
+			for {
+				select {
+				case <-sw.stopSig:
+					return
+				case <-sw.pktWaitlistNum[g.ID]:
+					slot := ASN % HYPER_PERIOD
+					window := TimeWindows{Queue: -1}
+					for _, w := range sw.GCL[g.ID] {
+						if w.Start <= slot && slot < w.End {
+							window = w
+							break
+						}
+					}
+					if window.Queue != -1 && len(sw.queue[g.ID][window.Queue]) > 0 {
+						pkt := sw.queue[g.ID][window.Queue][0]
+						sw.queue[g.ID][window.Queue] = sw.queue[g.ID][window.Queue][1:]
+						sw.send(pkt, g)
+					} else {
+						// continue loop
+						sw.pktWaitlistNum[g.ID] <- 1
+					}
+				}
 
-		case pkt := <-sw.queue[1]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[1]:
-			go sw.handle(pkt)
-
-		case pkt := <-sw.queue[2]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[2]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[2]:
-			go sw.handle(pkt)
-
-		case pkt := <-sw.queue[3]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[3]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[3]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[3]:
-			go sw.handle(pkt)
-
-		case pkt := <-sw.queue[4]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[4]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[4]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[4]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[4]:
-			go sw.handle(pkt)
-
-		case pkt := <-sw.queue[5]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[5]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[5]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[5]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[5]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[5]:
-			go sw.handle(pkt)
-
-		case pkt := <-sw.queue[6]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[6]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[6]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[6]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[6]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[6]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[6]:
-			go sw.handle(pkt)
-
-		case pkt := <-sw.queue[7]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[7]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[7]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[7]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[7]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[7]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[7]:
-			go sw.handle(pkt)
-		case pkt := <-sw.queue[7]:
-			go sw.handle(pkt)
-		}
+			}
+		}(outGate)
 	}
+
 }
 
 func (sw *Switch) Stop() {
-	sw.stopSig <- true // stop queue handler
 	for range sw.gatesIn {
 		sw.stopSig <- true // stop ingates
+	}
+	for range sw.gatesOut {
+		sw.stopSig <- true // stop outgates
 	}
 	// fmt.Println(sw.name, "stopped")
 }
 
-// handle incoming packets, schedule based on its priority and forward to the destination switch/subsys
-func (sw *Switch) handle(pkt *Packet) {
+// classify packet belongs to which out-gate
+func (sw *Switch) Classify(pkt *Packet) {
 	if len(pkt.Path) > 20 {
 		return
 	}
@@ -257,13 +216,17 @@ func (sw *Switch) handle(pkt *Packet) {
 		if gates, err := sw.routingFRER(pkt); err == nil {
 			for _, g := range gates {
 				dup := pkt.Dup()
-				sw.send(dup, g)
-				time.Sleep(200 * time.Millisecond)
+				// enqueue
+				sw.queue[g.ID][dup.Priority] = append(sw.queue[g.ID][pkt.Priority], dup)
+				sw.pktWaitlistNum[g.ID] <- 1
+				time.Sleep(100 * time.Millisecond)
 			}
 		}
 	} else {
 		if g, err := sw.routing(pkt); err == nil {
-			sw.send(pkt, g)
+			// enqueue
+			sw.queue[g.ID][pkt.Priority] = append(sw.queue[g.ID][pkt.Priority], pkt)
+			sw.pktWaitlistNum[g.ID] <- 1
 		} else {
 			fmt.Println(err)
 		}
