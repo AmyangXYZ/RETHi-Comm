@@ -72,9 +72,12 @@ func runHTTPSever() {
 
 	app.POST("/api/fault/switch/:id", postFault)
 	app.OPTIONS("/api/fault/switch/:id", sgo.PreflightHandler)
-
 	app.GET("/api/fault/clear", clearFault)
+
+	app.GET("/api/animation", getCurrentAnimationFlag)
 	app.GET("/api/animation/:flag", getAnimationFlag)
+
+	app.GET("/api/frer", getCurrentFRERFlag)
 	app.GET("/api/frer/:flag", getFRERFlag)
 	if err := app.Run(addr); err != nil {
 		log.Fatal("Listen error", err)
@@ -128,6 +131,10 @@ func wsComm(ctx *sgo.Context) error {
 	}
 }
 
+func getCurrentAnimationFlag(ctx *sgo.Context) error {
+	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
+}
+
 func getAnimationFlag(ctx *sgo.Context) error {
 	flag := ctx.Param("flag")
 	if flag == "true" {
@@ -138,6 +145,10 @@ func getAnimationFlag(ctx *sgo.Context) error {
 		fmt.Println("packet animation disabled")
 	}
 	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
+}
+
+func getCurrentFRERFlag(ctx *sgo.Context) error {
+	return ctx.Text(200, strconv.FormatBool(FRER_ENABLED))
 }
 
 func getFRERFlag(ctx *sgo.Context) error {

@@ -235,7 +235,15 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					Type:  WSLOG_PKT_TX,
 					PktTx: PktTx{Node: s.name, UID: pkt.UID},
 				}
+				go func() {
+					time.Sleep(1 * time.Second)
+					WSLog <- Log{
+						Type:  WSLOG_PKT_TX,
+						PktTx: PktTx{Node: s.name, UID: pkt.UID, Finished: true},
+					}
+				}()
 			}
+
 			go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
 
 			if pkt.Delay < 1 {

@@ -134,6 +134,12 @@ export default {
       ],
     };
   },
+  mounted () {
+    this.$api.get(`/api/frer`).
+    then((res)=>{
+      this.FRER_ENABLED = Boolean(res.data)
+    })
+  },
   computed: {
     wirelessDistance: function () {
       return Math.round(

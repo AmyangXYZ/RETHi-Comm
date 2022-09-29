@@ -294,6 +294,7 @@ export default {
       connectHost0: 0,
       connectHost1: 0,
       nodesIndexMap: {},
+      flows: [],
       tooltipDefault: {
         trigger: "item",
         enterable: true,
@@ -435,10 +436,10 @@ export default {
             type: "graph",
             coordinateSystem: "cartesian2d",
             layout: "none",
-            symbolSize: 10,
+            symbolSize: 8,
             data:[],
             animationDurationUpdate:500,
-            // animationDuration:1000
+            // animationDuration:800
           }
         ],
       },
@@ -812,23 +813,49 @@ export default {
       this.$api.get(`/api/animation/${this.ANIMATION_ENABLED}`)
     },
     pktTxAnimation(flow) {
+      if (flow.finished == true) { 
+        for (var i=0;i<this.option.series[2].data.length;i++) {
+          if (this.option.series[2].data[i].name == flow.uid) {
+            this.option.series[2].data.splice(i,1)
+            return
+          }
+        }
+      }
       if (this.packets[flow.uid]==null) {
-        this.packets[flow.uid] = {value :JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.node]].value))}
+        this.packets[flow.uid] = {name: flow.uid, value:JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.node]].value))}
         this.option.series[2].data.push(this.packets[flow.uid])
       } else {
         this.packets[flow.uid].value = JSON.parse(JSON.stringify(this.option.series[0].data[this.nodesIndexMap[flow.node]].value))
       }
     },
+    pktTxAnimationUpdate() {
+      for (var i=0;i<this.flows.length;i++) {
+        var flow = this.flows[i]
+        this.pktTxAnimation(flow)
+      }
+      this.flows = []
+    }
   },
   mounted() {
     window.topo = this;
+
+    this.$api.get(`/api/animation`).
+    then((res)=>{
+      this.ANIMATION_ENABLED = Boolean(res.data)
+    })
+
     this.option.tooltip = this.tooltipDefault;
     this.getTopologyTags();
+    
     setTimeout(this.monitorNodesStatistics, 200);
 
+    setInterval(this.pktTxAnimationUpdate, 200)
+
     this.$EventBus.$on("pkt_tx", (flow)=>{
-      if (this.ANIMATION_ENABLED)
-        this.pktTxAnimation(flow)
+      if (this.ANIMATION_ENABLED) {
+        this.flows.push(flow)
+        // this.pktTxAnimation(flow)
+      }
     })
   },
   // created() {

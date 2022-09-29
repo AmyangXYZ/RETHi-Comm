@@ -20,7 +20,7 @@ const (
 	QUEUE_NUM_SWITCH    = 8
 	QUEUE_LEN_SWITCH    = 1024
 	SAVE_STATS_PERIOD   = 10 // in seconds
-	UPLOAD_STATS_PERIOD = 2  // in seconds
+	UPLOAD_STATS_PERIOD = 3  // in seconds
 	WSLOG_HEARTBEAT     = -1
 	WSLOG_MSG           = 0
 	WSLOG_STAT          = 1
@@ -43,8 +43,9 @@ type Log struct {
 }
 
 type PktTx struct {
-	Node string `json:"node"`
-	UID  int    `json:"uid"`
+	Node     string `json:"node"`
+	UID      int    `json:"uid"`
+	Finished bool   `json:"finished"`
 }
 
 var (
