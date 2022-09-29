@@ -8,6 +8,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"sort"
 	"sync"
 	"time"
@@ -51,14 +52,25 @@ func NewSwitch(name string, position [2]int) *Switch {
 	var queue [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet
 	var pktWaitlistNum [GATE_NUM_SWITCH]chan int8
 	var schedule [GATE_NUM_SWITCH][]TimeWindows
+	// var utilization [GATE_NUM_SWITCH][]float64
 
 	for i := 0; i < GATE_NUM_SWITCH; i++ {
 		gatesIn[i] = NewGate(i, name)
 		gatesOut[i] = NewGate(i, name)
 		pktWaitlistNum[i] = make(chan int8, 2048)
-		// schedule[i] = make([]TimeWindows, HYPER_PERIOD)
-		schedule[i] = []TimeWindows{
-			TimeWindows{Queue: 0, Start: 0, End: 50},
+		schedule[i] = make([]TimeWindows, HYPER_PERIOD)
+		// utilization[i] = make([]float64, QUEUE_NUM_SWITCH)
+		// for k := 0; k < QUEUE_NUM_SWITCH; k++ {
+		// 	utilization[i][k] = math.Pow(1/3.0, float64(k)+1)
+		// }
+
+		schedule[i] = make([]TimeWindows, 0)
+		for k, _ := range schedule[i] {
+			schedule[i][k] = TimeWindows{
+				int(rand.ExpFloat64()*9) % QUEUE_NUM_SWITCH,
+				k * int(SLOT_DURATION),
+				(k + 1) * int(SLOT_DURATION),
+			}
 		}
 	}
 
