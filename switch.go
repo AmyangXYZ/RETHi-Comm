@@ -65,9 +65,28 @@ func NewSwitch(name string, position [2]int) *Switch {
 		// 	}
 		// }
 		// interval := factors[rand.Intn(len(factors))]
-		interval := 5
+		interval := 4
 		for k := 0; k < len(schedule[i]); k += interval {
-			q := int(rand.Intn(1))
+
+			q := 0
+			switch r := int(rand.Intn(100)); {
+			case r < 50:
+				q = 0
+			case 50 <= r && r < 75:
+				q = 1
+			case 75 <= r && r < 87:
+				q = 2
+			case 87 <= r && r < 92:
+				q = 3
+			case 92 <= r && r < 95:
+				q = 4
+			case 95 <= r && r < 97:
+				q = 5
+			case 97 <= r && r < 98:
+				q = 6
+			case 98 <= r && r < 99:
+				q = 7
+			}
 			// q := 0
 			for x := k; x < k+interval; x++ {
 				schedule[i][x] = TimeWindow{

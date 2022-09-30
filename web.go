@@ -144,10 +144,10 @@ func getAnimationFlag(ctx *sgo.Context) error {
 	flag := ctx.Param("flag")
 	if flag == "true" {
 		ANIMATION_ENABLED = true
-		fmt.Println("packet animation enabled")
+		fmt.Println("ANIMATION enabled")
 	} else {
 		ANIMATION_ENABLED = false
-		fmt.Println("packet animation disabled")
+		fmt.Println("ANIMATION disabled")
 	}
 	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
 }
@@ -160,10 +160,10 @@ func getRerouteFlag(ctx *sgo.Context) error {
 	flag := ctx.Param("flag")
 	if flag == "true" {
 		REROUTE_ENABLED = true
-		fmt.Println("FRER enabled")
+		fmt.Println("REROUTE enabled")
 	} else {
 		REROUTE_ENABLED = false
-		fmt.Println("FRER disabled")
+		fmt.Println("REROUTE disabled")
 	}
 	return ctx.Text(200, strconv.FormatBool(REROUTE_ENABLED))
 }
