@@ -51,12 +51,18 @@ func NewSwitch(name string, position [2]int) *Switch {
 	var gatesOut [GATE_NUM_SWITCH]*Gate
 	var queue [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet
 	var pktWaitlistNum [GATE_NUM_SWITCH]chan int8
+<<<<<<< HEAD
 	var schedule [GATE_NUM_SWITCH][]TimeWindow
+=======
+	var schedule [GATE_NUM_SWITCH][]TimeWindows
+	// var utilization [GATE_NUM_SWITCH][]float64
+>>>>>>> f013853a30ac17b7f9c4f4ce9d0f7afea22949da
 
 	for i := 0; i < GATE_NUM_SWITCH; i++ {
 		gatesIn[i] = NewGate(i, name)
 		gatesOut[i] = NewGate(i, name)
 		pktWaitlistNum[i] = make(chan int8, 2048)
+<<<<<<< HEAD
 		schedule[i] = make([]TimeWindow, HYPER_PERIOD)
 		// factors := []int{}
 		// for f := 2; f < HYPER_PERIOD; f++ {
@@ -73,6 +79,19 @@ func NewSwitch(name string, position [2]int) *Switch {
 				schedule[i][x] = TimeWindow{
 					Queue: q,
 				}
+=======
+		schedule[i] = make([]TimeWindows, HYPER_PERIOD)
+		// utilization[i] = make([]float64, QUEUE_NUM_SWITCH)
+		// for k := 0; k < QUEUE_NUM_SWITCH; k++ {
+		// 	utilization[i][k] = math.Pow(1/3.0, float64(k)+1)
+		// }
+		// schedule[i] = make([]TimeWindows, HYPER_PERIOD)
+		for k, _ := range schedule[i] {
+			schedule[i][k] = TimeWindows{
+				int(rand.ExpFloat64()*9) % QUEUE_NUM_SWITCH,
+				k * int(SLOT_DURATION),
+				(k + 1) * int(SLOT_DURATION),
+>>>>>>> f013853a30ac17b7f9c4f4ce9d0f7afea22949da
 			}
 		}
 	}
