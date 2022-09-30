@@ -10,6 +10,7 @@ type Gate struct {
 	Owner    string
 	Neighbor string
 	Channel  chan *Packet
+	Failed   bool
 }
 
 func NewGate(id int, owner string) *Gate {

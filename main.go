@@ -57,6 +57,7 @@ var (
 	CONSOLE_ENABLED                 = false
 	DELAY_ENABLED                   = false
 	FRER_ENABLED                    = false
+	REROUTE_ENABLED                 = false
 	JITTER_BASE                     = 0
 	boottime          int64
 	WSLog             = make(chan Log, 65536)

@@ -285,6 +285,12 @@ func (s *Subsys) CreateFlow(dst int) {
 	pkt.RxTimestamp = time.Now().UnixNano()
 	pkt.Seq = getSeqNum()
 	pkt.UID = getUID()
+	if ANIMATION_ENABLED {
+		WSLog <- Log{
+			Type:  WSLOG_PKT_TX,
+			PktTx: PktTx{Node: s.name, UID: pkt.UID},
+		}
+	}
 	if g, err := s.routing(pkt); err == nil {
 		s.send(pkt, g)
 	} else {
@@ -297,8 +303,10 @@ L1:
 	for _, entry := range s.RoutingTable[subsysID2Name(pkt.Dst)] {
 		if entry.NextHop[:2] == "SW" {
 			for _, swww := range Switches {
-				if swww.name == entry.NextHop && swww.Failed {
-					continue L1
+				if REROUTE_ENABLED {
+					if swww.name == entry.NextHop && swww.Failed {
+						continue L1
+					}
 				}
 			}
 		}
@@ -316,12 +324,6 @@ func (s *Subsys) send(pkt *Packet, gate *Gate) {
 	// fmt.Println("sent to", gate.Neighbor)
 	pkt.Path = append(pkt.Path, s.name)
 	gate.Channel <- pkt
-	if ANIMATION_ENABLED {
-		WSLog <- Log{
-			Type:  WSLOG_PKT_TX,
-			PktTx: PktTx{Node: s.name, UID: pkt.UID},
-		}
-	}
 	s.logMutex.Lock()
 	s.fwdCnt++
 	s.logMutex.Unlock()

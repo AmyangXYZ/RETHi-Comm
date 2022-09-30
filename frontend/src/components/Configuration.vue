@@ -3,7 +3,7 @@
   <div slot="header" style="text-align:left;">
       <h3>Configurations</h3>
     </div>
-  <vs-tabs :value="0" >
+  <vs-tabs :value="0" style="font-size:0.85rem">
     <vs-tab index="0" label="Links">
       <vs-table :data="configLinks" class="links">
         <template slot="thead">
@@ -98,6 +98,14 @@
     <vs-tab index="3" label="Reliability">
       <vs-row vs-type="flex" vs-justify="center">
         <vs-col vs-w="8">
+          Auto Re-Reroute Upon Switch Failure
+        </vs-col>
+        <vs-col vs-w="3" style="font-size:0.5rem">
+          <vs-checkbox size="small" v-model="REROUTE_ENABLED"></vs-checkbox>
+        </vs-col>
+      </vs-row>
+      <vs-row vs-type="flex" vs-justify="center">
+        <vs-col vs-w="8">
           IEEE 802.1CB Frame Replication and Elimination for Reliability 
         </vs-col>
         <vs-col vs-w="3" style="font-size:0.5rem">
@@ -117,6 +125,7 @@ export default {
     return {
       mimomq:true,
       routing:true,
+      REROUTE_ENABLED:false,
       FRER_ENABLED: false,
       configLinks: [
         {
@@ -138,6 +147,10 @@ export default {
     this.$api.get(`/api/frer`).
     then((res)=>{
       this.FRER_ENABLED = Boolean(res.data)
+    })
+    this.$api.get(`/api/reroute`).
+    then((res)=>{
+      this.REROUTE_ENABLED = Boolean(res.data)
     })
   },
   computed: {
@@ -177,6 +190,9 @@ export default {
     }, 200),
     FRER_ENABLED: debounce(function () {
       this.$api.get(`/api/frer/${this.FRER_ENABLED}`);
+    }, 200),
+    REROUTE_ENABLED: debounce(function () {
+      this.$api.get(`/api/reroute/${this.REROUTE_ENABLED}`);
     }, 200),
   },
   methods: {

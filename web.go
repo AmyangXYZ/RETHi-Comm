@@ -79,6 +79,9 @@ func runHTTPSever() {
 	app.GET("/api/animation", getCurrentAnimationFlag)
 	app.GET("/api/animation/:flag", getAnimationFlag)
 
+	app.GET("/api/reroute", getCurrentRerouteFlag)
+	app.GET("/api/reroute/:flag", getRerouteFlag)
+
 	app.GET("/api/frer", getCurrentFRERFlag)
 	app.GET("/api/frer/:flag", getFRERFlag)
 	if err := app.Run(addr); err != nil {
@@ -149,6 +152,22 @@ func getAnimationFlag(ctx *sgo.Context) error {
 	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
 }
 
+func getCurrentRerouteFlag(ctx *sgo.Context) error {
+	return ctx.Text(200, strconv.FormatBool(REROUTE_ENABLED))
+}
+
+func getRerouteFlag(ctx *sgo.Context) error {
+	flag := ctx.Param("flag")
+	if flag == "true" {
+		REROUTE_ENABLED = true
+		fmt.Println("FRER enabled")
+	} else {
+		REROUTE_ENABLED = false
+		fmt.Println("FRER disabled")
+	}
+	return ctx.Text(200, strconv.FormatBool(REROUTE_ENABLED))
+}
+
 func getCurrentFRERFlag(ctx *sgo.Context) error {
 	return ctx.Text(200, strconv.FormatBool(FRER_ENABLED))
 }
@@ -162,7 +181,7 @@ func getFRERFlag(ctx *sgo.Context) error {
 		FRER_ENABLED = false
 		fmt.Println("FRER disabled")
 	}
-	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
+	return ctx.Text(200, strconv.FormatBool(FRER_ENABLED))
 }
 
 func getSwitchSchedule(ctx *sgo.Context) error {
@@ -255,6 +274,7 @@ func postLink(ctx *sgo.Context) error {
 					l.Bandwidth, _ = strconv.ParseFloat(ctx.Param("bandwidth"), 64)
 					l.PacketLossRate, _ = strconv.ParseFloat(ctx.Param("loss"), 64)
 					l.Distance, _ = strconv.ParseFloat(ctx.Param("distance"), 64)
+					l.Failed, _ = strconv.ParseBool(ctx.Param("failed"))
 				}
 			}
 		}

@@ -220,7 +220,7 @@
             <span>Failed</span>
           </vs-col>
           <vs-col vs-offset="2" vs-w="5">
-            <vs-switch v-model="tmpFailure" />
+            <vs-switch v-model="tmpFailed" />
           </vs-col>
         </vs-row>
         <vs-row
@@ -282,7 +282,7 @@ export default {
       newTopoTag: "",
       activePrompt: false,
       selectedLink: "",
-      tmpFailure: 0,
+      tmpFailed: false,
       tmpLoss: 0,
       tmpDelay: 1,
       tmpBandwidth: 1,
@@ -618,10 +618,12 @@ export default {
       // this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Delay = this.tmpDelay;
       this.linkStats[this.selectedLink].Bandwidth = this.tmpBandwidth;
+      this.linkStats[this.selectedLink].Failed = this.tmpFailed;
       const params = new URLSearchParams();
       params.append("loss", this.tmpLoss);
       params.append("distance", this.tmpDistance);
       params.append("bandwidth", this.tmpBandwidth);
+      params.append("failed", this.tmpFailed);
       this.$api.post(`/api/link/${this.selectedLink}`, params);
 
       this.activePrompt = false;

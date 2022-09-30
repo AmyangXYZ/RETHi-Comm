@@ -89,7 +89,7 @@ export default {
           textStyle: {
             fontSize:13,
           },
-          formatter: function(v1, v2) {
+          formatter: function(v1) {
             return v1
           }
         },

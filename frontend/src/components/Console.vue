@@ -58,7 +58,7 @@ export default {
       }
       this.ws.onmessage = (evt) => {    
         // window.console.log(evt.data)
-        if(this.cnt>3000 && this.cnt%3000==1) this.log = ""
+        if(this.cnt>2000 && this.cnt%2000==1) this.log = ""
         this.cnt++
         
         var entry = JSON.parse(evt.data)

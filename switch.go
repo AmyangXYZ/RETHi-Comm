@@ -67,7 +67,7 @@ func NewSwitch(name string, position [2]int) *Switch {
 		// interval := factors[rand.Intn(len(factors))]
 		interval := 5
 		for k := 0; k < len(schedule[i]); k += interval {
-			q := int(rand.Intn(4))
+			q := int(rand.Intn(1))
 			// q := 0
 			for x := k; x < k+interval; x++ {
 				schedule[i][x] = TimeWindow{
@@ -155,7 +155,15 @@ func (sw *Switch) Start() {
 					return
 				case pkt := <-g.Channel:
 					// sw.queue[pkt.Priority] <- pkt
-					go sw.Classify(pkt)
+					if ANIMATION_ENABLED {
+						WSLog <- Log{
+							Type:  WSLOG_PKT_TX,
+							PktTx: PktTx{Node: sw.name, UID: pkt.UID},
+						}
+					}
+					if !sw.Failed {
+						go sw.Classify(pkt)
+					}
 					sw.logRecvCntMutex.Lock()
 					sw.recvCnt++
 					sw.logRecvCntMutex.Unlock()
@@ -204,12 +212,7 @@ func (sw *Switch) Classify(pkt *Packet) {
 	if len(pkt.Path) > 20 {
 		return
 	}
-	if ANIMATION_ENABLED {
-		WSLog <- Log{
-			Type:  WSLOG_PKT_TX,
-			PktTx: PktTx{Node: sw.name, UID: pkt.UID},
-		}
-	}
+
 	if FRER_ENABLED {
 		// eliminate dup
 		sw.SeqRecoverHistoryMutex.Lock()
@@ -251,8 +254,10 @@ L1:
 	for _, entry := range sw.RoutingTable[subsysID2Name(pkt.Dst)] {
 		if entry.NextHop[:2] == "SW" {
 			for _, swww := range Switches {
-				if swww.name == entry.NextHop && swww.Failed {
-					continue L1
+				if REROUTE_ENABLED {
+					if swww.name == entry.NextHop && swww.Failed {
+						continue L1
+					}
 				}
 			}
 		}
@@ -272,8 +277,10 @@ L1:
 	for _, entry := range sw.RoutingTable[subsysID2Name(pkt.Dst)] {
 		if entry.NextHop[:2] == "SW" {
 			for _, swww := range Switches {
-				if swww.name == entry.NextHop && swww.Failed {
-					continue L1
+				if REROUTE_ENABLED {
+					if swww.name == entry.NextHop && swww.Failed {
+						continue L1
+					}
 				}
 			}
 		}

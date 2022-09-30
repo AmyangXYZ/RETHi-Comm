@@ -84,6 +84,9 @@ func (l *Link) forward() {
 			return
 		case pkt := <-l.sender1.Channel:
 			go func() {
+				if l.Failed {
+					return
+				}
 				l.computeDelay(len(pkt.RawBytes))
 
 				if ANIMATION_ENABLED {
@@ -97,6 +100,9 @@ func (l *Link) forward() {
 			}()
 		case pkt := <-l.sender2.Channel:
 			go func() {
+				if l.Failed {
+					return
+				}
 				l.computeDelay(len(pkt.RawBytes))
 				// fmt.Println(l.delay)
 				pkt.Delay += l.delay
