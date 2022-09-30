@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -156,7 +157,7 @@ func queryTopoTags() ([]string, error) {
 
 func saveStatsIO(data map[string][2]int) {
 	t := time.Now()
-	timestamp := t.UnixNano() / 1e6
+	timestamp := t.UnixMilli()
 	stmt, err := db.Prepare(`INSERT INTO STATISTICS_IO (TIMESTAMP, NAME, TX, RX) VALUES (?, ?, ?, ?);`)
 	if err != nil {
 		fmt.Println(err)
@@ -175,7 +176,7 @@ func saveStatsIO(data map[string][2]int) {
 
 func saveStatsDelay(name, source string, seq int32, delay float64) {
 	t := time.Now()
-	timestamp := t.UnixNano() / 1e6
+	timestamp := t.UnixMilli()
 	stmt, err := db.Prepare(`INSERT INTO STATISTICS_DELAY (TIMESTAMP, NAME, SOURCE, SEQ, DELAY) VALUES (?, ?, ?, ?, ?);`)
 	if err != nil {
 		fmt.Println(err)
@@ -210,9 +211,8 @@ func queryStatsIOByName(name string) ([][3]int, error) {
 }
 
 type StatsDelay struct {
-	Source    string    `json:"source"`
-	Timestamp []int     `json:"timestamp"`
-	Delay     []float64 `json:"delay"`
+	Source string       `json:"source"`
+	Data   [][2]float64 `json:"data"`
 }
 
 func queryStatsDelayByName(name string) ([]StatsDelay, error) {
@@ -232,13 +232,14 @@ func queryStatsDelayByName(name string) ([]StatsDelay, error) {
 		entry.Source = subsys
 		defer rows.Close()
 		for rows.Next() {
-			var ts int
-			var delay float64
+			var ts, delay float64
 			rows.Scan(&ts, &delay)
-			entry.Timestamp = append(entry.Timestamp, ts)
-			entry.Delay = append(entry.Delay, delay)
+			entry.Data = append(entry.Data, [2]float64{ts, delay})
 		}
-		if len(entry.Timestamp) > 0 {
+		if len(entry.Data) > 0 {
+			sort.SliceStable(entry.Data, func(i, j int) bool {
+				return entry.Data[i][0] < entry.Data[j][0]
+			})
 			stats = append(stats, entry)
 		}
 	}

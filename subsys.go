@@ -244,7 +244,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 				}()
 			}
 
-			go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, pkt.Delay)
+			go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, float64(pkt.TxTimestamp-pkt.RxTimestamp)/1000) // pkt.Delay)
 
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
@@ -258,7 +258,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					}
 				}
 			} else {
-				fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
 				if CONSOLE_ENABLED {
 					WSLog <- Log{
 						Type: WSLOG_MSG,

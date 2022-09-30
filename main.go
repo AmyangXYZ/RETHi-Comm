@@ -16,7 +16,7 @@ import (
 const (
 	PKT_BUF_LEN         = 65535
 	GATE_NUM_SUBSYS     = 8
-	GATE_NUM_SWITCH     = 16
+	GATE_NUM_SWITCH     = 8
 	QUEUE_NUM_SWITCH    = 8
 	QUEUE_LEN_SWITCH    = 1024
 	SAVE_STATS_PERIOD   = 10 // in seconds
@@ -51,7 +51,7 @@ type PktTx struct {
 var (
 	ASN                             = 0
 	HYPER_PERIOD                    = 100
-	SLOT_DURATION     time.Duration = 100 // us, interval of ASN incremental
+	SLOT_DURATION     time.Duration = 1 // us, interval of ASN incremental
 	ANIMATION_ENABLED               = false
 	CONSOLE_ENABLED                 = false
 	DELAY_ENABLED                   = false

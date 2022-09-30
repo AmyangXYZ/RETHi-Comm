@@ -146,19 +146,16 @@ export default {
           top: "10%",
           bottom: "25%",
           right: "5%",
-          left: "5%",
-        },
-        legend: {
-          data: [] 
+          left: "10%",
         },
         dataZoom: [
           {
             type: "inside",
-            start: 0,
+            start: 50,
             end: 100,
           },
           {
-            start: 0,
+            start: 50,
             end: 100,
             handleIcon:
               "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
@@ -179,7 +176,7 @@ export default {
         yAxis: {
           name: "Delay",
           type: "value",
-          boundaryGap: ["0%", "10%"],
+          // boundaryGap: ["0%", "10%"],
           // min: 0,
         },
         series: [
@@ -221,34 +218,26 @@ export default {
     drawStatsDelay() {
        this.$api.get("/api/stats/"+this.selectedNode+"/delay")
       .then((res)=>{
-        for (var s=0;s<this.optionDelay.series.length;s++) {
-          this.optionDelay.series[s].data = []
-        }
-        window.console.log(this.optionDelay.series)
-        this.optionDelay.legend.data = []
+        this.optionDelay.series = []
         if (res.data.flag==0) return       
         if (this.selectedNode!="GCC") {
           this.optionDelay.yAxis.name = "Delay (us)"
         }
+        var tmp = []
         for (var i=0;i<res.data.data.length;i++) {
           var entry = res.data.data[i]
           var line = {
-            name: res.data.data[i].source,
+            name: entry.source,
             type: 'line',
-            data:[],
-            
+            data:entry.data,
+            smooth:"true",
             symbol: "none",
-            animation: false
+            animation: false,
+            sampling: "average"
           }
-          for (var j=0;j<entry.timestamp.length;j++) {
-            if (entry.delay[j]<1) {
-              entry.delay[j]*=1000000
-            }
-            line.data.push([entry.timestamp[j], entry.delay[j]])
-          }
-          this.optionDelay.series.push(line)
-          this.optionDelay.legend.data.push(line.name)
+          tmp.push(line) 
         }
+        this.optionDelay.series = tmp
       })
     }
   },

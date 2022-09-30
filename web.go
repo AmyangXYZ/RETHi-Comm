@@ -70,6 +70,8 @@ func runHTTPSever() {
 	app.GET("/api/flows/start_flag", getStartedFlag)
 	app.GET("/api/flows/stop", stopFlows)
 
+	app.GET("/api/switch/:id", getSwitchSchedule)
+
 	app.POST("/api/fault/switch/:id", postFault)
 	app.OPTIONS("/api/fault/switch/:id", sgo.PreflightHandler)
 	app.GET("/api/fault/clear", clearFault)
@@ -161,6 +163,15 @@ func getFRERFlag(ctx *sgo.Context) error {
 		fmt.Println("FRER disabled")
 	}
 	return ctx.Text(200, strconv.FormatBool(ANIMATION_ENABLED))
+}
+
+func getSwitchSchedule(ctx *sgo.Context) error {
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	Switches[id].Neighbors = []string{}
+	for i := 0; i < Switches[id].gatesOutIdx; i++ {
+		Switches[id].Neighbors = append(Switches[id].Neighbors, Switches[id].gatesOut[i].Neighbor)
+	}
+	return ctx.JSON(200, 1, "success", Switches[id])
 }
 
 func getTopoTags(ctx *sgo.Context) error {

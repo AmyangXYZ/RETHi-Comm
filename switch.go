@@ -8,15 +8,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"sort"
 	"sync"
 	"time"
 )
 
-type TimeWindows struct {
+type TimeWindow struct {
 	Queue int `json:"queue"`
-	Start int `json:"start"`
-	End   int `json:"end"`
 }
 
 // Switch simulates MIMOMQ TSN switch
@@ -25,12 +24,14 @@ type Switch struct {
 	position       [2]int
 	fwdCnt         int
 	recvCnt        int
-	GCL            [GATE_NUM_SWITCH][]TimeWindows // gateid:schedule
+	GCL            [GATE_NUM_SWITCH][]TimeWindow // gateid:schedule
 	gatesIn        [GATE_NUM_SWITCH]*Gate
 	gatesOut       [GATE_NUM_SWITCH]*Gate
 	gatesInIdx     int
 	gatesOutIdx    int
+	Neighbors      []string
 	queue          [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet // priority queue
+	queueLocker    [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH]sync.Mutex
 	pktWaitlistNum [GATE_NUM_SWITCH]chan int8
 	Failed         bool
 	FailedDuration int
@@ -50,15 +51,29 @@ func NewSwitch(name string, position [2]int) *Switch {
 	var gatesOut [GATE_NUM_SWITCH]*Gate
 	var queue [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet
 	var pktWaitlistNum [GATE_NUM_SWITCH]chan int8
-	var schedule [GATE_NUM_SWITCH][]TimeWindows
+	var schedule [GATE_NUM_SWITCH][]TimeWindow
 
 	for i := 0; i < GATE_NUM_SWITCH; i++ {
 		gatesIn[i] = NewGate(i, name)
 		gatesOut[i] = NewGate(i, name)
 		pktWaitlistNum[i] = make(chan int8, 2048)
-		// schedule[i] = make([]TimeWindows, HYPER_PERIOD)
-		schedule[i] = []TimeWindows{
-			TimeWindows{Queue: 0, Start: 0, End: 50},
+		schedule[i] = make([]TimeWindow, HYPER_PERIOD)
+		// factors := []int{}
+		// for f := 2; f < HYPER_PERIOD; f++ {
+		// 	if HYPER_PERIOD%f == 0 {
+		// 		factors = append(factors, f)
+		// 	}
+		// }
+		// interval := factors[rand.Intn(len(factors))]
+		interval := 5
+		for k := 0; k < len(schedule[i]); k += interval {
+			q := int(rand.Intn(2))
+			// q := 0
+			for x := k; x < k+interval; x++ {
+				schedule[i][x] = TimeWindow{
+					Queue: q,
+				}
+			}
 		}
 	}
 
@@ -157,17 +172,13 @@ func (sw *Switch) Start() {
 				case <-sw.stopSig:
 					return
 				case <-sw.pktWaitlistNum[g.ID]:
-					slot := ASN % HYPER_PERIOD
-					window := TimeWindows{Queue: -1}
-					for _, w := range sw.GCL[g.ID] {
-						if w.Start <= slot && slot < w.End {
-							window = w
-							break
-						}
-					}
-					if window.Queue != -1 && len(sw.queue[g.ID][window.Queue]) > 0 {
+					window := sw.GCL[g.ID][ASN%HYPER_PERIOD]
+
+					if len(sw.queue[g.ID][window.Queue]) > 0 {
+						sw.queueLocker[g.ID][window.Queue].Lock()
 						pkt := sw.queue[g.ID][window.Queue][0]
 						sw.queue[g.ID][window.Queue] = sw.queue[g.ID][window.Queue][1:]
+						sw.queueLocker[g.ID][window.Queue].Unlock()
 						sw.send(pkt, g)
 					} else {
 						// continue loop
@@ -217,15 +228,19 @@ func (sw *Switch) Classify(pkt *Packet) {
 			for _, g := range gates {
 				dup := pkt.Dup()
 				// enqueue
+				sw.queueLocker[g.ID][pkt.Priority].Lock()
 				sw.queue[g.ID][dup.Priority] = append(sw.queue[g.ID][pkt.Priority], dup)
 				sw.pktWaitlistNum[g.ID] <- 1
+				sw.queueLocker[g.ID][pkt.Priority].Unlock()
 				time.Sleep(100 * time.Millisecond)
 			}
 		}
 	} else {
 		if g, err := sw.routing(pkt); err == nil {
 			// enqueue
+			sw.queueLocker[g.ID][pkt.Priority].Lock()
 			sw.queue[g.ID][pkt.Priority] = append(sw.queue[g.ID][pkt.Priority], pkt)
+			sw.queueLocker[g.ID][pkt.Priority].Unlock()
 			sw.pktWaitlistNum[g.ID] <- 1
 		} else {
 			fmt.Println(err)

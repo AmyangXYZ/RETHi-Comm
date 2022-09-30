@@ -1,7 +1,7 @@
 <template>
   <vs-card >
     <div slot="header" style="text-align: left">
-      <h3>GCL Schedule on <span style="text-decoration: underline">{{selectedNode}}</span></h3>
+      <h3>GCL Schedule on <span style="text-decoration: underline">SW{{selectedSwitchID}}</span></h3>
     </div>
     <ECharts id="sch" autoresize :options="option"/>
   </vs-card>
@@ -18,20 +18,18 @@ import "echarts/lib/component/legend";
 import "echarts/lib/component/dataZoom";
 import "echarts/lib/component/tooltip";
 
-const scheduleL2 = require("../assets/schedule_level2.json");
-
 export default {
   components: {
     ECharts,
   },
   data() {
     return {
-      selectedNode: "",
+      selectedSwitchID: 0,
       option: {
         grid: {
-          top:"13%",
+          top:"14%",
           bottom:"2%",
-          left:"4%",
+          left:"6%",
           right:"2%",
         },
         xAxis: {
@@ -49,9 +47,6 @@ export default {
           },
           axisLabel: {
             fontSize:13,
-            formatter:(item)=>{
-              return item*800
-            }
           },
           data:[],
 
@@ -59,8 +54,9 @@ export default {
         yAxis: {
           type: "category",
           name:"Ports",
+          inverse:"true",
           nameLocation:"center",
-          nameGap: 45,
+          nameGap: 70,
           nameTextStyle: {
             fontSize: 14,
             fontWeight:"600"
@@ -74,18 +70,28 @@ export default {
           data:[]
         },
         visualMap: {
-          // type:"piecewise",
-          show:false,
+          type:"piecewise",
+          // show:false,
+          splitNumber: 8,
+          precision:0,
+          inRange: {
+            color: ['darkred', 'orange', 'yellow'],
+            // symbolSize: [30, 100]
+          },
           pieces: [],
           min: 0,
-          max: 10,
+          max: 8,
           calculable: true,
           orient: 'horizontal',
           left: 'right',
           top: '-5px',
+          // left: "70%",
           textStyle: {
             fontSize:13,
           },
+          formatter: function(v1, v2) {
+            return v1
+          }
         },
         series: [
           {
@@ -109,35 +115,43 @@ export default {
       this.option.xAxis.data = []
       this.option.yAxis.data = []
       this.option.series[0].data = []
-
-      for (var i=0;i<=5000000/800;i++) {
-        this.option.xAxis.data.push(i)
-      }
-
-      for (var link in scheduleL2) {
-        var sw = link.match(/\d+/g)[0]
-        if (this.selectedNode.match(/\d+/g)[0]==sw) {
-          var port = `to ${link.match(/\d+/g)[1]}`
-          this.option.yAxis.data.push(port)
-          var windows = scheduleL2[link]
-          for (var j=0;j<windows.length;j++) {
-            var cell = windows[j]
-            for (var t=cell[1]/800;t<cell[2]/800;t++) {
-              this.option.series[0].data.push({
-                value: [t,port,cell[0]+2],
-                itemStyle: {},
-                label: {}
-              })
-            }
+      // var colors = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc']
+      // for (var a=0;a<8;a++) {
+      //   this.option.visualMap.pieces.push(
+      //     {value:a, color:colors[a]},
+      //   )
+      // }
+      this.$api.get(`/api/switch/${this.selectedSwitchID}`).
+      then((res)=>{
+        if (!res.data.flag)
+          return
+        
+        for (var t=0;t<res.data.data.GCL[0].length;t++) {
+          this.option.xAxis.data.push(t)
+        }
+        for (var i=0;i<res.data.data.Neighbors.length;i++) {
+          var gate = res.data.data.GCL[i]
+          var neighbor = `to ${res.data.data.Neighbors[i]}`
+          window.console.log(gate)
+          this.option.yAxis.data.push(neighbor)
+          for (var j=0;j<gate.length;j++) {
+            var w = gate[j]
+            this.option.series[0].data.push({
+              value:[j,neighbor,w.queue+1],
+            })
           }
         }
-      }
+      })
+    
     }
   },
   mounted() {
+    this.draw()
     this.$EventBus.$on("selectedNode", (node)=>{
-      this.selectedNode = node
-      this.draw()
+      if (node.substr(0,2)=="SW") {
+        this.selectedSwitchID = node.match(/[\d]+/)[0]
+        this.draw()
+      }
     })
   }
 }
