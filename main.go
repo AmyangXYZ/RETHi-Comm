@@ -50,7 +50,7 @@ type PktTx struct {
 
 var (
 	ASN               = 0
-	NEW_SLOT          chan int
+	NEW_SLOT_SIGNAL          chan int
 	HYPER_PERIOD                    = 100
 	SLOT_DURATION     time.Duration = 100 // us, interval of ASN incremental
 	ANIMATION_ENABLED               = false

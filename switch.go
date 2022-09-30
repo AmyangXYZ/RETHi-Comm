@@ -139,7 +139,6 @@ func NewSwitch(name string, position [2]int) *Switch {
 	// 	fmt.Println("    ", dst, p)
 	// }
 
-	go sw.Start()
 	Switches = append(Switches, sw)
 	return sw
 }
@@ -198,7 +197,7 @@ func (sw *Switch) Start() {
 				select {
 				case <-sw.stopSig:
 					return
-				case asn := <-NEW_SLOT:
+				case asn := <-NEW_SLOT_SIGNAL:
 					window := sw.GCL[g.ID][asn%HYPER_PERIOD]
 
 					if len(sw.queue[g.ID][window.Queue]) > 0 {

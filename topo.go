@@ -70,7 +70,7 @@ func loadTopo(topo TopologyData) error {
 		Subsystems = []*Subsys{}
 		Switches = []*Switch{}
 		resetASN <- true
-		close(NEW_SLOT)
+		close(NEW_SLOT_SIGNAL)
 	}
 
 	for _, n := range topo.Nodes {
@@ -88,10 +88,9 @@ func loadTopo(topo TopologyData) error {
 		}
 	}
 
-	NEW_SLOT = make(chan int, len(Switches)*GATE_NUM_SWITCH)
-
+	NEW_SLOT_SIGNAL = make(chan int, len(Switches)*GATE_NUM_SWITCH)
 	go func() {
-		time.Sleep(200 * time.Millisecond)
+		// time.Sleep(200 * time.Millisecond)
 		for {
 			select {
 			case <-resetASN:
@@ -99,12 +98,17 @@ func loadTopo(topo TopologyData) error {
 				return
 			case <-time.After(SLOT_DURATION * time.Microsecond):
 				ASN++
-				for i := 0; i < cap(NEW_SLOT); i++ {
-					NEW_SLOT <- ASN
+				for i := 0; i < cap(NEW_SLOT_SIGNAL); i++ {
+					NEW_SLOT_SIGNAL <- ASN
 				}
 			}
 		}
 	}()
+
+	for _, sw := range Switches {
+		go sw.Start()
+	}
+
 	return nil
 }
 
