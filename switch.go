@@ -67,7 +67,7 @@ func NewSwitch(name string, position [2]int) *Switch {
 		// interval := factors[rand.Intn(len(factors))]
 		interval := 5
 		for k := 0; k < len(schedule[i]); k += interval {
-			q := int(rand.Intn(2))
+			q := int(rand.Intn(4))
 			// q := 0
 			for x := k; x < k+interval; x++ {
 				schedule[i][x] = TimeWindow{
@@ -171,8 +171,8 @@ func (sw *Switch) Start() {
 				select {
 				case <-sw.stopSig:
 					return
-				case <-sw.pktWaitlistNum[g.ID]:
-					window := sw.GCL[g.ID][ASN%HYPER_PERIOD]
+				case asn := <-NEW_SLOT:
+					window := sw.GCL[g.ID][asn%HYPER_PERIOD]
 
 					if len(sw.queue[g.ID][window.Queue]) > 0 {
 						sw.queueLocker[g.ID][window.Queue].Lock()
@@ -180,9 +180,6 @@ func (sw *Switch) Start() {
 						sw.queue[g.ID][window.Queue] = sw.queue[g.ID][window.Queue][1:]
 						sw.queueLocker[g.ID][window.Queue].Unlock()
 						sw.send(pkt, g)
-					} else {
-						// continue loop
-						sw.pktWaitlistNum[g.ID] <- 1
 					}
 				}
 
@@ -230,7 +227,7 @@ func (sw *Switch) Classify(pkt *Packet) {
 				// enqueue
 				sw.queueLocker[g.ID][pkt.Priority].Lock()
 				sw.queue[g.ID][dup.Priority] = append(sw.queue[g.ID][pkt.Priority], dup)
-				sw.pktWaitlistNum[g.ID] <- 1
+				// sw.pktWaitlistNum[g.ID] <- 1
 				sw.queueLocker[g.ID][pkt.Priority].Unlock()
 				time.Sleep(100 * time.Millisecond)
 			}
@@ -241,7 +238,7 @@ func (sw *Switch) Classify(pkt *Packet) {
 			sw.queueLocker[g.ID][pkt.Priority].Lock()
 			sw.queue[g.ID][pkt.Priority] = append(sw.queue[g.ID][pkt.Priority], pkt)
 			sw.queueLocker[g.ID][pkt.Priority].Unlock()
-			sw.pktWaitlistNum[g.ID] <- 1
+			// sw.pktWaitlistNum[g.ID] <- 1
 		} else {
 			fmt.Println(err)
 		}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"time"
 )
 
 var (
@@ -68,6 +69,8 @@ func loadTopo(topo TopologyData) error {
 		Links = []*Link{}
 		Subsystems = []*Subsys{}
 		Switches = []*Switch{}
+		resetASN <- true
+		close(NEW_SLOT)
 	}
 
 	for _, n := range topo.Nodes {
@@ -84,6 +87,22 @@ func loadTopo(topo TopologyData) error {
 			Connect(n0, n1)
 		}
 	}
+
+	NEW_SLOT = make(chan int, len(Switches)*GATE_NUM_SWITCH)
+	go func() {
+		for {
+			select {
+			case <-resetASN:
+				ASN = 0
+				return
+			case <-time.After(SLOT_DURATION * time.Microsecond):
+				ASN++
+				for i := 0; i < cap(NEW_SLOT); i++ {
+					NEW_SLOT <- ASN
+				}
+			}
+		}
+	}()
 	return nil
 }
 

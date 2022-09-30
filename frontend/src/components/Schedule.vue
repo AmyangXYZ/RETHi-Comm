@@ -132,7 +132,7 @@ export default {
         for (var i=0;i<res.data.data.Neighbors.length;i++) {
           var gate = res.data.data.GCL[i]
           var neighbor = `to ${res.data.data.Neighbors[i]}`
-          window.console.log(gate)
+ 
           this.option.yAxis.data.push(neighbor)
           for (var j=0;j<gate.length;j++) {
             var w = gate[j]

@@ -49,9 +49,10 @@ type PktTx struct {
 }
 
 var (
-	ASN                             = 0
+	ASN               = 0
+	NEW_SLOT          chan int
 	HYPER_PERIOD                    = 100
-	SLOT_DURATION     time.Duration = 1 // us, interval of ASN incremental
+	SLOT_DURATION     time.Duration = 100 // us, interval of ASN incremental
 	ANIMATION_ENABLED               = false
 	CONSOLE_ENABLED                 = false
 	DELAY_ENABLED                   = false
@@ -78,6 +79,7 @@ var (
 	Switches       []*Switch
 	Links          []*Link
 	ActiveTopoTag  = ""
+	resetASN       chan bool
 )
 
 func init() {
@@ -100,12 +102,7 @@ func init() {
 	if j, err := strconv.Atoi(os.Getenv("JITTER")); err == nil {
 		JITTER_BASE = j
 	}
-	go func() {
-		for {
-			ASN++
-			time.Sleep(SLOT_DURATION * time.Microsecond)
-		}
-	}()
+	resetASN = make(chan bool)
 }
 
 func main() {

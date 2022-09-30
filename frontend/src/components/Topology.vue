@@ -833,6 +833,7 @@ export default {
         var flow = this.flows[i]
         this.pktTxAnimation(flow)
       }
+      // window.console.log(this.option.series[2].data.length)
       this.flows = []
     }
   },
