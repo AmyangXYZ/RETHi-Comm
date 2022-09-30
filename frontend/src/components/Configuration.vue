@@ -113,6 +113,29 @@
         </vs-col>
       </vs-row>
     </vs-tab>
+
+    <vs-tab index="4" label="Priorities">
+      <vs-row  vs-type="flex" vs-justify="start" vs-align="center">
+        <vs-col vs-w="3" :key="i" v-for="(s, i) in subsys">
+          <vs-row vs-align="center">
+            <vs-col vs-w="6">
+              {{s.name}}
+            </vs-col>
+            <vs-col vs-w="4" style="font-size:0.5rem">
+              <vs-input-number size="small" min="0" max="7" v-model="s.priority"/>
+            </vs-col>
+          </vs-row>
+        </vs-col>
+      </vs-row>
+      <vs-row vs-type="flex" vs-justify="center" vs-align="center">
+        <vs-col vs-w="1.1">
+          <vs-button class="priority-bts" size="medium" color="danger" type="relief"  @click="submit">Submit</vs-button>
+        </vs-col>
+        <vs-col vs-offset="0.3" vs-w="1.1">
+          <vs-button class="priority-bts" size="medium" color="primary" type="relief"  @click="reset">Reset</vs-button>
+        </vs-col>
+      </vs-row>
+    </vs-tab>
   </vs-tabs>
 </vs-card>  
 </template>
@@ -127,6 +150,19 @@ export default {
       routing:true,
       REROUTE_ENABLED:false,
       FRER_ENABLED: false,
+      subsys: [
+        { name:"GCC", priority:1},
+        { name:"HMS", priority:1},
+        { name:"STR", priority:1},
+        { name:"SPL", priority:1},
+        { name:"PWR", priority:1},
+        { name:"ECLSS", priority:1},
+        { name:"AGT", priority:1},
+        { name:"IE", priority:1},
+        { name:"EXT", priority:1},
+        { name:"DTB", priority:1},
+        { name:"COORD", priority:1},
+      ],
       configLinks: [
         {
           link: "In-habitat",
@@ -142,6 +178,19 @@ export default {
         },
       ],
     };
+  },
+  methods:{
+    distanceFormatter() {
+      return 10;
+    },
+    submit() {
+      this.$api.post("/api/priorities", this.subsys)
+    },
+    reset() {
+      for (var i=0;i<this.subsys.length;i++) {
+        this.subsys[i].priority = 1
+      }
+    }
   },
   mounted () {
     this.$api.get(`/api/frer`).
@@ -195,11 +244,6 @@ export default {
       this.$api.get(`/api/reroute/${this.REROUTE_ENABLED}`);
     }, 200),
   },
-  methods: {
-    distanceFormatter() {
-      return 10;
-    },
-  },
 };
 </script>
 
@@ -222,4 +266,7 @@ export default {
   padding-bottom: 2px;
 }
 
+.priority-bts {
+  width: 100%;
+}
 </style>

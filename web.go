@@ -65,6 +65,9 @@ func runHTTPSever() {
 	app.POST("/api/link/:name", postLink)
 	app.OPTIONS("/api/link/:name", sgo.PreflightHandler)
 
+	app.POST("/api/priorities", postPriorities)
+	app.OPTIONS("/api/priorities", sgo.PreflightHandler)
+
 	app.POST("/api/flows", postFlows)
 	app.OPTIONS("/api/flows", sgo.PreflightHandler)
 	app.GET("/api/flows/start_flag", getStartedFlag)
@@ -236,6 +239,35 @@ func postTopo(ctx *sgo.Context) error {
 	loadTopo(topo)
 	insertTopo(topo)
 	return ctx.Text(200, "")
+}
+
+type Priority struct {
+	Name     string      `json:"name"`
+	Priority json.Number `json:"priority"`
+}
+
+func postPriorities(ctx *sgo.Context) error {
+	body, err := io.ReadAll(ctx.Req.Body)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	var priorities []Priority
+	// fmt.Println(string(body))
+	if err = json.Unmarshal(body, &priorities); err != nil {
+		fmt.Println(err)
+		return err
+	}
+	for _, p := range priorities {
+		for _, s := range Subsystems {
+			if s.name == p.Name {
+				tmp, _ := p.Priority.Int64()
+				s.Priority = int(tmp)
+				break
+			}
+		}
+	}
+	return nil
 }
 
 func getStatsIOByName(ctx *sgo.Context) error {

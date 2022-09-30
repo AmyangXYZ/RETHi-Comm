@@ -35,6 +35,8 @@ type Subsys struct {
 	gatesInIdx  int
 	gatesOutIdx int
 
+	Priority int // will overwrite priority in packets
+
 	RoutingTable map[string][]RoutingEntry
 
 	SeqRecoverHistory      map[int32]bool // for frer
@@ -59,6 +61,7 @@ func NewSubsys(name string, position [2]int) *Subsys {
 		name:              name,
 		position:          position,
 		id:                subsysName2ID(name),
+		Priority:          1,
 		gatesIn:           gatesIn,
 		gatesOut:          gatesOut,
 		gatesInIdx:        -1,
@@ -172,6 +175,7 @@ func (s *Subsys) handlePacket() {
 				fmt.Println(err)
 				return
 			}
+			pkt.Priority = uint8(s.Priority)
 			pkt.Seq = getSeqNum()
 			pkt.UID = getUID()
 			pkt.RxTimestamp = time.Now().UnixNano()
@@ -275,7 +279,7 @@ func (s *Subsys) CreateFlow(dst int) {
 	pkt := &Packet{
 		Src:      uint8(s.id),
 		Dst:      uint8(dst),
-		Priority: 0,
+		Priority: uint8(s.Priority),
 		IsSim:    true,
 	}
 	var buf [64]byte
