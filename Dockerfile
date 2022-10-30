@@ -8,6 +8,7 @@ RUN go install ./... .
 FROM node:lts-alpine AS frontend-builder
 WORKDIR /app
 COPY frontend/package*.json ./
+ENV NODE_OPTIONS="--openssl-legacy-provider"
 RUN npm install
 COPY frontend/ .
 RUN npm run build
