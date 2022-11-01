@@ -209,7 +209,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			return
 		case pkt := <-inGate.Channel:
 			s.recvCnt++
-			if FRER_ENABLED {
+			if FRER_ENABLED || DUP_ELI_ENABLED {
 				// eliminate dup
 				s.SeqRecoverHistoryMutex.Lock()
 				if _, ok := s.SeqRecoverHistory[pkt.Seq]; ok {
@@ -308,7 +308,8 @@ L1:
 		if entry.NextHop[:2] == "SW" {
 			for _, swww := range Switches {
 				if REROUTE_ENABLED {
-					if swww.name == entry.NextHop && swww.Failed {
+					if swww.name == entry.NextHop &&
+						swww.Faults[FAULT_FAILURE].Happening {
 						continue L1
 					}
 				}

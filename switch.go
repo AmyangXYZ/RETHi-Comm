@@ -33,8 +33,7 @@ type Switch struct {
 	queue          [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet // priority queue
 	queueLocker    [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH]sync.Mutex
 	pktWaitlistNum [GATE_NUM_SWITCH]chan int8
-	Failed         bool
-	FailedDuration int
+	Faults         map[string]Fault
 
 	logFwdCntMutex  sync.Mutex
 	logRecvCntMutex sync.Mutex
@@ -44,6 +43,12 @@ type Switch struct {
 	RoutingTable           map[string][]RoutingEntry
 
 	stopSig chan bool
+}
+
+type Fault struct {
+	Type      string
+	Happening bool
+	Durtaion  int
 }
 
 func NewSwitch(name string, position [2]int) *Switch {
@@ -109,6 +114,7 @@ func NewSwitch(name string, position [2]int) *Switch {
 		RoutingTable:      make(map[string][]RoutingEntry),
 		SeqRecoverHistory: make(map[int32]bool),
 		stopSig:           make(chan bool),
+		Faults:            make(map[string]Fault),
 	}
 
 	for _, subsys := range Subsystems {
@@ -173,18 +179,26 @@ func (sw *Switch) Start() {
 					return
 				case pkt := <-g.Channel:
 					// sw.queue[pkt.Priority] <- pkt
+					sw.logRecvCntMutex.Lock()
+					sw.recvCnt++
+					sw.logRecvCntMutex.Unlock()
 					if ANIMATION_ENABLED {
 						WSLog <- Log{
 							Type:  WSLOG_PKT_TX,
 							PktTx: PktTx{Node: sw.name, UID: pkt.UID},
 						}
 					}
-					if !sw.Failed {
+					if !sw.Faults[FAULT_FAILURE].Happening {
+						if sw.Faults[FAULT_SLOW].Happening {
+							time.Sleep(2 * time.Second)
+						}
+						if sw.Faults[FAULT_OVERFLOW].Happening {
+							if sw.recvCnt%5 == 1 {
+								continue
+							}
+						}
 						go sw.Classify(pkt)
 					}
-					sw.logRecvCntMutex.Lock()
-					sw.recvCnt++
-					sw.logRecvCntMutex.Unlock()
 				}
 			}
 		}(inGate)
@@ -206,6 +220,15 @@ func (sw *Switch) Start() {
 						sw.queue[g.ID][window.Queue] = sw.queue[g.ID][window.Queue][1:]
 						sw.queueLocker[g.ID][window.Queue].Unlock()
 						sw.send(pkt, g)
+						if sw.Faults[FAULT_FLOODING].Happening {
+							go func() {
+								for i := 0; i < 10; i++ {
+									dup := pkt.Dup()
+									sw.send(dup, g)
+									time.Sleep(200 * time.Millisecond)
+								}
+							}()
+						}
 					}
 				}
 
@@ -231,7 +254,7 @@ func (sw *Switch) Classify(pkt *Packet) {
 		return
 	}
 
-	if FRER_ENABLED {
+	if FRER_ENABLED || DUP_ELI_ENABLED {
 		// eliminate dup
 		sw.SeqRecoverHistoryMutex.Lock()
 		if _, ok := sw.SeqRecoverHistory[pkt.Seq]; ok {
@@ -241,6 +264,8 @@ func (sw *Switch) Classify(pkt *Packet) {
 		}
 		sw.SeqRecoverHistory[pkt.Seq] = true
 		sw.SeqRecoverHistoryMutex.Unlock()
+	}
+	if FRER_ENABLED {
 		// send dup
 		if gates, err := sw.routingFRER(pkt); err == nil {
 			for _, g := range gates {
@@ -273,7 +298,7 @@ L1:
 		if entry.NextHop[:2] == "SW" {
 			for _, swww := range Switches {
 				if REROUTE_ENABLED {
-					if swww.name == entry.NextHop && swww.Failed {
+					if swww.name == entry.NextHop && swww.Faults[FAULT_FAILURE].Happening {
 						continue L1
 					}
 				}
@@ -296,7 +321,7 @@ L1:
 		if entry.NextHop[:2] == "SW" {
 			for _, swww := range Switches {
 				if REROUTE_ENABLED {
-					if swww.name == entry.NextHop && swww.Failed {
+					if swww.name == entry.NextHop && swww.Faults[FAULT_FAILURE].Happening {
 						continue L1
 					}
 				}

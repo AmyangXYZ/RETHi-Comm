@@ -20,7 +20,9 @@
           </vs-col>
           <vs-col vs-w="7">
               <vs-select class="selectbox" v-model="selectedType">
-                <vs-select-item :key="index" :value="item.value" :text="item.text" v-for="item,index in types" />
+                <div :key="index" v-for="item,index in types">
+                    <vs-select-item :value="index" :text="item" :key="index"/>
+                </div>
               </vs-select>
           </vs-col>
         </vs-row>
@@ -63,24 +65,18 @@ export default {
       affected: 1,
       duration: 30,
       switches: [],
-      types: [
-        {text:"Failure", value:0},
-        {text:"Long Delay", value:1},
-        {text:"Mis-routing", value:2},
-        {text:"Congestion", value:3},
-        {text:"Stuck", value:4},
-      ],
+      types: ["Failure","Slow","Overflow","Flooding","Mis-routing", "Async"],
     }
   },
   methods: {
     inject() {
       const params = new URLSearchParams()
-      params.append('type', this.types[this.selectedType].text)
+      params.append('type', this.types[this.selectedType])
       params.append('duration', this.duration)
       this.$api.post("/api/fault/switch/"+this.affected, params)
       this.$vs.notify({
         title:'Fault Injector',
-        text:"Inject "+this.types[this.selectedType].text+" fault on SW"+this.affected+", duration: "+this.duration+" s",
+        text:"Inject "+this.types[this.selectedType]+" fault on SW"+this.affected+", duration: "+this.duration+" s",
         color: "danger"
       })
     },

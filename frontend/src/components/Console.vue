@@ -19,7 +19,8 @@ export default {
       dropped:false,
       ws: {},
       cnt: 0,
-      log: ""
+      log: "",
+      newLogs: "",
     };
   },
   props:[
@@ -38,17 +39,15 @@ export default {
       this.ws = new WebSocket("ws://localhost:8000/ws/"+this.name)
       this.ws.onopen = () => {
         this.dropped = false
-        this.log = "[+] Console connected"
-        this.$nextTick(() => {
-          this.$refs.logs.scrollTop = this.$refs.logs.scrollHeight
-        })
+        this.newLogs = "[+] Console connected"
+
 
       }
       this.ws.onclose = () => {
         if(!this.dropped)
-          this.log+="\n[!] Connection dropped, trying to reconnect..."
+          this.newLogs+="\n[!] Connection dropped, trying to reconnect..."
         else
-          this.log+="."
+          this.newLogs+="."
         this.dropped = true
         this.$nextTick(() => {
           this.$refs.logs.scrollTop = this.$refs.logs.scrollHeight
@@ -71,10 +70,7 @@ export default {
           var date = new Date()
           var options = { hour12: false };
         
-          this.log+="\n["+date.toLocaleString('en-US', options).replace(",","")+"] "+entry.msg
-          this.$nextTick(() => {
-            this.$refs.logs.scrollTop = this.$refs.logs.scrollHeight
-          })
+          this.newLogs+="\n["+date.toLocaleString('en-US', options).replace(",","")+"] "+entry.msg
 
         }
         if(entry.type == WSLOG_STAT) {
@@ -84,10 +80,20 @@ export default {
           this.$EventBus.$emit("pkt_tx", entry["pkt_tx"])
         }
       }
+    },
+    writeLogs() {
+      this.log+=this.newLogs
+      this.$nextTick(() => {
+        this.$refs.logs.scrollTop = this.$refs.logs.scrollHeight
+      })
+      this.newLogs = ""
     }
   },
   mounted() {
     this.startWS()
+    setInterval(() => {
+      this.writeLogs()
+    }, 160);
   },
 };
 </script>

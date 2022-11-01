@@ -106,6 +106,14 @@
       </vs-row>
       <vs-row vs-type="flex" vs-justify="center">
         <vs-col vs-w="8">
+          Duplication Elimination
+        </vs-col>
+        <vs-col vs-w="3" style="font-size:0.5rem">
+          <vs-checkbox size="small" v-model="DUP_ELI_ENABLED"></vs-checkbox>
+        </vs-col>
+      </vs-row>
+      <vs-row vs-type="flex" vs-justify="center">
+        <vs-col vs-w="8">
           IEEE 802.1CB Frame Replication and Elimination for Reliability 
         </vs-col>
         <vs-col vs-w="3" style="font-size:0.5rem">
@@ -150,6 +158,7 @@ export default {
       routing:true,
       REROUTE_ENABLED:false,
       FRER_ENABLED: false,
+      DUP_ELI_ENABLED: false,
       subsys: [
         { name:"GCC", priority:1},
         { name:"HMS", priority:1},
@@ -239,6 +248,9 @@ export default {
     }, 200),
     FRER_ENABLED: debounce(function () {
       this.$api.get(`/api/frer/${this.FRER_ENABLED}`);
+    }, 200),
+    DUP_ELI_ENABLED: debounce(function () {
+      this.$api.get(`/api/dupeli/${this.DUP_ELI_ENABLED}`);
     }, 200),
     REROUTE_ENABLED: debounce(function () {
       this.$api.get(`/api/reroute/${this.REROUTE_ENABLED}`);

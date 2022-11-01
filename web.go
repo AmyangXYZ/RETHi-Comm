@@ -85,6 +85,9 @@ func runHTTPSever() {
 	app.GET("/api/reroute", getCurrentRerouteFlag)
 	app.GET("/api/reroute/:flag", getRerouteFlag)
 
+	app.GET("/api/dupeli", getCurrentDupEliFlag)
+	app.GET("/api/dupeli/:flag", getDupEliFlag)
+
 	app.GET("/api/frer", getCurrentFRERFlag)
 	app.GET("/api/frer/:flag", getFRERFlag)
 	if err := app.Run(addr); err != nil {
@@ -169,6 +172,22 @@ func getRerouteFlag(ctx *sgo.Context) error {
 		fmt.Println("REROUTE disabled")
 	}
 	return ctx.Text(200, strconv.FormatBool(REROUTE_ENABLED))
+}
+
+func getCurrentDupEliFlag(ctx *sgo.Context) error {
+	return ctx.Text(200, strconv.FormatBool(DUP_ELI_ENABLED))
+}
+
+func getDupEliFlag(ctx *sgo.Context) error {
+	flag := ctx.Param("flag")
+	if flag == "true" {
+		DUP_ELI_ENABLED = true
+		fmt.Println("DUP_ELI enabled")
+	} else {
+		DUP_ELI_ENABLED = false
+		fmt.Println("DUP_ELP disabled")
+	}
+	return ctx.Text(200, strconv.FormatBool(DUP_ELI_ENABLED))
 }
 
 func getCurrentFRERFlag(ctx *sgo.Context) error {
@@ -388,7 +407,7 @@ func postFlows(ctx *sgo.Context) error {
 
 						}(subsysName2ID(subsysList[i]), f)
 						// delay between different flows
-						time.Sleep(200 * time.Millisecond)
+						// time.Sleep(200 * time.Millisecond)
 					}
 				}
 				break
@@ -413,11 +432,19 @@ func stopFlows(ctx *sgo.Context) error {
 
 func postFault(ctx *sgo.Context) error {
 	id, _ := strconv.Atoi(ctx.Param("id"))
-	Switches[id].Failed = true
 	duration, _ := strconv.Atoi(ctx.Param("duration"))
+
+	Switches[id].Faults[ctx.Param("type")] = Fault{
+		Type:      ctx.Param("type"),
+		Happening: true,
+		Durtaion:  duration,
+	}
 	go func() {
 		time.Sleep(time.Duration(duration) * time.Second)
-		Switches[id].Failed = false
+		Switches[id].Faults[ctx.Param("type")] = Fault{
+			Type:      ctx.Param("type"),
+			Happening: false,
+		}
 	}()
 
 	fmt.Printf("Inject %s fault on SW%d, duration: %d s\n", ctx.Param("type"), id, duration)
@@ -430,7 +457,10 @@ func postFault(ctx *sgo.Context) error {
 
 func clearFault(ctx *sgo.Context) error {
 	for _, sw := range Switches {
-		sw.Failed = false
+		for k, v := range sw.Faults {
+			v.Happening = false
+			sw.Faults[k] = v
+		}
 	}
 
 	fmt.Println("Faults cleared")

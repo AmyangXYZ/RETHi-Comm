@@ -25,6 +25,10 @@ const (
 	WSLOG_MSG           = 0
 	WSLOG_STAT          = 1
 	WSLOG_PKT_TX        = 2
+	FAULT_FAILURE       = "Failure"
+	FAULT_SLOW          = "Slow"
+	FAULT_OVERFLOW      = "Overflow"
+	FAULT_FLOODING      = "Flooding"
 )
 
 // switch or subsys
@@ -50,7 +54,7 @@ type PktTx struct {
 
 var (
 	ASN               = 0
-	NEW_SLOT_SIGNAL          chan int
+	NEW_SLOT_SIGNAL   chan int
 	HYPER_PERIOD                    = 100
 	SLOT_DURATION     time.Duration = 100 // us, interval of ASN incremental
 	ANIMATION_ENABLED               = false
@@ -58,6 +62,7 @@ var (
 	DELAY_ENABLED                   = false
 	FRER_ENABLED                    = false
 	REROUTE_ENABLED                 = false
+	DUP_ELI_ENABLED                 = false
 	JITTER_BASE                     = 0
 	boottime          int64
 	WSLog             = make(chan Log, 65536)
