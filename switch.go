@@ -70,36 +70,32 @@ func NewSwitch(name string, position [2]int) *Switch {
 		// 	}
 		// }
 		// interval := factors[rand.Intn(len(factors))]
-		interval := 4
-		for k := 0; k < len(schedule[i]); k += interval {
-
-			q := 0
-			switch r := int(rand.Intn(100)); {
-			case r < 50:
+		offset := rand.Int()
+		for k := 0; k < len(schedule[i]); k++{
+			q := rand.Int() % 8
+			if (k + offset) % 3 == 0{
 				q = 0
-			case 50 <= r && r < 75:
+			}else if (k + offset) % 7 == 0{
 				q = 1
-			case 75 <= r && r < 87:
+			}else if (k + offset) % 8 == 0{
 				q = 2
-			case 87 <= r && r < 92:
+			}else if (k + offset) % 11 == 0{
 				q = 3
-			case 92 <= r && r < 95:
+			}else if (k + offset) % 20 == 0{
 				q = 4
-			case 95 <= r && r < 97:
+			}else if (k + offset) % 23 == 0{
 				q = 5
-			case 97 <= r && r < 98:
+			}else if (k + offset) % 39 == 0{
 				q = 6
-			case 98 <= r && r < 99:
+			}else if (k + offset) % 47 == 0{
 				q = 7
 			}
-			// q := 0
-			for x := k; x < k+interval; x++ {
-				schedule[i][x] = TimeWindow{
+			
+			schedule[i][k] = TimeWindow{
 					Queue: q,
 				}
 			}
 		}
-	}
 
 	sw := &Switch{
 		name:              name,
