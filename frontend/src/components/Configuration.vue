@@ -3,8 +3,8 @@
   <div slot="header" style="text-align:left;">
       <h3>Configurations</h3>
     </div>
-  <vs-tabs :value="0" style="font-size:0.85rem">
-    <vs-tab index="0" label="Links">
+  <vs-tabs v-model="tabID" style="font-size:0.85rem">
+    <vs-tab index="0" label="In-Habitat Links">
       <vs-table :data="configLinks" class="links">
         <template slot="thead">
           <vs-th> Link Type</vs-th>
@@ -38,21 +38,7 @@
               {{ tr.speed }}
             </vs-td>
 
-            <vs-td :data="tr.distance" v-if="tr.link[0] == 'G'">
-              {{ wirelessDistance }} km
-              <template slot="edit">
-                <vs-row>
-                  <vs-col vs-w="12" style="text-align: center; font-size: 0.95rem">
-                    Range: 54500000 ~ 401300000 km
-                  </vs-col>
-                  <vs-col>
-                    <vs-slider text-fixed="%" v-model="tr.distance" />
-                  </vs-col>
-                </vs-row>
-              </template>
-            </vs-td>
-
-            <vs-td :data="tr.distance" v-else>
+            <vs-td :data="tr.distance">
               {{ tr.distance }} m
               <template slot="edit">
                 <vs-row>
@@ -65,16 +51,43 @@
               </template>
             </vs-td>
 
-            <vs-td :data="tr.delay" v-if="tr.link[0] == 'G'">
-              {{ wirelessDelay.toFixed(2) }} s
-            </vs-td>
-
-            <vs-td :data="tr.delay" v-else> {{ wiredDelay.toFixed(2) }} ns </vs-td>
+            <vs-td :data="tr.delay"> {{ wiredDelay.toFixed(2) }} ns </vs-td>
           </vs-tr>
         </template>
       </vs-table>
     </vs-tab>
-    <vs-tab index="1" label="Routing">
+
+    <vs-tab index="1" label="Ground-Habitat Links">
+      <div id="chart-mars-distance"></div>
+      <vs-row vs-align="center">
+        <vs-col vs-offset="0.4" vs-w="5.3">
+          <div id="chart-orbits"></div>
+        </vs-col>
+        <vs-col vs-offset="1" vs-w="5">
+          <vs-row vs-align="center">
+            <vs-col vs-offset="1" vs-w="4">
+              <h3>Run Orbits</h3>
+            </vs-col>
+            <vs-col vs-offset="0.5" vs-w="2">
+              <vs-button size="small" color="primary" :disabled="orbitsRunning" icon-pack="fas" type="relief" icon="fa-play" @click="orbitsRun"></vs-button>
+            </vs-col>
+            <vs-col vs-w="2">
+              <vs-button size="small" color="success" :disabled="!orbitsRunning" icon-pack="fas" type="relief" icon="fa-stop" @click="orbitsReset"></vs-button>
+            </vs-col>
+          </vs-row>
+          <vs-row vs-align="center" style="margin-top:20px">
+            <vs-col vs-offset="-1.5">
+              <h3>Ground-Habitat delay: {{currentMarsDelay}}s</h3>
+            </vs-col>
+            <vs-col vs-offset="2" vs-w="5" style="margin-top:10px">
+                <vs-button class="priority-bts" size="medium" color="danger" type="relief"  @click="submitMarsDelay">Submit</vs-button>
+            </vs-col>
+          </vs-row>
+        </vs-col>
+      </vs-row>
+    </vs-tab>
+
+    <vs-tab index="2" label="Routing">
       <vs-row vs-type="flex" vs-justify="center">
         <vs-col vs-w="8">
           Shortest Path Routing        
@@ -85,7 +98,7 @@
       </vs-row>
 
     </vs-tab>
-    <vs-tab index="2" label="Scheduling">
+    <vs-tab index="3" label="Scheduling">
       <vs-row vs-type="flex" vs-justify="center">
         <vs-col vs-w="8">
           MIMOMQ Prioirty Scheduling
@@ -95,7 +108,7 @@
         </vs-col>
       </vs-row>
     </vs-tab>
-    <vs-tab index="3" label="Reliability">
+    <vs-tab index="4" label="Reliability">
       <vs-row vs-type="flex" vs-justify="center">
         <vs-col vs-w="8">
           Auto Re-Reroute Upon Switch Failure
@@ -122,7 +135,7 @@
       </vs-row>
     </vs-tab>
 
-    <vs-tab index="4" label="Priorities">
+    <vs-tab index="5" label="Priorities">
       <vs-row  vs-type="flex" vs-justify="start" vs-align="center">
         <vs-col vs-w="3" :key="i" v-for="(s, i) in subsys">
           <vs-row vs-align="center">
@@ -150,10 +163,125 @@
 
 <script>
 import { debounce } from "./debounce";
+import * as echarts from "echarts";
+import mars from "./mars.json"
 
 export default {
   data() {
     return {
+      selectedDate: "2022-11-01",
+      orbitsTimer: {},
+      orbitsIdx:0,
+      orbitsRunning:false,
+      currentMarsDelay: 1,
+      chartMarsDistance: {},
+      optionMarsDistance: {
+        grid:{
+          top:"12%",
+          left:"10%",
+          right:"10%",
+          bottom:"20%"
+        },
+        tooltip: {
+          trigger: "axis"
+        },
+        xAxis:{
+          type:"time",
+          axisPointer: {
+            handle: {
+              margin: 35,
+              size:23,
+              show:true,
+            }
+          }
+        },
+        yAxis:{
+          name:"Delay (s)",
+          type:"value"
+        },
+        axisPointer: {
+          type:"line",
+          link: {
+            xAxisIndex: "all"
+          },
+          
+          value: "2022-11-04",
+          lineStyle: {
+            type:"dashed",
+            width:1.5,
+            color:'#888'
+          },
+        },
+        series:[{
+          name:"Delay",
+          type:"line",
+          symbol:"none",
+          data: [],
+          animation:false,
+        }]
+      },
+      chartOrbits:{},
+      optionOrbits:{
+        grid:{
+          top:"3%",
+          bottom:"2%",
+          left:"2%",
+          right:"2%"
+        },
+        tooltip: {
+          trigger: "axis"
+        },
+        xAxis:{
+          type:"value",
+          axisLabel:{
+            show:false
+          }
+        },
+        yAxis:{
+          type:"value",
+          axisLabel:{
+            show:false
+          }
+        },
+        series:[
+          {
+            name:"mars-orbit",
+            type:"line",
+            symbol: "none",
+            // lineStyle: {type:"dashed"},
+            color:"grey",
+            data: [],
+            animation:false,
+          },
+          {
+            name:"earth-orbit",
+            type:"line",
+            color:"grey",
+            // lineStyle: {type:"dashed"},
+            symbol: "none",
+            data: [],
+            animation:false,
+          },
+          {
+            name:"mars",
+            type:"scatter",
+            symbolSize:12,
+            color:"red",
+            data:[],
+            animationDurationUpdate:400,
+          },
+          {
+            name:"earth",
+            color:"#5470c6",
+            type:"scatter",
+            symbolSize:12*1.5,
+            data:[],
+            animationDurationUpdate:400
+          }
+        ]
+      },
+      dateIdxMap:{},
+      tabID: 0,
       mimomq:true,
       routing:true,
       REROUTE_ENABLED:false,
@@ -179,16 +307,74 @@ export default {
           speed: ".77c",
           distance: 30,
         },
-        {
-          link: "Ground-habitat",
-          bandwidth: 2, // Kbps
-          speed: "c",
-          distance: 1, // percentage
-        },
+        // {
+        //   link: "Ground-habitat",
+        //   bandwidth: 2, // Kbps
+        //   speed: "c",
+        //   distance: 1, // percentage
+        // },
       ],
     };
   },
   methods:{
+    drawDistance() {
+      this.optionMarsDistance.series[0].data = []
+      for (let i=0;i<mars.length;i++) {
+        let point = mars[i]
+        this.dateIdxMap[point.date] = i
+        this.optionMarsDistance.series[0].data.push([point.date,point.delay])
+      }
+      this.loadPlanetsPos()
+      this.chartMarsDistance.setOption(this.optionMarsDistance)
+      this.chartMarsDistance.on('highlight', (item) => {
+        let date = this.optionMarsDistance.series[0].data[item.batch[0].dataIndex][0]
+        this.selectedDate = date
+        // console.log(date)
+      });
+    },
+    drawOrbits() {
+      for (let i=0;i<2;i++) {
+        this.optionOrbits.series[i].data = []
+      }
+      
+      for (let i=0;i<mars.length;i++) {
+        let point = mars[i]
+        this.optionOrbits.series[0].data.push([point.mars[0],point.mars[1]])
+        this.optionOrbits.series[1].data.push([point.earth[0],point.earth[1]])
+      }
+      this.chartOrbits.setOption(this.optionOrbits)
+    },
+    loadPlanetsPos() {
+      let point = mars[this.dateIdxMap[this.selectedDate]]
+      this.optionOrbits.series[2].data = [[point.mars[0],point.mars[1]]]
+      this.optionOrbits.series[3].data = [[point.earth[0],point.earth[1]]]
+    
+      this.chartOrbits.setOption(this.optionOrbits)
+    },
+    orbitsPtrInc() {
+      this.selectedDate = mars[this.orbitsIdx].date
+      this.orbitsIdx++
+    },
+    orbitsRun() {
+      this.orbitsRunning = true
+      this.optionOrbits.series[2].animationDurationUpdate = 1500
+      this.optionOrbits.series[3].animationDurationUpdate = 1500
+      this.chartMarsDistance.setOption(this.optionMarsDistance)
+      this.orbitsTimer = setInterval(() => {
+        this.orbitsPtrInc()
+      }, 250);
+    },
+    orbitsReset() {
+      this.orbitsRunning = false
+      this.optionOrbits.series[2].animationDurationUpdate = 400
+      this.optionOrbits.series[3].animationDurationUpdate = 400
+      this.selectedDate = "2022-11-01"
+      this.chartMarsDistance.setOption(this.optionMarsDistance)
+      clearInterval(this.orbitsTimer)
+    },
+    submitMarsDelay() {
+      this.$api.get("/api/mars/"+this.currentMarsDelay)
+    },
     distanceFormatter() {
       return 10;
     },
@@ -203,31 +389,20 @@ export default {
   },
   mounted () {
     this.$api.get(`/api/frer`).
-    then((res)=>{
-      this.FRER_ENABLED = Boolean(res.data)
-    })
-    this.$api.get(`/api/reroute`).
-    then((res)=>{
-      this.REROUTE_ENABLED = Boolean(res.data)
+      then((res)=>{
+        this.FRER_ENABLED = Boolean(res.data)
+      })
+      this.$api.get(`/api/reroute`).
+      then((res)=>{
+        this.REROUTE_ENABLED = Boolean(res.data)
     })
   },
   computed: {
-    wirelessDistance: function () {
-      return Math.round(
-        54500000 + (this.configLinks[1].distance / 100) * (401300000 - 54500000)
-      );
-    },
     wiredDelay: function () {
       return (
         (this.configLinks[0].distance / (300000000 * 0.77) +
          800 / (this.configLinks[0].bandwidth * 1024 * 1024 * 1024)) *
         1000000000
-      );
-    },
-    wirelessDelay: function () {
-      return (
-        this.wirelessDistance / 300000 +
-        800 / (this.configLinks[1].bandwidth * 1024 * 1024)
       );
     },
   },
@@ -239,13 +414,29 @@ export default {
       params.append('bandwidth', this.configLinks[0].bandwidth)
       this.$api.post('/api/links', params);
     }, 200),
-    wirelessDelay: debounce(function () {
-      const params = new URLSearchParams()
-      params.append('type', 'wireless')
-      params.append('distance', this.wirelessDistance*1000)
-      params.append('bandwidth', this.configLinks[1].bandwidth)
-      this.$api.post('/api/links', params);
-    }, 200),
+    tabID: debounce(function (id) {
+      if (id==1) {
+        this.chartMarsDistance = echarts.init(document.getElementById("chart-mars-distance"))
+        this.chartOrbits = echarts.init(document.getElementById("chart-orbits"))
+
+        this.drawDistance()
+        this.drawOrbits()
+        this.currentMarsDelay = parseInt(mars[this.dateIdxMap[this.selectedDate]].delay)
+      }
+    }, 100),
+    selectedDate: debounce(function () {
+      this.loadPlanetsPos()
+      this.currentMarsDelay = parseInt(mars[this.dateIdxMap[this.selectedDate]].delay)
+      this.optionMarsDistance.xAxis.axisPointer.value = this.selectedDate
+      this.chartMarsDistance.setOption(this.optionMarsDistance)
+    }, 50),
+    // wirelessDelay: debounce(function () {
+    //   const params = new URLSearchParams()
+    //   params.append('type', 'wireless')
+    //   params.append('distance', this.wirelessDistance*1000)
+    //   params.append('bandwidth', this.configLinks[1].bandwidth)
+    //   this.$api.post('/api/links', params);
+    // }, 200),
     FRER_ENABLED: debounce(function () {
       this.$api.get(`/api/frer/${this.FRER_ENABLED}`);
     }, 200),
@@ -260,6 +451,7 @@ export default {
 </script>
 
 <style scoped>
+
 .links {
   text-align: left;
 }
@@ -267,15 +459,14 @@ export default {
   font-size: 0.85rem;
 }
 
-.addr {
-  text-align: left;
+#chart-mars-distance {
+  width:100%;
+  height: 240px;
 }
-.addr td {
-  font-size: 0.85rem;
-}
-.addr .vs-table--tbody-table .tr-values td {
-  padding-top: 2px;
-  padding-bottom: 2px;
+
+#chart-orbits {
+  width:100%;
+  height: 300px;
 }
 
 .priority-bts {

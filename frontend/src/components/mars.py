@@ -1,6 +1,4 @@
-#Author: KC Shasteen
 #Title: Earth-Mars Transmission Delay program
-#Date: 7/18/2021
 #Purpose: This program contains functions meant to be used on an email sever for a Mars analog.  
 # These functions will allow the server to calculate the Earth-Mars communications delay for any given 
 # point in a hypothetical mission context.  This delay can then be added to a message before delevery.
@@ -11,14 +9,16 @@
 # Ephemerides are taken from NASA JPL Horizons Telnet interface for Epoch J2000.
 # Code has been ported to Python from an OpenGL model solar system implementation by same author.
 
-import numpy as np
+import numpy as np,numpy
 import math 
+import json
+from json import JSONEncoder
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import datetime
 
 #define KMOVERAU 149598000  #there are 149,598,000 km per au
-
+data = []
 #This subfunction is used to solve Keplers equation of equal areas in equal times.
 ##inputs are:
 #x, an x-coordinate within an ellipse with origin centered at the left focus and with semimajor axis along the x-axis
@@ -275,8 +275,8 @@ planets = [ ["Mercury", "CELESTIALBODY_CRATERED", 0.8, 0.8, 0.8, 58.6462, 87.969
 #returns Earth-Mars communications delay in seconds
 def getEarthMarsDelay(desiredDate=datetime.datetime.now(),showplot=False,verbose=False):
     today = datetime.date.today()
-    if verbose:
-        print("Today's date:", today)
+    #if verbose:
+        #print("Today's date:", today)
 
     epoch = datetime.datetime(2000, 1, 1, 12, 0)        # J2000 epoc, starting date for planets based on ephemerides
     #desiredDate  = datetime.datetime.now()              # Now
@@ -286,8 +286,8 @@ def getEarthMarsDelay(desiredDate=datetime.datetime.now(),showplot=False,verbose
 
     timeElapsed = delta/(24*60*60) #days since j2000 epoch
     if verbose:
-        print ("Showing planetary positions for: ", datetime.datetime(2000, 1, 1, 12, 0) + datetime.timedelta(days=timeElapsed) )
-
+        print ("Showing planetary positions for: ", datetime.datetime(2000, 1, 1, 12, 0)+ datetime.timedelta(days=timeElapsed)  )
+    date = datetime.datetime(2000, 1, 1, 12, 0)+ datetime.timedelta(days=timeElapsed)
     if showplot:
         fig = plt.figure(figsize=(9.5, 9.5))
         ax = fig.add_subplot(1, 1, (1, 2), projection='3d') #rows, columns, postion(1=top left, increases to right)
@@ -295,7 +295,7 @@ def getEarthMarsDelay(desiredDate=datetime.datetime.now(),showplot=False,verbose
         ax.plot(np.array([0,planets[3][7]]),np.array([0,0]),np.zeros(2), label='First Point of Ares')
     planetCoordsAtEllapsedTime = ([[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
 
-    for current in range (0,4,1):
+    for current in range (2,4,1):
         mlg = planets[current][12]
         loa = planets[current][11]
         inc = planets[current][10]
@@ -315,26 +315,39 @@ def getEarthMarsDelay(desiredDate=datetime.datetime.now(),showplot=False,verbose
                 coords = getOrbitalCoords(-i/size,1,sma,smb)
                 xcoord[i] = coords[0]; ycoord[i] = coords[1]
             zcoord=np.zeros(size+1)
-
+           
             #places and draws the orbits
             vecs = np.array([xcoord,ycoord,zcoord])
             newT = transformCoords(vecs,loa,inc,lop,ecc,sma)
             ax.plot(newT[0],newT[1],newT[2], label=planets[current][0],color=(planets[current][2],planets[current][3],planets[current][4]),linewidth=3)#, marker='x',markersize=16)
-
+            
         #places and draws the planets
         vecs = np.array([planetXTrans,planetYTrans,0.0])
         newT = transformCoords(vecs,loa,inc,lop,ecc,sma)
         if showplot:
             ax.plot(np.array([newT[0]]),np.array([newT[1]]),np.array([newT[2]]), marker='o',markersize=16,color=(planets[current][2],planets[current][3],planets[current][4]))
-
+        
         #stores planet positions for later use
         planetCoordsAtEllapsedTime[current] = newT
 
+        
     pcet = planetCoordsAtEllapsedTime #too long
-    if verbose:
-        for i in range (0,4):   
-            print (planets[i][0],pcet[i])
-
+    point = {
+        "date": date.strftime("%Y-%m-%d"),
+        "mars":[],
+        "earth":[],
+        "distance":0,
+        "delay":1,
+    }
+    for i in range (2,4): 
+        if planets[i][0] == "Mars":
+            point["mars"] = list(pcet[i])
+        if planets[i][0] == "Earth":
+            point["earth"] = list(pcet[i])
+            # print (planets[i][0],pcet[i])
+            #print (datetime.timedelta(days=timeElapsed))
+           
+                    
     #calculates distance and delay
     EMdist = math.sqrt((pcet[2][0]-pcet[3][0])**2+(pcet[2][1]-pcet[3][1])**2+(pcet[2][2]-pcet[3][2])**2) #in AU
     EMdistKM = EMdist*149598000 #in km; 149598000 km / au
@@ -366,6 +379,9 @@ def getEarthMarsDelay(desiredDate=datetime.datetime.now(),showplot=False,verbose
         ax.legend(framealpha=0.5)
 
         plt.show()
+    point["delay"] = EMdelay
+    point["distance"] = EMdistKM
+    data.append(point)
     return EMdelay #earth mars delay in seconds
 
 ############### Show Orbits and Time Delay ###################
@@ -377,38 +393,20 @@ getEarthMarsDelay(desiredDate,showplot=True)
 ################# End Show Orbits and Time Delay #############
 
 ############### Show Mission Profile ###################
-#This segment displays a graph showing an ideal launch window in 2033 along with a hypothetical mission profile with trajectories from:
+#This segment displays a graph showing an ideal launch window in 2019 along with a hypothetical mission profile with trajectories from:
 # Wooster et al. Trajectory Options for Human Mars Missions. American Institute of Aeronautics and Astronautics. 2006. ( https://smartech.gatech.edu/handle/1853/14747 )
-startDate = datetime.datetime.now()  #datetime.datetime(2033, 5, 1, 12, 0)
+startDate = datetime.datetime(2019, 5, 1, 12, 0)
 xarray = []
 yarray = []
-for i in range (0,34):
-    desiredDate = startDate + i*datetime.timedelta(days=30)
+for i in range (0,800):
+    desiredDate = startDate + i*datetime.timedelta(days=5)
     xarray.append(desiredDate.strftime('%m/%d/%Y'))
     delay = getEarthMarsDelay(desiredDate,showplot=False)
     yarray.append(delay)
-    #print (desiredDate,'|',delay)
-    
+    # print (desiredDate,'|',delay)
+
+print(data)
+with open("mars.json", 'w') as outfile:
+    json.dump(data, outfile)
 print (xarray)
 print (yarray)
-
-fig = plt.figure(figsize=(9.5, 9.5))
-ax = fig.add_subplot(1, 1, (1, 2)) #rows, columns, postion(1=top left, increases to right)
-
-fig.text(0.1, .92, 'Earth-Mars Signal Delay During Year 2033 Conjunction', fontsize=14)
-fig.text(0.1, .89, 'Mission profile uses 2-year free return trajectory from Wooster et al. (2006)', fontsize=12)
-ax.plot(xarray,np.array(yarray)/60,label='Earth-Mars delay [mins]')
-ax.set_xticklabels(xarray, rotation =90,fontsize=8)
-ax.axvline(x=0.0, alpha = 0.5,color='#888888') #earth departure (2 year free return trajectory)
-ax.axvline(x=3.5, alpha = 0.5,color='#888888') #mars arrival (t=105 days)
-ax.axvline(x=24.63, alpha = 0.5,color='#888888') #mars departure after 634 day stay (t = 739 days)
-ax.axvline(x=33.6, alpha = 0.5,color='#888888') #earth return 270 day return trip (t=1008 days)
-ax.text(0.00+.2, 8.5, 'Earth departure (2 year free return trajectory)', fontsize=10,rotation =90,color='#888888')
-ax.text(3.5+.2, 10.5, 'Mars arrival (t=105 days)', fontsize=10,rotation =90,color='#888888')
-ax.text(24.63+.2, 8.5, 'Mars departure after 634 day stay (t = 739 days)', fontsize=10,rotation =90,color='#888888')
-ax.text(33.6+.2, 8.5, 'Earth return 270 day return trip (t=1008 days)', fontsize=10,rotation =90,color='#888888')
-ax.set_xlabel('Date');
-ax.set_ylabel('Earth-Mars delay [mins]');
-ax.legend(framealpha=0.5)
-plt.show()
-################# End Mission Profile ##################

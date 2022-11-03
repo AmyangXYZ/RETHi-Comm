@@ -65,7 +65,7 @@ export default {
       affected: 1,
       duration: 30,
       switches: [],
-      types: ["Failure","Slow","Overflow","Flooding","Mis-routing", "Async"],
+      types: ["Failure","Slow","Overflow","Flooding","Mis-routing"],
     }
   },
   methods: {
@@ -74,11 +74,13 @@ export default {
       params.append('type', this.types[this.selectedType])
       params.append('duration', this.duration)
       this.$api.post("/api/fault/switch/"+this.affected, params)
+      let fault_log = "Inject "+this.types[this.selectedType]+" fault on SW"+this.affected+", duration: "+this.duration+" s"
       this.$vs.notify({
         title:'Fault Injector',
-        text:"Inject "+this.types[this.selectedType]+" fault on SW"+this.affected+", duration: "+this.duration+" s",
+        text: fault_log,
         color: "danger"
       })
+      this.$EventBus.$emit("fault-log",fault_log)
     },
     reset() {
       this.selectType = 0
@@ -90,6 +92,7 @@ export default {
         text:"Reset and clear all faults",
         color: "primary"
       })
+      this.$EventBus.$emit("fault-log","Reset and clear all faults")
     }
   },
   mounted() {

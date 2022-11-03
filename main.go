@@ -29,6 +29,7 @@ const (
 	FAULT_SLOW          = "Slow"
 	FAULT_OVERFLOW      = "Overflow"
 	FAULT_FLOODING      = "Flooding"
+	FAULT_MIS_ROUTING   = "Mis-routing"
 )
 
 // switch or subsys

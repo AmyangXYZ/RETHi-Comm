@@ -28,7 +28,7 @@ services:
       ADDR_REMOTE_COORD: "host.docker.internal:20010"
 
       CONSOLE_ENABLED: "true"
-      DELAY_ENABLED: "false"
+      DELAY_ENABLED: "true"
       RAND_SEED: "123"
       JITTER: "10"
       DB_DB: comm

@@ -1,9 +1,16 @@
 <template>
   <vs-card id="console">
     <div slot="header"  style="text-align:left">
-      <h3>Console</h3>
+      <h3>Logs</h3>
     </div>
-    <textarea :style="cssVars" autofocus id="logs" ref="logs" :value="log" @change="v => log = v" disabled />
+    <vs-tabs style="font-size:0.85rem">
+      <vs-tab label="Packets">
+        <textarea :style="cssVars" autofocus id="logs" ref="logs" :value="log" @change="v => log = v" disabled />
+      </vs-tab>
+      <vs-tab label="Faults">
+        <textarea :style="cssVars" autofocus id="logs" ref="logs" :value="logFaults" @change="v => logFaults = v" disabled />
+      </vs-tab>
+    </vs-tabs>
   </vs-card>
 </template>
 
@@ -20,6 +27,7 @@ export default {
       ws: {},
       cnt: 0,
       log: "",
+      logFaults: "",
       newLogs: "",
     };
   },
@@ -40,8 +48,6 @@ export default {
       this.ws.onopen = () => {
         this.dropped = false
         this.newLogs = "[+] Console connected"
-
-
       }
       this.ws.onclose = () => {
         if(!this.dropped)
@@ -94,6 +100,11 @@ export default {
     setInterval(() => {
       this.writeLogs()
     }, 160);
+    this.$EventBus.$on("fault-log",(fault_log)=>{
+      var date = new Date()
+      var options = { hour12: false };
+      this.logFaults += "["+date.toLocaleString('en-US', options).replace(",","")+"] "+fault_log+"\n"
+    })
   },
 };
 </script>

@@ -65,6 +65,8 @@ func runHTTPSever() {
 	app.POST("/api/link/:name", postLink)
 	app.OPTIONS("/api/link/:name", sgo.PreflightHandler)
 
+	app.GET("/api/mars/:delay", getMarsDelay)
+
 	app.POST("/api/priorities", postPriorities)
 	app.OPTIONS("/api/priorities", sgo.PreflightHandler)
 
@@ -334,7 +336,21 @@ func postLink(ctx *sgo.Context) error {
 	return ctx.Text(200, fmt.Sprintf("%d", boottime))
 }
 
-// set link properties
+func getMarsDelay(ctx *sgo.Context) error {
+	delay, _ := strconv.Atoi(ctx.Param("delay"))
+	for _, l := range Links {
+		if l.sender1.Owner == "GCC" || l.sender2.Owner == "GCC" {
+			b, _ := strconv.ParseFloat(ctx.Param("bandwidth"), 64)
+			l.Bandwidth = b * 1024 // in Kbps
+			d, _ := strconv.ParseFloat(ctx.Param("distance"), 64)
+			l.Distance = d // in km
+			l.HardcodedDelay = float64(delay)
+		}
+	}
+	fmt.Println("set ground-habitat delay to", delay)
+	return ctx.Text(200, "biu")
+}
+
 func postDefaultSetting(ctx *sgo.Context) error {
 	if ctx.Param("type") == "wired" {
 		for _, l := range Links {

@@ -27,9 +27,10 @@ type Link struct {
 	Speed          float64 // m/s
 	Distance       float64 // in meter
 	delay          float64
-
-	Failed  bool
-	stopSig chan bool
+	// for mars-earth
+	HardcodedDelay float64
+	Failed         bool
+	stopSig        chan bool
 }
 
 func Connect(n1, n2 Node) {
@@ -39,6 +40,7 @@ func Connect(n1, n2 Node) {
 		l.Bandwidth = BandwidthWireless
 		l.Speed = SpeedWireless
 		l.Distance = DistanceWireless
+		l.HardcodedDelay = 308
 	} else {
 		l.Bandwidth = BandwidthWire
 		l.Speed = SpeedWire
@@ -68,6 +70,10 @@ func (l *Link) computeDelay(pktSize int) {
 	// if l.Distance < 1000 { // in-habitat
 	// 	jitter = rand.ExpFloat64() * float64(JITTER_BASE) / 1000000 // us
 	// }
+	if l.HardcodedDelay > 0 {
+		l.delay = l.HardcodedDelay
+		return
+	}
 	l.delay = float64(pktSize)*8/l.Bandwidth + l.Distance/l.Speed
 	// + jitter
 	// fmt.Println("delay", l.delay)

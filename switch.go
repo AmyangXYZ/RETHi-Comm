@@ -71,31 +71,31 @@ func NewSwitch(name string, position [2]int) *Switch {
 		// }
 		// interval := factors[rand.Intn(len(factors))]
 		offset := rand.Int()
-		for k := 0; k < len(schedule[i]); k++{
+		for k := 0; k < len(schedule[i]); k++ {
 			q := rand.Int() % 8
-			if (k + offset) % 3 == 0{
+			if (k+offset)%3 == 0 {
 				q = 0
-			}else if (k + offset) % 7 == 0{
+			} else if (k+offset)%7 == 0 {
 				q = 1
-			}else if (k + offset) % 8 == 0{
+			} else if (k+offset)%8 == 0 {
 				q = 2
-			}else if (k + offset) % 11 == 0{
+			} else if (k+offset)%11 == 0 {
 				q = 3
-			}else if (k + offset) % 20 == 0{
+			} else if (k+offset)%20 == 0 {
 				q = 4
-			}else if (k + offset) % 23 == 0{
+			} else if (k+offset)%23 == 0 {
 				q = 5
-			}else if (k + offset) % 39 == 0{
+			} else if (k+offset)%39 == 0 {
 				q = 6
-			}else if (k + offset) % 47 == 0{
+			} else if (k+offset)%47 == 0 {
 				q = 7
 			}
-			
+
 			schedule[i][k] = TimeWindow{
-					Queue: q,
-				}
+				Queue: q,
 			}
 		}
+	}
 
 	sw := &Switch{
 		name:              name,
@@ -289,20 +289,42 @@ func (sw *Switch) Classify(pkt *Packet) {
 
 // find out-gate
 func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
-L1:
-	for _, entry := range sw.RoutingTable[subsysID2Name(pkt.Dst)] {
-		if entry.NextHop[:2] == "SW" {
-			for _, swww := range Switches {
-				if REROUTE_ENABLED {
-					if swww.name == entry.NextHop && swww.Faults[FAULT_FAILURE].Happening {
-						continue L1
+	if sw.Faults[FAULT_MIS_ROUTING].Happening {
+	L:
+		for i := len(sw.RoutingTable[subsysID2Name(pkt.Dst)]) - 1; i >= 0; i-- {
+			entry := sw.RoutingTable[subsysID2Name(pkt.Dst)][i]
+			if entry.NextHop[:2] == "SW" {
+				for _, swww := range Switches {
+					if REROUTE_ENABLED {
+						if swww.name == entry.NextHop && swww.Faults[FAULT_FAILURE].Happening {
+							continue L
+						}
 					}
 				}
 			}
+			for _, g := range sw.gatesOut {
+				if g.Neighbor == entry.NextHop {
+					return g, nil
+				}
+			}
 		}
-		for _, g := range sw.gatesOut {
-			if g.Neighbor == entry.NextHop {
-				return g, nil
+
+	} else {
+	L1:
+		for _, entry := range sw.RoutingTable[subsysID2Name(pkt.Dst)] {
+			if entry.NextHop[:2] == "SW" {
+				for _, swww := range Switches {
+					if REROUTE_ENABLED {
+						if swww.name == entry.NextHop && swww.Faults[FAULT_FAILURE].Happening {
+							continue L1
+						}
+					}
+				}
+			}
+			for _, g := range sw.gatesOut {
+				if g.Neighbor == entry.NextHop {
+					return g, nil
+				}
 			}
 		}
 	}
