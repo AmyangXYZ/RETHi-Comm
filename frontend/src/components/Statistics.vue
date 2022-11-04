@@ -141,6 +141,7 @@ export default {
         tooltip: {
           trigger: "axis",
         },
+        legend:{},
         grid: {
           // height: "20%",
           top: "10%",
@@ -233,7 +234,7 @@ export default {
             smooth:"true",
             symbol: "none",
             animation: false,
-            sampling: "average"
+            sampling: "average",
           }
           tmp.push(line) 
         }

@@ -322,7 +322,7 @@ export default {
       for (let i=0;i<mars.length;i++) {
         let point = mars[i]
         this.dateIdxMap[point.date] = i
-        this.optionMarsDistance.series[0].data.push([point.date,point.delay])
+        this.optionMarsDistance.series[0].data.push([point.date,parseInt(point.delay)])
       }
       this.loadPlanetsPos()
       this.chartMarsDistance.setOption(this.optionMarsDistance)

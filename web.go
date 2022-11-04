@@ -121,10 +121,10 @@ func wsComm(ctx *sgo.Context) error {
 		return err
 	}
 
-	fmt.Println("ws/comm connected")
+	// fmt.Println("ws/comm connected")
 	defer func() {
 		ws.Close()
-		fmt.Println("ws/comm client closed")
+		// fmt.Println("ws/comm client closed")
 	}()
 	go func() {
 		for {
