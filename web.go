@@ -42,7 +42,6 @@ func runHTTPSever() {
 	}()
 
 	app := sgo.New()
-	app.SetTemplates("templates", nil)
 	app.USE(middlewares.CORS(middlewares.CORSOpt{}))
 
 	app.GET("/", index)
