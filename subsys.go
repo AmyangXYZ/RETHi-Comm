@@ -123,6 +123,7 @@ func (s *Subsys) InGate() *Gate {
 	return s.gatesIn[s.gatesInIdx]
 }
 
+// Start the Subsys
 func (s *Subsys) Start() {
 	fmt.Printf("Start virtual subsys (id: %d) - %s: local_addr: %s, remote_addr: %s\n",
 		s.id, s.name, os.Getenv("ADDR_LOCAL_"+s.name), os.Getenv("ADDR_REMOTE_"+s.name))
@@ -150,6 +151,7 @@ func (s *Subsys) Start() {
 	}
 }
 
+// Stop the Subsys
 func (s *Subsys) Stop() {
 	for range s.gatesIn {
 		s.stopSig <- true // stop ingates
@@ -275,6 +277,7 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 	}
 }
 
+// create a simulated internal packet flow
 func (s *Subsys) CreateFlow(dst int) {
 	pkt := &Packet{
 		Src:      uint8(s.id),
@@ -302,6 +305,7 @@ func (s *Subsys) CreateFlow(dst int) {
 	}
 }
 
+// find the right gate to send this packet
 func (s *Subsys) routing(pkt *Packet) (*Gate, error) {
 L1:
 	for _, entry := range s.RoutingTable[subsysID2Name(pkt.Dst)] {
@@ -325,6 +329,7 @@ L1:
 	return nil, errors.New("[" + s.name + "] cannot found next hop to " + string(pkt.Dst))
 }
 
+// send a packet out from a gate
 func (s *Subsys) send(pkt *Packet, gate *Gate) {
 	// fmt.Println("sent to", gate.Neighbor)
 	pkt.Path = append(pkt.Path, s.name)

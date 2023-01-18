@@ -50,6 +50,7 @@ type Packet struct {
 	DupID       int
 }
 
+// Decode packet from received buffer
 func (pkt *Packet) FromBuf(buf []byte) error {
 	pkt.Src = uint8(buf[0])
 	pkt.Dst = uint8(buf[1])
@@ -67,6 +68,7 @@ func (pkt *Packet) FromBuf(buf []byte) error {
 	return nil
 }
 
+// Encode packet to buffer
 func (pkt *Packet) ToBuf() []byte {
 	var buf [16]byte
 	buf[0] = byte(pkt.Src)
@@ -80,7 +82,7 @@ func (pkt *Packet) ToBuf() []byte {
 	return append(buf[:], pkt.Payload...)
 }
 
-// deep copy/duplicate
+// deep copy/duplicate a packet
 func (pkt *Packet) Dup() *Packet {
 	dup := new(Packet)
 	*dup = *pkt

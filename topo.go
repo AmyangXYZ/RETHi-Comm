@@ -143,6 +143,7 @@ func (g *TopoGraph) construct(topo TopologyData) {
 	}
 }
 
+// FindAllPaths returns all paths from src to dst
 func (g *TopoGraph) FindAllPaths(src, dst string) [][]string {
 	visited := make(map[string]bool)
 	path := []string{}
@@ -154,12 +155,12 @@ func (g *TopoGraph) FindAllPaths(src, dst string) [][]string {
 	return res
 }
 
+// helper function for FindAllPaths, DFS
 func (g *TopoGraph) findPath(cur, dst string, visited map[string]bool, path []string, res *[][]string) {
 	visited[cur] = true
 	path = append(path, cur)
 
 	if cur == dst {
-		// fmt.Println(path)
 		tmp := make([]string, len(path))
 		copy(tmp, path)
 		*res = append(*res, tmp)
@@ -175,6 +176,4 @@ func (g *TopoGraph) findPath(cur, dst string, visited map[string]bool, path []st
 		}
 	}
 	visited[cur] = false
-	// path = path[:len(path)-1]
-	// fmt.Println(path)
 }

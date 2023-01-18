@@ -5,6 +5,8 @@
 // Funding Acknowledgement: Funded by the NASA RETHi Project
 package main
 
+// Send/Receive interface of switch/subsys
+// based on Go channel
 type Gate struct {
 	ID       int
 	Owner    string

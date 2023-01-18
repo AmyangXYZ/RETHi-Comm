@@ -54,20 +54,20 @@ type PktTx struct {
 }
 
 var (
-	ASN               = 0
-	NEW_SLOT_SIGNAL   chan int
+	ASN               = 0           // Absolute Slot Number for TSN schedule
+	NEW_SLOT_SIGNAL   chan int      // for slot increment of TSN schedule execution
 	HYPER_PERIOD                    = 100
-	SLOT_DURATION     time.Duration = 100 // us, interval of ASN incremental
-	ANIMATION_ENABLED               = false
-	CONSOLE_ENABLED                 = false
-	DELAY_ENABLED                   = false
-	FRER_ENABLED                    = false
-	REROUTE_ENABLED                 = false
-	DUP_ELI_ENABLED                 = false
-	JITTER_BASE                     = 0
-	boottime          int64
-	WSLog             = make(chan Log, 65536)
-	SUBSYS_MAP        = map[string]uint8{
+	SLOT_DURATION     time.Duration = 100                   // us, interval of ASN incremental
+	ANIMATION_ENABLED               = false                 // enable animation on the frontend
+	CONSOLE_ENABLED                 = false                 // enable console log on the frontend
+	DELAY_ENABLED                   = false                 // enable real delay (wall clock)
+	FRER_ENABLED                    = false                 // enable 802.1CB FRER protocol
+	REROUTE_ENABLED                 = false                 // enable rerouting upon switch failure
+	DUP_ELI_ENABLED                 = false                 // enable du
+	JITTER_BASE                     = 0                     // base (mean) value of the random jitter
+	boottime          int64                                 // system start time
+	WSLog                           = make(chan Log, 65536) // websocket logging channel
+	SUBSYS_MAP                      = map[string]uint8{     // subsystem ID table
 		"GCC":   0,
 		"HMS":   1,
 		"STR":   2,
@@ -80,8 +80,8 @@ var (
 		"EXT":   7,
 		"COORD": 10,
 	}
-	SequenceNumber int32 = 0
-	UID                  = 0
+	SequenceNumber int32 = 0 // packet sequence number
+	UID                  = 0 // packet UID
 	Subsystems     []*Subsys
 	Switches       []*Switch
 	Links          []*Link

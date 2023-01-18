@@ -32,6 +32,7 @@ var (
 	stopFlowSig    chan bool
 )
 
+// runHTTPSever starts a http server
 func runHTTPSever() {
 	// heartbeat for ws communication
 	go func() {
@@ -53,7 +54,8 @@ func runHTTPSever() {
 	app.GET("/", index)
 	// static files handler
 	app.GET("/static/*files", static)
-	//
+
+	// api handlers
 	app.GET("/api/boottime", getBootTime)
 	app.GET("/ws/comm", wsComm)
 
@@ -115,10 +117,12 @@ func static(ctx *sgo.Context) error {
 	return nil
 }
 
+// getBootTime returns the boot time of the server
 func getBootTime(ctx *sgo.Context) error {
 	return ctx.Text(200, fmt.Sprintf("%d", boottime))
 }
 
+// wsComm handles websocket communication
 func wsComm(ctx *sgo.Context) error {
 	ws, err := upgrader.Upgrade(ctx.Resp, ctx.Req, nil)
 	breakSig := make(chan bool)

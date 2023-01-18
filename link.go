@@ -15,7 +15,7 @@ var (
 	PacketLossRate    float64 = 0           // percenttge
 )
 
-// no direction
+// Emulate ethernet cables, connect two gates, no direction
 type Link struct {
 	sender1 *Gate
 	sink1   *Gate
@@ -33,6 +33,9 @@ type Link struct {
 	stopSig        chan bool
 }
 
+// Connect the gates of two nodes.
+// Each node has a used gate counter,
+// so no need to specify the gate index here
 func Connect(n1, n2 Node) {
 	l := new(Link)
 	l.PacketLossRate = 0
@@ -83,6 +86,7 @@ func (l *Link) Stop() {
 	l.stopSig <- true
 }
 
+// forward packet from one gate to the other
 func (l *Link) forward() {
 	for {
 		select {

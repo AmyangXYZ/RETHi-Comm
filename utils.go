@@ -5,9 +5,10 @@ import (
 	"time"
 )
 
-var seqNumIncMutex sync.Mutex
-var UIDIncMutex sync.Mutex
+var seqNumIncMutex sync.Mutex // for sequence number increment
+var UIDIncMutex sync.Mutex    // for packet UID increment
 
+// get the current sequence number and increment it
 func getSeqNum() int32 {
 	seqNumIncMutex.Lock()
 	tmp := SequenceNumber
@@ -16,6 +17,7 @@ func getSeqNum() int32 {
 	return tmp
 }
 
+// get the current packet UID and increment it
 func getUID() int {
 	UIDIncMutex.Lock()
 	tmp := UID
@@ -24,6 +26,7 @@ func getUID() int {
 	return tmp
 }
 
+// convert subsys id to name
 func subsysID2Name(id uint8) string {
 	for n, i := range SUBSYS_MAP {
 		if id == i {
@@ -33,10 +36,12 @@ func subsysID2Name(id uint8) string {
 	return ""
 }
 
+// convert subsys name to id
 func subsysName2ID(name string) int {
 	return int(SUBSYS_MAP[name])
 }
 
+// find node by name in Subsystems and Switches
 func findNodeByName(name string) Node {
 	for _, subsys := range Subsystems {
 		if subsys.Name() == name {
@@ -48,10 +53,10 @@ func findNodeByName(name string) Node {
 			return sw
 		}
 	}
-	// nil
 	return &Switch{name: ""}
 }
 
+// Collect statistics and send to frontend via websocket
 func collectStatistics() {
 	// save to db
 	go func() {

@@ -21,7 +21,7 @@ type TimeWindow struct {
 // Switch simulates MIMOMQ TSN switch
 type Switch struct {
 	name           string
-	position       [2]int
+	position       [2]int // position in the grid (frontend) (x, y)
 	fwdCnt         int
 	recvCnt        int
 	GCL            [GATE_NUM_SWITCH][]TimeWindow // gateid:schedule
@@ -45,12 +45,14 @@ type Switch struct {
 	stopSig chan bool
 }
 
+// Fault injected to the switch
 type Fault struct {
 	Type      string
 	Happening bool
 	Durtaion  int
 }
 
+// New switch
 func NewSwitch(name string, position [2]int) *Switch {
 	var gatesIn [GATE_NUM_SWITCH]*Gate
 	var gatesOut [GATE_NUM_SWITCH]*Gate
@@ -90,7 +92,6 @@ func NewSwitch(name string, position [2]int) *Switch {
 			} else if (k+offset)%47 == 0 {
 				q = 7
 			}
-
 			schedule[i][k] = TimeWindow{
 				Queue: q,
 			}
@@ -234,6 +235,7 @@ func (sw *Switch) Start() {
 
 }
 
+// Stop stops the switch
 func (sw *Switch) Stop() {
 	for range sw.gatesIn {
 		sw.stopSig <- true // stop ingates
@@ -332,6 +334,7 @@ func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
 	return nil, errors.New("[" + sw.name + "] cannot found next hop")
 }
 
+// routing when FRER enabled
 func (sw *Switch) routingFRER(pkt *Packet) ([]*Gate, error) {
 	gates := []*Gate{}
 L1:
@@ -360,6 +363,7 @@ L1:
 	return gates, nil
 }
 
+// Send packet to gate
 func (sw *Switch) send(pkt *Packet, gate *Gate) {
 	// fmt.Println("sent to", gate.Neighbor)
 	pkt.Path = append(pkt.Path, sw.name)
