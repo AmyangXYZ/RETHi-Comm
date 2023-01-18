@@ -160,7 +160,9 @@ func (g *TopoGraph) findPath(cur, dst string, visited map[string]bool, path []st
 
 	if cur == dst {
 		// fmt.Println(path)
-		*res = append(*res, path)
+		tmp := make([]string, len(path))
+		copy(tmp, path)
+		*res = append(*res, tmp)
 	} else {
 		for _, n := range g.Nodes {
 			if n.name == cur {

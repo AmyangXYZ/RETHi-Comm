@@ -1,3 +1,4 @@
+// Set up a Webserver to communicate with frontend
 package main
 
 import (
@@ -16,10 +17,12 @@ import (
 )
 
 const (
+	// http listening address:port
 	addr = ":8000"
 )
 
 var (
+	// websocket config
 	upgrader = websocket.Upgrader{
 		CheckOrigin:     func(r *http.Request) bool { return true },
 		ReadBufferSize:  1024,
@@ -30,6 +33,7 @@ var (
 )
 
 func runHTTPSever() {
+	// heartbeat for ws communication
 	go func() {
 		for {
 			l := Log{
@@ -42,12 +46,14 @@ func runHTTPSever() {
 	}()
 
 	app := sgo.New()
+	app.SetTemplates("templates", nil)
+	// cors middleware
 	app.USE(middlewares.CORS(middlewares.CORSOpt{}))
-
+	// home page handler
 	app.GET("/", index)
-
+	// static files handler
 	app.GET("/static/*files", static)
-
+	//
 	app.GET("/api/boottime", getBootTime)
 	app.GET("/ws/comm", wsComm)
 
