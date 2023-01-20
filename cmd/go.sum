@@ -1,0 +1,8 @@
+github.com/AmyangXYZ/rethi-comm v0.0.0-20230120020951-cf4be83bc716 h1:1Ig5bANadTOUopKerr1uS7UONnKULd9jMgI7HJOmcKA=
+github.com/AmyangXYZ/rethi-comm v0.0.0-20230120020951-cf4be83bc716/go.mod h1:vZQEyLiqFaOwGkyMoHkSk68o8OaMG3qaHyh+K+LUniU=
+github.com/AmyangXYZ/sgo v1.2.0 h1:+qaJB3eJjcmUU0ER6eZeQUvZ4qFTqlJIwWMD4y9FD4E=
+github.com/AmyangXYZ/sgo v1.2.0/go.mod h1:G90ZwTJkHDt6zp4HTkKWGZD30MoU1Kl/2tkQFIO1kog=
+github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfCHuOE=
+github.com/go-sql-driver/mysql v1.6.0/go.mod h1:DCzpHaOWr8IXmIStZouvnhqoel9Qv2LBy8hT2VhHyBg=
+github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=
+github.com/gorilla/websocket v1.4.2/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
