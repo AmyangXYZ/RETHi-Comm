@@ -1,12 +1,4 @@
-// Purpose: The virtual subsys in this model, running UDP Subsys to receive packets from subsystems, and
-//
-//	send back to their UDP servers.
-//
-// Date Created: 15 Apr 2021
-// Date Last Modified: 17 Apr 2021
-// Modeler Name: Jiachen Wang (UConn)
-// Funding Acknowledgement: Funded by the NASA RETHi Project
-package main
+package comm
 
 import (
 	"errors"
@@ -18,7 +10,8 @@ import (
 	"time"
 )
 
-// Subsys listens and forward UDP packets from each subsystem
+// Subsys is the virtual node that represents a subsystem,
+// it communicates with outside real subsystem and pass packets to TSN switches
 type Subsys struct {
 	name     string
 	position [2]int

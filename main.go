@@ -1,9 +1,7 @@
-// Purpose: Run the communication network to forward packets from different subsystems
-// Date Created: 15 Apr 2021
-// Date Last Modified: 17 Apr 2021
-// Modeler Name: Jiachen Wang (UConn)
-// Funding Acknowledgement: Funded by the NASA RETHi Project
-package main
+package comm
+
+// Communication Network Emulator for NASA RETHi project
+// Based on Time-Sensitive Networking
 
 import (
 	"fmt"

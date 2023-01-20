@@ -1,9 +1,4 @@
-// Purpose: Define the gate of TSN switches, connecting switches and servers.
-// Date Created: 15 Apr 2021
-// Date Last Modified: 17 Apr 2021
-// Modeler Name: Jiachen Wang (UConn)
-// Funding Acknowledgement: Funded by the NASA RETHi Project
-package main
+package comm
 
 // Send/Receive interface of switch/subsys
 // based on Go channel

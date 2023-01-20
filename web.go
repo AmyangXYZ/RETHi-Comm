@@ -1,5 +1,4 @@
-// Set up a Webserver to communicate with frontend
-package main
+package comm
 
 import (
 	"encoding/json"

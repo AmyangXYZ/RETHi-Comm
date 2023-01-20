@@ -1,9 +1,4 @@
-// Purpose: Simulate TSN switches, include scheduling, queueing and routing functions.
-// Date Created: 15 Apr 2021
-// Date Last Modified: 17 Apr 2021
-// Modeler Name: Jiachen Wang (UConn)
-// Funding Acknowledgement: Funded by the NASA RETHi Project
-package main
+package comm
 
 import (
 	"errors"
