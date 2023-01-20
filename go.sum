@@ -1,3 +1,5 @@
+github.com/AmyangXYZ/RETHi-Comm v0.0.0-20230120014514-06c31d8bffbb h1:qDT5yflVuJupDXuhhOEAm5so+qede4opxtS2ZUnmLTw=
+github.com/AmyangXYZ/RETHi-Comm v0.0.0-20230120014514-06c31d8bffbb/go.mod h1:R1NweM0L9SFfXDbW5qVK8cWsfa9/rx4ZKR28FWK8QX8=
 github.com/AmyangXYZ/sgo v1.2.0 h1:+qaJB3eJjcmUU0ER6eZeQUvZ4qFTqlJIwWMD4y9FD4E=
 github.com/AmyangXYZ/sgo v1.2.0/go.mod h1:G90ZwTJkHDt6zp4HTkKWGZD30MoU1Kl/2tkQFIO1kog=
 github.com/go-sql-driver/mysql v1.6.0 h1:BCTh4TKNUYmOmMUcQ3IipzF5prigylS7XXjEkfCHuOE=
