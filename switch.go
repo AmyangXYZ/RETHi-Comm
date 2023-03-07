@@ -1,4 +1,4 @@
-package comm
+package main
 
 import (
 	"errors"
@@ -284,7 +284,6 @@ func (sw *Switch) Classify(pkt *Packet) {
 				// sw.pktWaitlistNum[g.ID] <- 1
 			} else {
 				sw.send(pkt, g)
-				fmt.Println(sw.name, "send")
 			}
 		} else {
 			fmt.Println(err)

@@ -1,4 +1,4 @@
-package comm
+package main
 
 // Send/Receive interface of switch/subsys
 // based on Go channel

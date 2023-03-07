@@ -1,6 +1,6 @@
 // Communication Network Emulator for NASA RETHi project,
 // based on Time-Sensitive Networking.
-package comm
+package main
 
 import (
 	"fmt"
@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	PKT_BUF_LEN         = 65535
+	PKT_BUF_LEN         = 8096
 	GATE_NUM_SUBSYS     = 8
 	GATE_NUM_SWITCH     = 8
 	QUEUE_NUM_SWITCH    = 8
-	QUEUE_LEN_SWITCH    = 1024
+	QUEUE_LEN_SWITCH    = 8096
 	SAVE_STATS_PERIOD   = 10 // in seconds
 	UPLOAD_STATS_PERIOD = 3  // in seconds
 	WSLOG_HEARTBEAT     = -1
@@ -61,6 +61,7 @@ var (
 	FRER_ENABLED                    = false                 // enable 802.1CB FRER protocol
 	REROUTE_ENABLED                 = false                 // enable rerouting upon switch failure
 	TAS_ENABLED                     = false                 // enable 802.1Qbv schedule
+	SAVE_STATS                      = false                 // save packet stats into db
 	DUP_ELI_ENABLED                 = false                 // enable du
 	JITTER_BASE                     = 0                     // base (mean) value of the random jitter
 	boottime          int64                                 // system start time
@@ -98,6 +99,9 @@ func init() {
 	if os.Getenv("TAS_ENABLED") == "true" {
 		TAS_ENABLED = true
 	}
+	if os.Getenv("SAVE_STATS") == "true" {
+		SAVE_STATS = true
+	}
 	if len(os.Getenv("RAND_SEED")) > 0 {
 		seed, err := strconv.Atoi(os.Getenv("RAND_SEED"))
 		if err != nil {
@@ -113,7 +117,7 @@ func init() {
 	resetASN = make(chan bool)
 }
 
-func Run() {
+func main() {
 	fmt.Println(`Start Communication Network`)
 	boottime = time.Now().Unix()
 	initTopology()

@@ -31,6 +31,7 @@ services:
       DELAY_ENABLED: "false"
       RAND_SEED: "123"
       TAS_ENABLED: "false"
+      SAVE_STATS: "false"
       JITTER: "10"
       DB_DB: comm
       DB_USER: uu

@@ -1,4 +1,4 @@
-package comm
+package main
 
 import (
 	"errors"
@@ -242,9 +242,9 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 					}
 				}()
 			}
-
-			go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, float64(pkt.TxTimestamp-pkt.RxTimestamp)/1000) // pkt.Delay)
-
+			if SAVE_STATS {
+				go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, float64(pkt.TxTimestamp-pkt.RxTimestamp)/1000) // pkt.Delay)
+			}
 			if pkt.Delay < 1 {
 				pkt.Delay *= 1000000
 				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
