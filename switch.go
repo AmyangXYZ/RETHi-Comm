@@ -223,11 +223,9 @@ func (sw *Switch) Start() {
 						}
 					}
 				}
-
 			}
 		}(outGate)
 	}
-
 }
 
 // Stop stops the switch
@@ -263,21 +261,31 @@ func (sw *Switch) Classify(pkt *Packet) {
 		if gates, err := sw.routingFRER(pkt); err == nil {
 			for _, g := range gates {
 				dup := pkt.Dup()
-				// enqueue
-				sw.queueLocker[g.ID][pkt.Priority].Lock()
-				sw.queue[g.ID][dup.Priority] = append(sw.queue[g.ID][pkt.Priority], dup)
-				// sw.pktWaitlistNum[g.ID] <- 1
-				sw.queueLocker[g.ID][pkt.Priority].Unlock()
-				time.Sleep(100 * time.Millisecond)
+				if TAS_ENABLED {
+					// enqueue
+					sw.queueLocker[g.ID][pkt.Priority].Lock()
+					sw.queue[g.ID][dup.Priority] = append(sw.queue[g.ID][pkt.Priority], dup)
+					// sw.pktWaitlistNum[g.ID] <- 1
+					sw.queueLocker[g.ID][pkt.Priority].Unlock()
+					time.Sleep(100 * time.Millisecond)
+				} else {
+					sw.send(pkt, g)
+					time.Sleep(100 * time.Millisecond)
+				}
 			}
 		}
 	} else {
 		if g, err := sw.routing(pkt); err == nil {
-			// enqueue
-			sw.queueLocker[g.ID][pkt.Priority].Lock()
-			sw.queue[g.ID][pkt.Priority] = append(sw.queue[g.ID][pkt.Priority], pkt)
-			sw.queueLocker[g.ID][pkt.Priority].Unlock()
-			// sw.pktWaitlistNum[g.ID] <- 1
+			if TAS_ENABLED {
+				// enqueue
+				sw.queueLocker[g.ID][pkt.Priority].Lock()
+				sw.queue[g.ID][pkt.Priority] = append(sw.queue[g.ID][pkt.Priority], pkt)
+				sw.queueLocker[g.ID][pkt.Priority].Unlock()
+				// sw.pktWaitlistNum[g.ID] <- 1
+			} else {
+				sw.send(pkt, g)
+				fmt.Println(sw.name, "send")
+			}
 		} else {
 			fmt.Println(err)
 		}

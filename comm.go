@@ -60,6 +60,7 @@ var (
 	DELAY_ENABLED                   = false                 // enable real delay (wall clock)
 	FRER_ENABLED                    = false                 // enable 802.1CB FRER protocol
 	REROUTE_ENABLED                 = false                 // enable rerouting upon switch failure
+	TAS_ENABLED                     = false                 // enable 802.1Qbv schedule
 	DUP_ELI_ENABLED                 = false                 // enable du
 	JITTER_BASE                     = 0                     // base (mean) value of the random jitter
 	boottime          int64                                 // system start time
@@ -93,6 +94,9 @@ func init() {
 	}
 	if os.Getenv("DELAY_ENABLED") == "true" {
 		DELAY_ENABLED = true
+	}
+	if os.Getenv("TAS_ENABLED") == "true" {
+		TAS_ENABLED = true
 	}
 	if len(os.Getenv("RAND_SEED")) > 0 {
 		seed, err := strconv.Atoi(os.Getenv("RAND_SEED"))

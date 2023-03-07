@@ -1,7 +1,7 @@
 version: "3.9"
 services:
   comm:
-    image: amyangxyz111/rethi-comm
+    image: comm
     environment:
       ADDR_LOCAL_GCC: ":10000"
       ADDR_LOCAL_HMS: ":10001"
@@ -28,8 +28,9 @@ services:
       ADDR_REMOTE_COORD: "host.docker.internal:20010"
 
       CONSOLE_ENABLED: "true"
-      DELAY_ENABLED: "true"
+      DELAY_ENABLED: "false"
       RAND_SEED: "123"
+      TAS_ENABLED: "false"
       JITTER: "10"
       DB_DB: comm
       DB_USER: uu
