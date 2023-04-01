@@ -19,15 +19,15 @@ type Switch struct {
 	position       [2]int // position in the grid (frontend) (x, y)
 	fwdCnt         int
 	recvCnt        int
-	GCL            [GATE_NUM_SWITCH][]TimeWindow // gateid:schedule
-	gatesIn        [GATE_NUM_SWITCH]*Gate
-	gatesOut       [GATE_NUM_SWITCH]*Gate
-	gatesInIdx     int
-	gatesOutIdx    int
+	GCL            [PORT_NUM_SWITCH][]TimeWindow // portid:schedule
+	portsIn        [PORT_NUM_SWITCH]*Port
+	portsOut       [PORT_NUM_SWITCH]*Port
+	portsInIdx     int
+	portsOutIdx    int
 	Neighbors      []string
-	queue          [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet // priority queue
-	queueLocker    [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH]sync.Mutex
-	pktWaitlistNum [GATE_NUM_SWITCH]chan int8
+	queue          [PORT_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet // priority queue
+	queueLocker    [PORT_NUM_SWITCH][QUEUE_NUM_SWITCH]sync.Mutex
+	pktWaitlistNum [PORT_NUM_SWITCH]chan int8
 	Faults         map[string]Fault
 
 	logFwdCntMutex  sync.Mutex
@@ -49,15 +49,15 @@ type Fault struct {
 
 // New switch
 func NewSwitch(name string, position [2]int) *Switch {
-	var gatesIn [GATE_NUM_SWITCH]*Gate
-	var gatesOut [GATE_NUM_SWITCH]*Gate
-	var queue [GATE_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet
-	var pktWaitlistNum [GATE_NUM_SWITCH]chan int8
-	var schedule [GATE_NUM_SWITCH][]TimeWindow
+	var portsIn [PORT_NUM_SWITCH]*Port
+	var portsOut [PORT_NUM_SWITCH]*Port
+	var queue [PORT_NUM_SWITCH][QUEUE_NUM_SWITCH][]*Packet
+	var pktWaitlistNum [PORT_NUM_SWITCH]chan int8
+	var schedule [PORT_NUM_SWITCH][]TimeWindow
 
-	for i := 0; i < GATE_NUM_SWITCH; i++ {
-		gatesIn[i] = NewGate(i, name)
-		gatesOut[i] = NewGate(i, name)
+	for i := 0; i < PORT_NUM_SWITCH; i++ {
+		portsIn[i] = NewPort(i, name)
+		portsOut[i] = NewPort(i, name)
 		pktWaitlistNum[i] = make(chan int8, 2048)
 		schedule[i] = make([]TimeWindow, HYPER_PERIOD)
 		// factors := []int{}
@@ -96,10 +96,10 @@ func NewSwitch(name string, position [2]int) *Switch {
 	sw := &Switch{
 		name:              name,
 		position:          position,
-		gatesIn:           gatesIn,
-		gatesOut:          gatesOut,
-		gatesInIdx:        -1,
-		gatesOutIdx:       -1,
+		portsIn:           portsIn,
+		portsOut:          portsOut,
+		portsInIdx:        -1,
+		portsOutIdx:       -1,
 		queue:             queue,
 		pktWaitlistNum:    pktWaitlistNum,
 		GCL:               schedule,
@@ -147,15 +147,15 @@ func (sw *Switch) Name() string {
 }
 
 // implement Node interface
-func (sw *Switch) OutGate() *Gate {
-	sw.gatesOutIdx++
-	return sw.gatesOut[sw.gatesOutIdx]
+func (sw *Switch) OutPort() *Port {
+	sw.portsOutIdx++
+	return sw.portsOut[sw.portsOutIdx]
 }
 
 // implement Node interface
-func (sw *Switch) InGate() *Gate {
-	sw.gatesInIdx++
-	return sw.gatesIn[sw.gatesInIdx]
+func (sw *Switch) InPort() *Port {
+	sw.portsInIdx++
+	return sw.portsIn[sw.portsInIdx]
 }
 
 // starts the switch routine
@@ -163,13 +163,13 @@ func (sw *Switch) Start() {
 	// fmt.Println("Start Switch", sw.ID)
 
 	// handle incoming packets
-	for _, inGate := range sw.gatesIn {
-		go func(g *Gate) {
+	for _, inPort := range sw.portsIn {
+		go func(p *Port) {
 			for {
 				select {
 				case <-sw.stopSig:
 					return
-				case pkt := <-g.Channel:
+				case pkt := <-p.Channel:
 					// sw.queue[pkt.Priority] <- pkt
 					sw.logRecvCntMutex.Lock()
 					sw.recvCnt++
@@ -193,30 +193,30 @@ func (sw *Switch) Start() {
 					}
 				}
 			}
-		}(inGate)
+		}(inPort)
 	}
 
-	// watch queues of each gate and send out according to the schedule
-	for _, outGate := range sw.gatesOut {
-		go func(g *Gate) {
+	// watch queues of each port and send out according to the schedule
+	for _, outPort := range sw.portsOut {
+		go func(p *Port) {
 			for {
 				select {
 				case <-sw.stopSig:
 					return
 				case asn := <-NEW_SLOT_SIGNAL:
-					window := sw.GCL[g.ID][asn%HYPER_PERIOD]
+					window := sw.GCL[p.ID][asn%HYPER_PERIOD]
 
-					if len(sw.queue[g.ID][window.Queue]) > 0 {
-						sw.queueLocker[g.ID][window.Queue].Lock()
-						pkt := sw.queue[g.ID][window.Queue][0]
-						sw.queue[g.ID][window.Queue] = sw.queue[g.ID][window.Queue][1:]
-						sw.queueLocker[g.ID][window.Queue].Unlock()
-						sw.send(pkt, g)
+					if len(sw.queue[p.ID][window.Queue]) > 0 {
+						sw.queueLocker[p.ID][window.Queue].Lock()
+						pkt := sw.queue[p.ID][window.Queue][0]
+						sw.queue[p.ID][window.Queue] = sw.queue[p.ID][window.Queue][1:]
+						sw.queueLocker[p.ID][window.Queue].Unlock()
+						sw.send(pkt, p)
 						if sw.Faults[FAULT_FLOODING].Happening {
 							go func() {
 								for i := 0; i < 10; i++ {
 									dup := pkt.Dup()
-									sw.send(dup, g)
+									sw.send(dup, p)
 									time.Sleep(200 * time.Millisecond)
 								}
 							}()
@@ -224,22 +224,22 @@ func (sw *Switch) Start() {
 					}
 				}
 			}
-		}(outGate)
+		}(outPort)
 	}
 }
 
 // Stop stops the switch
 func (sw *Switch) Stop() {
-	for range sw.gatesIn {
-		sw.stopSig <- true // stop ingates
+	for range sw.portsIn {
+		sw.stopSig <- true // stop inports
 	}
-	for range sw.gatesOut {
-		sw.stopSig <- true // stop outgates
+	for range sw.portsOut {
+		sw.stopSig <- true // stop outports
 	}
 	// fmt.Println(sw.name, "stopped")
 }
 
-// classify packet belongs to which out-gate
+// classify packet belongs to which out-port
 func (sw *Switch) Classify(pkt *Packet) {
 	if len(pkt.Path) > 20 {
 		return
@@ -258,32 +258,32 @@ func (sw *Switch) Classify(pkt *Packet) {
 	}
 	if FRER_ENABLED {
 		// send dup
-		if gates, err := sw.routingFRER(pkt); err == nil {
-			for _, g := range gates {
+		if ports, err := sw.routingFRER(pkt); err == nil {
+			for _, p := range ports {
 				dup := pkt.Dup()
 				if TAS_ENABLED {
 					// enqueue
-					sw.queueLocker[g.ID][pkt.Priority].Lock()
-					sw.queue[g.ID][dup.Priority] = append(sw.queue[g.ID][pkt.Priority], dup)
-					// sw.pktWaitlistNum[g.ID] <- 1
-					sw.queueLocker[g.ID][pkt.Priority].Unlock()
+					sw.queueLocker[p.ID][pkt.Priority].Lock()
+					sw.queue[p.ID][dup.Priority] = append(sw.queue[p.ID][pkt.Priority], dup)
+					// sw.pktWaitlistNum[p.ID] <- 1
+					sw.queueLocker[p.ID][pkt.Priority].Unlock()
 					time.Sleep(100 * time.Millisecond)
 				} else {
-					sw.send(pkt, g)
+					sw.send(pkt, p)
 					time.Sleep(100 * time.Millisecond)
 				}
 			}
 		}
 	} else {
-		if g, err := sw.routing(pkt); err == nil {
+		if p, err := sw.routing(pkt); err == nil {
 			if TAS_ENABLED {
 				// enqueue
-				sw.queueLocker[g.ID][pkt.Priority].Lock()
-				sw.queue[g.ID][pkt.Priority] = append(sw.queue[g.ID][pkt.Priority], pkt)
-				sw.queueLocker[g.ID][pkt.Priority].Unlock()
-				// sw.pktWaitlistNum[g.ID] <- 1
+				sw.queueLocker[p.ID][pkt.Priority].Lock()
+				sw.queue[p.ID][pkt.Priority] = append(sw.queue[p.ID][pkt.Priority], pkt)
+				sw.queueLocker[p.ID][pkt.Priority].Unlock()
+				// sw.pktWaitlistNum[p.ID] <- 1
 			} else {
-				sw.send(pkt, g)
+				sw.send(pkt, p)
 			}
 		} else {
 			fmt.Println(err)
@@ -291,8 +291,8 @@ func (sw *Switch) Classify(pkt *Packet) {
 	}
 }
 
-// find out-gate
-func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
+// find out-port
+func (sw *Switch) routing(pkt *Packet) (*Port, error) {
 	if sw.Faults[FAULT_MIS_ROUTING].Happening {
 	L:
 		for i := len(sw.RoutingTable[subsysID2Name(pkt.Dst)]) - 1; i >= 0; i-- {
@@ -306,9 +306,9 @@ func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
 					}
 				}
 			}
-			for _, g := range sw.gatesOut {
-				if g.Neighbor == entry.NextHop {
-					return g, nil
+			for _, p := range sw.portsOut {
+				if p.Neighbor == entry.NextHop {
+					return p, nil
 				}
 			}
 		}
@@ -325,9 +325,9 @@ func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
 					}
 				}
 			}
-			for _, g := range sw.gatesOut {
-				if g.Neighbor == entry.NextHop {
-					return g, nil
+			for _, p := range sw.portsOut {
+				if p.Neighbor == entry.NextHop {
+					return p, nil
 				}
 			}
 		}
@@ -337,8 +337,8 @@ func (sw *Switch) routing(pkt *Packet) (*Gate, error) {
 }
 
 // routing when FRER enabled
-func (sw *Switch) routingFRER(pkt *Packet) ([]*Gate, error) {
-	gates := []*Gate{}
+func (sw *Switch) routingFRER(pkt *Packet) ([]*Port, error) {
+	ports := []*Port{}
 L1:
 	for _, entry := range sw.RoutingTable[subsysID2Name(pkt.Dst)] {
 		if entry.NextHop[:2] == "SW" {
@@ -353,23 +353,23 @@ L1:
 		if entry.NextHop == pkt.Path[len(pkt.Path)-1] {
 			continue
 		}
-		for _, g := range sw.gatesOut {
-			if g.Neighbor == entry.NextHop {
-				gates = append(gates, g)
+		for _, p := range sw.portsOut {
+			if p.Neighbor == entry.NextHop {
+				ports = append(ports, p)
 			}
 		}
 	}
-	if len(gates) == 0 {
+	if len(ports) == 0 {
 		return nil, errors.New("[" + sw.name + "] cannot found next hop")
 	}
-	return gates, nil
+	return ports, nil
 }
 
-// Send packet to gate
-func (sw *Switch) send(pkt *Packet, gate *Gate) {
-	// fmt.Println("sent to", gate.Neighbor)
+// Send packet to port
+func (sw *Switch) send(pkt *Packet, port *Port) {
+	// fmt.Println("sent to", port.Neighbor)
 	pkt.Path = append(pkt.Path, sw.name)
-	gate.Channel <- pkt
+	port.Channel <- pkt
 	if ANIMATION_ENABLED {
 		WSLog <- Log{
 			Type:  WSLOG_PKT_TX,

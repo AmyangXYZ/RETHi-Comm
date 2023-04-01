@@ -88,7 +88,7 @@ func loadTopo(topo TopologyData) error {
 		}
 	}
 
-	NEW_SLOT_SIGNAL = make(chan int, len(Switches)*GATE_NUM_SWITCH)
+	NEW_SLOT_SIGNAL = make(chan int, len(Switches)*PORT_NUM_SWITCH)
 	go func() {
 		// time.Sleep(200 * time.Millisecond)
 		for {

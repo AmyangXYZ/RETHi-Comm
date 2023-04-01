@@ -23,10 +23,10 @@ type Subsys struct {
 	recvCnt int
 	fwdCnt  int
 
-	gatesIn     [GATE_NUM_SUBSYS]*Gate
-	gatesOut    [GATE_NUM_SUBSYS]*Gate
-	gatesInIdx  int
-	gatesOutIdx int
+	portsIn     [PORT_NUM_SUBSYS]*Port
+	portsOut    [PORT_NUM_SUBSYS]*Port
+	portsInIdx  int
+	portsOutIdx int
 
 	Priority int // will overwrite priority in packets
 
@@ -43,11 +43,11 @@ type Subsys struct {
 // returns a Subsys pointer
 func NewSubsys(name string, position [2]int) *Subsys {
 
-	var gatesIn [GATE_NUM_SUBSYS]*Gate
-	var gatesOut [GATE_NUM_SUBSYS]*Gate
-	for i := 0; i < GATE_NUM_SUBSYS; i++ {
-		gatesIn[i] = NewGate(i, name)
-		gatesOut[i] = NewGate(i, name)
+	var portsIn [PORT_NUM_SUBSYS]*Port
+	var portsOut [PORT_NUM_SUBSYS]*Port
+	for i := 0; i < PORT_NUM_SUBSYS; i++ {
+		portsIn[i] = NewPort(i, name)
+		portsOut[i] = NewPort(i, name)
 	}
 
 	s := &Subsys{
@@ -55,10 +55,10 @@ func NewSubsys(name string, position [2]int) *Subsys {
 		position:          position,
 		id:                subsysName2ID(name),
 		Priority:          1,
-		gatesIn:           gatesIn,
-		gatesOut:          gatesOut,
-		gatesInIdx:        -1,
-		gatesOutIdx:       -1,
+		portsIn:           portsIn,
+		portsOut:          portsOut,
+		portsInIdx:        -1,
+		portsOutIdx:       -1,
 		RoutingTable:      make(map[string][]RoutingEntry),
 		SeqRecoverHistory: make(map[int32]bool),
 		stopSig:           make(chan bool),
@@ -105,15 +105,15 @@ func (s *Subsys) Name() string {
 }
 
 // implement Node interface
-func (s *Subsys) OutGate() *Gate {
-	s.gatesOutIdx++
-	return s.gatesOut[s.gatesOutIdx]
+func (s *Subsys) OutPort() *Port {
+	s.portsOutIdx++
+	return s.portsOut[s.portsOutIdx]
 }
 
 // implement Node interface
-func (s *Subsys) InGate() *Gate {
-	s.gatesInIdx++
-	return s.gatesIn[s.gatesInIdx]
+func (s *Subsys) InPort() *Port {
+	s.portsInIdx++
+	return s.portsIn[s.portsInIdx]
 }
 
 // Start the Subsys
@@ -139,15 +139,15 @@ func (s *Subsys) Start() {
 		fmt.Println(err)
 		return
 	}
-	for _, g := range s.gatesIn {
-		go s.handleMessage(g)
+	for _, p := range s.portsIn {
+		go s.handleMessage(p)
 	}
 }
 
 // Stop the Subsys
 func (s *Subsys) Stop() {
-	for range s.gatesIn {
-		s.stopSig <- true // stop ingates
+	for range s.portsIn {
+		s.stopSig <- true // stop inports
 	}
 	s.inConn.Close() // stop udp server
 	// fmt.Println(s.name, "stopped")
@@ -184,8 +184,8 @@ func (s *Subsys) handlePacket() {
 					PktTx: PktTx{Node: s.name, UID: pkt.UID},
 				}
 			}
-			if g, err := s.routing(pkt); err == nil {
-				s.send(pkt, g)
+			if p, err := s.routing(pkt); err == nil {
+				s.send(pkt, p)
 			} else {
 				fmt.Println(err)
 			}
@@ -195,14 +195,14 @@ func (s *Subsys) handlePacket() {
 }
 
 // send internal messages from switches to outside
-func (s *Subsys) handleMessage(inGate *Gate) {
+func (s *Subsys) handleMessage(inPort *Port) {
 	// fmt.Println(s.name, "waiting msg from switches")
 	for {
 		select {
 		case <-s.stopSig:
-			// fmt.Println(s.name, "terminate an ingate goroutine")
+			// fmt.Println(s.name, "terminate an inport goroutine")
 			return
-		case pkt := <-inGate.Channel:
+		case pkt := <-inPort.Channel:
 			s.recvCnt++
 			if FRER_ENABLED || DUP_ELI_ENABLED {
 				// eliminate dup
@@ -221,14 +221,14 @@ func (s *Subsys) handleMessage(inGate *Gate) {
 			// fmt.Println(s.name, "packet send out #", pkt.Seq, pkt.TxTimestamp)
 
 			// fmt.Println(pkt.RawBytes)
-			if !pkt.IsSim {
-				go func() {
-					_, err := s.outConn.Write(pkt.RawBytes)
-					if err != nil {
-						fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
-					}
-				}()
-			}
+			// if !pkt.IsSim {
+			go func() {
+				_, err := s.outConn.Write(pkt.RawBytes)
+				if err != nil {
+					fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
+				}
+			}()
+			// }
 			if ANIMATION_ENABLED {
 				WSLog <- Log{
 					Type:  WSLOG_PKT_TX,
@@ -291,15 +291,15 @@ func (s *Subsys) CreateFlow(dst int) {
 			PktTx: PktTx{Node: s.name, UID: pkt.UID},
 		}
 	}
-	if g, err := s.routing(pkt); err == nil {
-		s.send(pkt, g)
+	if p, err := s.routing(pkt); err == nil {
+		s.send(pkt, p)
 	} else {
 		fmt.Println(err)
 	}
 }
 
-// find the right gate to send this packet
-func (s *Subsys) routing(pkt *Packet) (*Gate, error) {
+// find the right port to send this packet
+func (s *Subsys) routing(pkt *Packet) (*Port, error) {
 L1:
 	for _, entry := range s.RoutingTable[subsysID2Name(pkt.Dst)] {
 		if entry.NextHop[:2] == "SW" {
@@ -312,9 +312,9 @@ L1:
 				}
 			}
 		}
-		for _, g := range s.gatesOut {
-			if g.Neighbor == entry.NextHop {
-				return g, nil
+		for _, p := range s.portsOut {
+			if p.Neighbor == entry.NextHop {
+				return p, nil
 			}
 		}
 	}
@@ -322,11 +322,11 @@ L1:
 	return nil, errors.New("[" + s.name + "] cannot found next hop to " + string(pkt.Dst))
 }
 
-// send a packet out from a gate
-func (s *Subsys) send(pkt *Packet, gate *Gate) {
-	// fmt.Println("sent to", gate.Neighbor)
+// send a packet out from a port
+func (s *Subsys) send(pkt *Packet, port *Port) {
+	// fmt.Println("sent to", port.Neighbor)
 	pkt.Path = append(pkt.Path, s.name)
-	gate.Channel <- pkt
+	port.Channel <- pkt
 	s.logMutex.Lock()
 	s.fwdCnt++
 	s.logMutex.Unlock()

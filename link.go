@@ -15,12 +15,12 @@ var (
 	PacketLossRate    float64 = 0           // percenttge
 )
 
-// Emulate ethernet cables, connect two gates, no direction
+// Emulate ethernet cables, connect two ports, no direction
 type Link struct {
-	sender1 *Gate
-	sink1   *Gate
-	sender2 *Gate
-	sink2   *Gate
+	sender1 *Port
+	sink1   *Port
+	sender2 *Port
+	sink2   *Port
 
 	PacketLossRate float64 // percentage
 	Bandwidth      float64 // in Mbps
@@ -33,9 +33,9 @@ type Link struct {
 	stopSig        chan bool
 }
 
-// Connect the gates of two nodes.
-// Each node has a used gate counter,
-// so no need to specify the gate index here
+// Connect the ports of two nodes.
+// Each node has a used ports counter,
+// so no need to specify the port index here
 func Connect(n1, n2 Node) {
 	l := new(Link)
 	l.PacketLossRate = 0
@@ -50,13 +50,13 @@ func Connect(n1, n2 Node) {
 		l.Distance = DistanceWire
 	}
 
-	l.sender1 = n1.OutGate()
-	l.sink1 = n2.InGate()
+	l.sender1 = n1.OutPort()
+	l.sink1 = n2.InPort()
 	l.sender1.Neighbor = l.sink1.Owner
 	l.sink1.Neighbor = l.sender1.Owner
 
-	l.sender2 = n2.OutGate()
-	l.sink2 = n1.InGate()
+	l.sender2 = n2.OutPort()
+	l.sink2 = n1.InPort()
 	l.sender2.Neighbor = l.sink2.Owner
 	l.sink2.Neighbor = l.sender2.Owner
 
@@ -86,7 +86,7 @@ func (l *Link) Stop() {
 	l.stopSig <- true
 }
 
-// forward packet from one gate to the other
+// forward packet from one port to the other
 func (l *Link) forward() {
 	for {
 		select {

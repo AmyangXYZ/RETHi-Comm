@@ -12,8 +12,8 @@ import (
 
 const (
 	PKT_BUF_LEN         = 8096
-	GATE_NUM_SUBSYS     = 8
-	GATE_NUM_SWITCH     = 8
+	PORT_NUM_SUBSYS     = 8
+	PORT_NUM_SWITCH     = 8
 	QUEUE_NUM_SWITCH    = 8
 	QUEUE_LEN_SWITCH    = 8096
 	SAVE_STATS_PERIOD   = 10 // in seconds
@@ -32,8 +32,8 @@ const (
 // switch or subsys
 type Node interface {
 	Name() string
-	OutGate() *Gate // return an idle outcoming gate for connecting
-	InGate() *Gate  // return an idle incoming gate for connecting
+	OutPort() *Port // return an idle outcoming port for connecting
+	InPort() *Port  // return an idle incoming port for connecting
 	Start()
 }
 

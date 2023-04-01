@@ -219,8 +219,8 @@ func getFRERFlag(ctx *sgo.Context) error {
 func getSwitchSchedule(ctx *sgo.Context) error {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	Switches[id].Neighbors = []string{}
-	for i := 0; i < Switches[id].gatesOutIdx; i++ {
-		Switches[id].Neighbors = append(Switches[id].Neighbors, Switches[id].gatesOut[i].Neighbor)
+	for i := 0; i < Switches[id].portsOutIdx; i++ {
+		Switches[id].Neighbors = append(Switches[id].Neighbors, Switches[id].portsOut[i].Neighbor)
 	}
 	return ctx.JSON(200, 1, "success", Switches[id])
 }

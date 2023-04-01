@@ -2,7 +2,7 @@ package main
 
 // Send/Receive interface of switch/subsys
 // based on Go channel
-type Gate struct {
+type Port struct {
 	ID       int
 	Owner    string
 	Neighbor string
@@ -10,10 +10,10 @@ type Gate struct {
 	Failed   bool
 }
 
-func NewGate(id int, owner string) *Gate {
-	g := new(Gate)
-	g.ID = id
-	g.Owner = owner
-	g.Channel = make(chan *Packet, 1024)
-	return g
+func NewPort(id int, owner string) *Port {
+	p := new(Port)
+	p.ID = id
+	p.Owner = owner
+	p.Channel = make(chan *Packet, 1024)
+	return p
 }

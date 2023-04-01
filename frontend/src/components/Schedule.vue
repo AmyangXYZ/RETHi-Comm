@@ -130,12 +130,12 @@ export default {
           this.option.xAxis.data.push(t)
         }
         for (var i=0;i<res.data.data.Neighbors.length;i++) {
-          var gate = res.data.data.GCL[i]
+          var port = res.data.data.GCL[i]
           var neighbor = `to ${res.data.data.Neighbors[i]}`
  
           this.option.yAxis.data.push(neighbor)
-          for (var j=0;j<gate.length;j++) {
-            var w = gate[j]
+          for (var j=0;j<port.length;j++) {
+            var w = port[j]
             this.option.series[0].data.push({
               value:[j,neighbor,w.queue+1],
             })
