@@ -1,4 +1,6 @@
 # RETHi Communication Network Emulator
+ 
+Version 1.1 2023 annual review
 
 https://purdue.edu/rethi
 
