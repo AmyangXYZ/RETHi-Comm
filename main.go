@@ -1,6 +1,6 @@
 // Communication Network Emulator for NASA RETHi project,
 // based on Time-Sensitive Networking.
-package comm
+package main
 
 import (
 	"fmt"

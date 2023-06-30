@@ -1,4 +1,4 @@
-package comm
+package main
 
 import (
 	"errors"
@@ -17,9 +17,7 @@ type Subsys struct {
 	position [2]int
 	id       int
 	// recv conn from other node
-	inConn *net.UDPConn
-	// send conn to other node
-	outConn net.Conn
+	inConn  *net.UDPConn
 	recvCnt int
 	fwdCnt  int
 
@@ -134,11 +132,6 @@ func (s *Subsys) Start() {
 
 	go s.handlePacket()
 
-	s.outConn, err = net.Dial("udp", os.Getenv("ADDR_REMOTE_"+s.name))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	for _, p := range s.portsIn {
 		go s.handleMessage(p)
 	}
@@ -223,7 +216,12 @@ func (s *Subsys) handleMessage(inPort *Port) {
 			// fmt.Println(pkt.RawBytes)
 			// if !pkt.IsSim {
 			go func() {
-				_, err := s.outConn.Write(pkt.RawBytes)
+				outConn, err := net.Dial("udp", os.Getenv("ADDR_REMOTE_"+s.name))
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				_, err = outConn.Write(pkt.RawBytes)
 				if err != nil {
 					fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
 				}
