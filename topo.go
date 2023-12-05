@@ -54,7 +54,6 @@ func loadTopo(topo TopologyData) error {
 	fmt.Println("load topology - " + topo.Tag)
 	Graph = new(TopoGraph)
 	Graph.construct(topo)
-
 	if len(Switches) > 0 || len(Subsystems) > 0 || len(Links) > 0 {
 		// fmt.Println("stop all running nodes and links")
 		for _, l := range Links {
@@ -168,7 +167,8 @@ func (g *TopoGraph) findPath(cur, dst string, visited map[string]bool, path []st
 		for _, n := range g.Nodes {
 			if n.name == cur {
 				for _, nn := range n.neighbors {
-					if !visited[nn.name] && (nn.name[:2] == "SW" || nn.name == dst) {
+					if !visited[nn.name] && (nn.name[:2] == "SW" || nn.name == dst ||
+						((n.name == "GCC" || dst == "GCC") && nn.name == "HMS")) {
 						g.findPath(nn.name, dst, visited, path, res)
 					}
 				}

@@ -88,10 +88,6 @@ func NewSubsys(name string, position [2]int) *Subsys {
 		})
 		s.RoutingTable[subsys] = table
 	}
-	// fmt.Println(name)
-	// for dst, p := range s.RoutingTable {
-	// 	fmt.Println("    ", dst, p)
-	// }
 	go s.Start()
 	Subsystems = append(Subsystems, s)
 	return s
@@ -211,59 +207,70 @@ func (s *Subsys) handleMessage(inPort *Port) {
 			pkt.Path = append(pkt.Path, s.name)
 
 			pkt.TxTimestamp = time.Now().UnixNano()
-			// fmt.Println(s.name, "packet send out #", pkt.Seq, pkt.TxTimestamp)
 
-			// fmt.Println(pkt.RawBytes)
-			// if !pkt.IsSim {
-			go func() {
-				outConn, err := net.Dial("udp", os.Getenv("ADDR_REMOTE_"+s.name))
-				if err != nil {
+			if s.name == "HMS" &&
+				(pkt.Dst == uint8(subsysName2ID("GCC")) ||
+					(pkt.Src == uint8(subsysName2ID("GCC")) && pkt.Dst != uint8(subsysName2ID("HMS")))) {
+				if p, err := s.routing(pkt); err == nil {
+					s.send(pkt, p)
+				} else {
 					fmt.Println(err)
-					return
 				}
-				_, err = outConn.Write(pkt.RawBytes)
-				if err != nil {
-					fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
-				}
-			}()
-			// }
-			if ANIMATION_ENABLED {
-				WSLog <- Log{
-					Type:  WSLOG_PKT_TX,
-					PktTx: PktTx{Node: s.name, UID: pkt.UID},
-				}
+
+			} else {
+				// fmt.Println(s.name, "packet send out #", pkt.Seq, pkt.TxTimestamp)
+
+				// fmt.Println(pkt.RawBytes)
+				// if !pkt.IsSim {
 				go func() {
-					time.Sleep(1 * time.Second)
-					WSLog <- Log{
-						Type:  WSLOG_PKT_TX,
-						PktTx: PktTx{Node: s.name, UID: pkt.UID, Finished: true},
+					outConn, err := net.Dial("udp", os.Getenv("ADDR_REMOTE_"+s.name))
+					if err != nil {
+						fmt.Println(err)
+						return
+					}
+					_, err = outConn.Write(pkt.RawBytes)
+					if err != nil {
+						fmt.Printf("[%s] sending UDP to remote error %v\n", s.name, err)
 					}
 				}()
-			}
-			if SAVE_STATS {
-				go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, float64(pkt.TxTimestamp-pkt.RxTimestamp)/1000) // pkt.Delay)
-			}
-			if pkt.Delay < 1 {
-				pkt.Delay *= 1000000
-				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
-				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %v us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, (pkt.TxTimestamp-pkt.RxTimestamp)/1000)
-				if CONSOLE_ENABLED {
+				// }
+				if ANIMATION_ENABLED {
 					WSLog <- Log{
-						Type: WSLOG_MSG,
-						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %v us", pkt.Seq, len(pkt.RawBytes), pkt.Path, (pkt.TxTimestamp-pkt.RxTimestamp)/1000),
-						// Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+						Type:  WSLOG_PKT_TX,
+						PktTx: PktTx{Node: s.name, UID: pkt.UID},
+					}
+					go func() {
+						time.Sleep(1 * time.Second)
+						WSLog <- Log{
+							Type:  WSLOG_PKT_TX,
+							PktTx: PktTx{Node: s.name, UID: pkt.UID, Finished: true},
+						}
+					}()
+				}
+				if SAVE_STATS {
+					go saveStatsDelay(s.name, subsysID2Name(pkt.Src), pkt.Seq, float64(pkt.TxTimestamp-pkt.RxTimestamp)/1000) // pkt.Delay)
+				}
+				if pkt.Delay < 1 {
+					pkt.Delay *= 1000000
+					// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+					// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %v us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, (pkt.TxTimestamp-pkt.RxTimestamp)/1000)
+					if CONSOLE_ENABLED {
+						WSLog <- Log{
+							Type: WSLOG_MSG,
+							Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %v us", pkt.Seq, len(pkt.RawBytes), pkt.Path, (pkt.TxTimestamp-pkt.RxTimestamp)/1000),
+							// Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.3f us", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+						}
+					}
+				} else {
+					// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
+					if CONSOLE_ENABLED {
+						WSLog <- Log{
+							Type: WSLOG_MSG,
+							Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
+						}
 					}
 				}
-			} else {
-				// fmt.Printf("Pkt #%d: %d bytes, %v, delay: %.3f us\n", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay)
-				if CONSOLE_ENABLED {
-					WSLog <- Log{
-						Type: WSLOG_MSG,
-						Msg:  fmt.Sprintf("Pkt #%d: %d bytes, %v, delay: %.2f s", pkt.Seq, len(pkt.RawBytes), pkt.Path, pkt.Delay),
-					}
-				}
 			}
-
 		}
 	}
 }
