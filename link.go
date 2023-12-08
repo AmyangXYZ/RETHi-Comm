@@ -43,7 +43,7 @@ func Connect(n1, n2 Node) {
 		l.Bandwidth = BandwidthWireless
 		l.Speed = SpeedWireless
 		l.Distance = DistanceWireless
-		l.HardcodedDelay = 308
+		l.HardcodedDelay = 207
 	} else {
 		l.Bandwidth = BandwidthWire
 		l.Speed = SpeedWire
