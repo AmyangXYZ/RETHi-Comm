@@ -39,6 +39,10 @@ services:
     ports:
       - "8000:8000"
       - "10000-10010:10000-10010/udp"
+    volumes:
+      - type: bind
+        source: ./delays.json
+        target: /delays.json
     depends_on:
       - comm_db
     networks:

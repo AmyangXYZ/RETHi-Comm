@@ -56,6 +56,19 @@ func findNodeByName(name string) Node {
 	return &Switch{name: ""}
 }
 
+// Find undirected link by nodes O(E)
+func findLinkByNodes(n1, n2 Node) *Link {
+	for _, l := range Links {
+		if l.sender1.Owner == n1.Name() && l.sink1.Owner == n2.Name() {
+			return l
+		}
+		if l.sender1.Owner == n2.Name() && l.sink1.Owner == n1.Name() {
+			return l
+		}
+	}
+	return nil
+}
+
 // Collect statistics and send to frontend via websocket
 func collectStatistics() {
 	// save to db

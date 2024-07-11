@@ -51,22 +51,23 @@ type PktTx struct {
 }
 
 var (
-	ASN               = 0           // Absolute Slot Number for TSN schedule
-	NEW_SLOT_SIGNAL   chan int      // for slot increment of TSN schedule execution
-	HYPER_PERIOD                    = 100
-	SLOT_DURATION     time.Duration = 100                   // us, interval of ASN incremental
-	ANIMATION_ENABLED               = false                 // enable animation on the frontend
-	CONSOLE_ENABLED                 = false                 // enable console log on the frontend
-	DELAY_ENABLED                   = false                 // enable real delay (wall clock)
-	FRER_ENABLED                    = false                 // enable 802.1CB FRER protocol
-	REROUTE_ENABLED                 = false                 // enable rerouting upon switch failure
-	TAS_ENABLED                     = false                 // enable 802.1Qbv schedule
-	SAVE_STATS                      = false                 // save packet stats into db
-	DUP_ELI_ENABLED                 = false                 // enable du
-	JITTER_BASE                     = 0                     // base (mean) value of the random jitter
-	boottime          int64                                 // system start time
-	WSLog                           = make(chan Log, 65536) // websocket logging channel
-	SUBSYS_MAP                      = map[string]uint8{     // subsystem ID table
+	ASN                    = 0           // Absolute Slot Number for TSN schedule
+	NEW_SLOT_SIGNAL        chan int      // for slot increment of TSN schedule execution
+	HYPER_PERIOD                         = 100
+	SLOT_DURATION          time.Duration = 100                   // us, interval of ASN incremental
+	ANIMATION_ENABLED                    = false                 // enable animation on the frontend
+	CONSOLE_ENABLED                      = false                 // enable console log on the frontend
+	DELAY_ENABLED                        = false                 // enable real delay (wall clock)
+	HARDCODE_DELAY_ENABLED               = false                 // enable hardcoded delay
+	FRER_ENABLED                         = false                 // enable 802.1CB FRER protocol
+	REROUTE_ENABLED                      = false                 // enable rerouting upon switch failure
+	TAS_ENABLED                          = false                 // enable 802.1Qbv schedule
+	SAVE_STATS                           = false                 // save packet stats into db
+	DUP_ELI_ENABLED                      = false                 // enable du
+	JITTER_BASE                          = 0                     // base (mean) value of the random jitter
+	boottime               int64                                 // system start time
+	WSLog                                = make(chan Log, 65536) // websocket logging channel
+	SUBSYS_MAP                           = map[string]uint8{     // subsystem ID table
 		"GCC":   0,
 		"HMS":   1,
 		"STR":   2,

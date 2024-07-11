@@ -30,6 +30,10 @@ type TopologyNode struct {
 	Position [2]int `json:"value"`
 }
 
+type LinkDelay struct {
+	Delay map[string]map[string]int `json:"delays"`
+}
+
 func initTopology() {
 	presetTopos := []TopologyData{}
 	j, err := os.ReadFile("./topos.json")
@@ -46,6 +50,30 @@ func initTopology() {
 			ActiveTopoTag = topo.Tag
 			loadTopo(topo)
 		}
+	}
+
+	if DELAY_ENABLED {
+		j, err = os.ReadFile("/delays.json")
+		if err != nil {
+			fmt.Println("No preset link delays")
+			return
+		}
+		presetDelays := LinkDelay{}
+		if err = json.Unmarshal(j, &presetDelays); err != nil {
+			panic(err)
+		}
+
+		for srcName, dsts := range presetDelays.Delay {
+			for dstName, delay := range dsts {
+				l := findLinkByNodes(findNodeByName(srcName), findNodeByName(dstName))
+				if l != nil {
+					l.HardcodedDelay = float64(delay)
+				}
+			}
+		}
+
+		HARDCODE_DELAY_ENABLED = true
+		fmt.Println("Preset link delays enabled")
 	}
 }
 

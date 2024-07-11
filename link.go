@@ -73,7 +73,7 @@ func (l *Link) computeDelay(pktSize int) {
 	// if l.Distance < 1000 { // in-habitat
 	// 	jitter = rand.ExpFloat64() * float64(JITTER_BASE) / 1000000 // us
 	// }
-	if l.HardcodedDelay > 0 {
+	if HARDCODE_DELAY_ENABLED {
 		l.delay = l.HardcodedDelay
 		return
 	}
