@@ -1,52 +1,59 @@
 # RETHi Communication Network Emulator
- 
-Version 1.1 2023 annual review
 
-https://purdue.edu/rethi
+The RETHi Communication Network Emulator is a tool designed to simulate and test communication networks for the Resilient ExtraTerrestrial Habitats institute (RETHi) project.
 
-![](./imgs/screenshot.png)
+[![Project Website](https://img.shields.io/badge/Website-purdue.edu%2Frethi-blue)](https://purdue.edu/rethi)
 
-## Usage
+![Screenshot](./imgs/screenshot.png)
 
-`docker build -t amyangxyz111/rethi-comm . && docker compose up --force-recreate`
+## Features
 
-Change Local/Remote IP addresses and ports in the `docker-compose.yml` if necessary
+- Simulate various network conditions
+- Test communication protocols in extraterrestrial environments
+- Configurable network parameters
 
+## Prerequisites
 
-## Application-layer Protocol
+- Docker
+- Docker Compose
 
-On top of UDP
+## Quick Start
 
-```
-                    1                   2                   3
-0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      SRC      |       DST     | TYPE  | PRIO  |  VER  |  RES  |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     PHYSICAL_TIMESTAMP                        |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                     SIMULINK_TIMESTAMP                        |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            SEQUENCE           |              LEN              |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      DATA…
-+-+-+-+-+-+-+-+-+
-```
+1. Clone the repository:
 
-## Code structure
+   ```
+   git clone https://github.com/yourusername/rethi-comm-emulator.git
+   cd rethi-comm-emulator
+   ```
 
-### Backend - Golang
+2. Build and run the Docker container:
 
-- `main.go`: entry and configurations (some from env)
-- `subsys.go`: a UDP server/client represents an outside subsystem
-- `switch.go`: emulate TSN MIMOMQ switch, follows 802.1Qbv schedule
-- `gate.go`,`link.go`: emulate the gates and cables of TSN switches 
-- `topo.go`: form the topology and find routing paths
-- `packet.go`: define the app-layer protocol format
-- `db.go`: database connector, mainly for topo and statistics
-- `web.go`: set up a Web server
-- `utils.go`: utility functions
-  
-### Frontend - Vue+ECharts
+   ```
+   docker build -t amyangxyz111/rethi-comm .
+   docker compose up --force-recreate
+   ```
 
+3. Access the emulator interface at `http://localhost:8080` (or the appropriate port).
 
+## Configuration
+
+To customize the network settings:
+
+1. Open the `docker-compose.yml` file.
+2. Modify the `Local/Remote IP` addresses and ports as needed.
+3. Save the file and restart the container.
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Purdue University
+- NASA
+
+For more information, visit our [project website](https://purdue.edu/rethi).
