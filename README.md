@@ -54,6 +54,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Purdue University
+- University of Connecticut
 - NASA
 
 For more information, visit our [project website](https://purdue.edu/rethi).
